@@ -1,0 +1,7 @@
+{
+  "name": "PolleriaDylan",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

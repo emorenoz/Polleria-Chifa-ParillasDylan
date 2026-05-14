@@ -1,0 +1,49 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="danger">
+    <ion-title>
+      Pollería Dylan
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div class="login-container">
+
+    <img
+      src="https://i.postimg.cc/Twy2BRvy/logopolleriadylan.png"
+      class="logo"
+    >
+
+    <h1>Bienvenido</h1>
+    <p>Inicia sesión</p>
+
+    <ion-item>
+      <ion-label position="floating">Usuario</ion-label>
+      <ion-input
+        [(ngModel)]="usuario"
+        type="text">
+      </ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="floating">Contraseña</ion-label>
+      <ion-input
+        [(ngModel)]="password"
+        type="password">
+      </ion-input>
+    </ion-item>
+
+    <ion-button
+      expand="block"
+      color="danger"
+      class="btn-login"
+      (click)="login()">
+
+      Ingresar
+
+    </ion-button>
+
+  </div>
+
+</ion-content>
