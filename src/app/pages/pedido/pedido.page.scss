@@ -1,0 +1,328 @@
+// Paleta de Colores Básica de la marca
+$primary-orange-gradient: linear-gradient(135deg, #e62300 0%, #ff5100 100%);
+$bg-light-gray: #f8f9fa;
+$border-color: #e2e8f0;
+$text-dark: #2d3748;
+$text-muted: #718096;
+$active-red: #d32f2f;
+
+.main-content {
+  --background: #{$bg-light-gray};
+}
+
+// Cabecera Corporativa Naranja de Pollería Dylan
+.header-container {
+  background: $primary-orange-gradient;
+  padding: 20px 16px 25px 16px;
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(230, 35, 0, 0.2);
+
+  .brand-bar {
+    .brand-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: 0.5px;
+    }
+    .brand-subtitle {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      margin-top: 2px;
+      font-weight: 300;
+    }
+  }
+}
+
+// Encabezados de sección internos
+.section-header {
+  margin-top: 15px;
+  margin-bottom: 15px;
+
+  .btn-back {
+    background: transparent;
+    border: none;
+    color: $text-muted;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  h2 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: $text-dark;
+    margin: 8px 0 0 0;
+  }
+}
+
+// Estructura de las "Tarjetas Blancas" del diseño
+.custom-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.02);
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 14px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: $text-dark;
+  }
+}
+
+// Campos de entrada estilizados
+.input-group {
+  margin-bottom: 12px;
+
+  .custom-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: $text-dark;
+    outline: none;
+    background: #ffffff;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: $active-red;
+    }
+    &::placeholder {
+      color: #a0aec0;
+    }
+  }
+}
+
+// NUEVO: Transición para el campo dinámico de Dirección (Aparece suave)
+.dynamic-input-group {
+  margin-top: 14px;
+  margin-bottom: 4px;
+
+  .fade-in {
+    animation: fadeIn 0.3s ease-in-out forwards;
+  }
+}
+
+// Selectores tipo Pestaña (Recojo / Delivery)
+.delivery-toggle {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+
+  .btn-toggle {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+
+    &.active {
+      border: 1.5px solid #c53030;
+      background: rgba(229, 62, 62, 0.04);
+      color: #c53030;
+    }
+  }
+}
+
+// NUEVO: Botón Registrar Pedido (Abajo de recojo/delivery)
+.btn-submit-order {
+  width: 100%;
+  background: linear-gradient(135deg, #e62300 0%, #ff5100 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(230, 35, 0, 0.2);
+  transition: transform 0.1s ease, background 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+// Contenedor horizontal de categorías (Menú)
+.categories-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none; // Oculta barra en Firefox
+
+  &::-webkit-scrollbar {
+    display: none; // Oculta barra en Chrome/Safari
+  }
+
+  .category-tab {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-red {
+    background: #e53e3e;
+    color: #ffffff;
+    &.active { background: #9b2c2c; }
+  }
+
+  .btn-gray {
+    background: #edf2f7;
+    color: $text-dark;
+    &.active {
+      background: #e53e3e;
+      color: #ffffff;
+    }
+  }
+}
+
+// Barra de navegación o scroll inferior simulada
+.scroll-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #2d3748;
+  color: #a0aec0;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 10px 0 16px 0;
+
+  .bar-indicator {
+    flex: 1;
+    height: 8px;
+    background: #4a5568;
+    margin: 0 10px;
+    border-radius: 4px;
+  }
+}
+
+// Cuadrícula de productos e ítems individuales
+.product-item {
+  background: #ffffff;
+  border: 1px solid $border-color;
+  border-radius: 12px;
+  margin: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  justify-content: space-between;
+  min-height: 150px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+
+  .product-icon-container {
+    background: #fff5f5;
+    padding: 8px;
+    border-radius: 50%;
+    margin-bottom: 6px;
+
+    .food-emoji {
+      font-size: 1.6rem;
+    }
+  }
+
+  .product-info {
+    width: 100%;
+    .product-name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: $text-dark;
+      margin: 0 0 4px 0;
+      line-height: 1.2;
+    }
+    .product-price {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: $active-red;
+      margin: 0;
+    }
+  }
+}
+
+// Botones para añadir cantidades o interactuar con el carro
+.btn-add-fast {
+  background: transparent;
+  color: $text-muted;
+  border: 1px dashed #cbd5e1;
+  width: 100%;
+  padding: 5px;
+  border-radius: 6px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #fff5f5;
+    color: $active-red;
+    border-color: $active-red;
+  }
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 8px;
+  background: #f7fafc;
+  border-radius: 6px;
+  padding: 2px;
+
+  .btn-qty {
+    background: #e2e8f0;
+    border: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .qty-number {
+    font-size: 0.9rem;
+    font-weight: 700;
+  }
+}
+
+.margin-bottom-large {
+  margin-bottom: 40px;
+}
+
+// KEYFRAMES: Animación de desvanecimiento
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

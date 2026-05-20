@@ -1,0 +1,186 @@
+.bg-light {
+  --background: #f7f9fc;
+}
+
+.header-banner {
+  background: linear-gradient(90deg, #e33212 0%, #ff5733 100%);
+  padding: 24px 20px 45px 20px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+
+  .header-title-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .chicken-emoji {
+    font-size: 26px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px;
+    border-radius: 50%;
+  }
+
+  h1 {
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    margin: 2px 0 0 0;
+  }
+}
+
+.dashboard-container {
+  padding: 0 16px 24px 16px;
+  margin-top: -30px;
+}
+
+.white-card {
+  background: #ffffff;
+  border-radius: 16px;
+  margin: 0 0 16px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+  ion-card-content {
+    padding: 16px;
+  }
+
+  h2 {
+    color: #1a2530;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+  }
+}
+
+.summary-card {
+  .current-date {
+    color: #a0aec0;
+    font-size: 13px;
+    margin: 0;
+  }
+}
+
+.metrics-grid {
+  margin-bottom: 16px;
+
+  .col-left { padding-right: 6px; }
+  .col-right { padding-left: 6px; }
+
+  .metric-box {
+    border-radius: 12px;
+    padding: 14px 12px;
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+
+    .metric-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      opacity: 0.9;
+
+      ion-icon { font-size: 16px; }
+    }
+
+    .metric-value {
+      font-size: 22px;
+      font-weight: 800;
+      margin: 8px 0 2px 0;
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      opacity: 0.8;
+    }
+  }
+
+  .bg-green { background: #00b654; }
+  .bg-blue { background: #2673ff; }
+  .bg-purple { background: #963eff; }
+  .bg-orange { background: #ff6f00; }
+}
+
+.actions-card {
+  .btn-action {
+    margin-top: 12px;
+    height: 46px;
+    font-weight: 700;
+    font-size: 14px;
+    --border-radius: 10px;
+    box-shadow: none;
+  }
+
+  .btn-new-order {
+    --background: #e31212;
+    --background-activated: #b80c0c;
+  }
+
+  .btn-view-orders {
+    --background: #1865f2;
+    --background-activated: #104ec4;
+  }
+}
+
+.orders-card {
+  .order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid #edf2f7;
+    margin-top: 12px;
+
+    .order-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .customer-name {
+        color: #2d3748;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .customer-phone {
+        color: #718096;
+        font-size: 12px;
+      }
+      .order-details {
+        color: #718096;
+        font-size: 12px;
+        margin-top: 2px;
+      }
+    }
+
+    .order-status-price {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+
+      .order-price {
+        color: #2d3748;
+        font-weight: 700;
+        font-size: 14px;
+      }
+
+      .status-badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 12px;
+      }
+
+      .bg-badge-gray {
+        background: #edf2f7;
+        color: #4a5568;
+      }
+    }
+  }
+}

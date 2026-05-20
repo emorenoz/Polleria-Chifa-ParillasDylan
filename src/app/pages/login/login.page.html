@@ -1,0 +1,45 @@
+<ion-content [fullscreen]="true" class="login-bg">
+  <div class="main-container">
+
+    <div class="header-brand">
+      <img src="https://i.postimg.cc/Twy2BRvy/logopolleriadylan.png" class="login-logo" alt="Logo Pollería Dylan">
+      <h1>Pollería Dylan</h1>
+      <p>Gestión de negocio</p>
+    </div>
+
+    <div class="login-card">
+      <h2>Iniciar Sesión</h2>
+
+      <div class="input-group">
+        <label>Usuario</label>
+        <ion-item lines="none" class="custom-input-item">
+          <ion-input
+            type="text"
+            placeholder="Ingrese su usuario"
+            [(ngModel)]="usuario">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <div class="input-group">
+        <label>Contraseña</label>
+        <ion-item lines="none" class="custom-input-item">
+          <ion-input
+            type="password"
+            placeholder="••••••••"
+            [(ngModel)]="password">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      @if (errorMensaje) {
+        <p class="error-text-alert">{{ errorMensaje }}</p>
+      }
+
+      <ion-button expand="block" class="btn-ingresar" (click)="ingresar()">
+        INGRESAR
+      </ion-button>
+    </div>
+
+  </div>
+</ion-content>

@@ -1,0 +1,56 @@
+.custom-tab-bar {
+  border-top: 1px solid #e2e8f0;
+  --background: #ffffff;
+  padding: 4px 0;
+
+  ion-tab-button {
+    color: #94a3b8;
+    font-weight: 500;
+
+    ion-icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+    ion-label {
+      font-size: 10px;
+    }
+
+    /* Color rojo exacto cuando la pestaña está seleccionada */
+    &.tab-selected {
+      color: #dc2626;
+      font-weight: 600;
+    }
+  }
+}
+// Asegura que el footer se mantenga al fondo de la pantalla y no flote
+ion-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  background: #ffffff;
+}
+
+// Estilo limpio para tus pestañas inferiores
+.custom-tab-bar {
+  --background: #ffffff;
+  --border: 1px solid #e2e8f0;
+  border-top: 1px solid #e2e8f0;
+  height: 65px;
+
+  ion-tab-button {
+    --color: #94a3b8;
+    --color-selected: #2563eb;
+
+    ion-icon {
+      font-size: 22px;
+      margin-bottom: 2px;
+    }
+
+    ion-label {
+      font-size: 11px;
+      font-weight: 600;
+    }
+  }
+}

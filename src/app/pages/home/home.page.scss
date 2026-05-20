@@ -1,0 +1,66 @@
+:host {
+  --header-gradient: linear-gradient(135deg, #e62e00, #ff5500);
+  --bg-light: #f4f6f9;
+  --card-green: #2ecc71;
+  --card-blue: #2f74ff;
+  --card-purple: #9b59b6;
+  --card-orange: #ff7f00;
+
+  // Estilo para PC: centra el contenido
+  display: block;
+  max-width: 500px;
+  margin: 0 auto;
+  height: 100vh;
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+}
+
+.custom-header {
+  --background: var(--header-gradient);
+  --color: white;
+  .header-content {
+    padding: 10px 0;
+    .main-title { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+    .subtitle { font-size: 11px; opacity: 0.8; }
+  }
+}
+
+.bg-light { --background: var(--bg-light); }
+
+.main-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.kpi-card {
+  color: white;
+  padding: 15px;
+  border-radius: 12px;
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  &.card-green { background: var(--card-green); }
+  &.card-blue { background: var(--card-blue); }
+  &.card-purple { background: var(--card-purple); }
+  &.card-orange { background: var(--card-orange); }
+
+  .kpi-header { display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: bold; }
+  .kpi-value { font-size: 22px; font-weight: bold; }
+  .kpi-footer { font-size: 11px; opacity: 0.9; }
+}
+
+.btn-action { --border-radius: 8px; height: 45px; font-weight: bold; }
+
+.order-item {
+  border: 1px solid #eee;
+  padding: 10px;
+  border-radius: 8px;
+  .client-name { font-weight: bold; font-size: 14px; }
+  .client-phone { color: #888; font-size: 12px; }
+  .order-price { font-weight: bold; }
+  .status-badge { font-size: 10px; }
+  .order-footer { margin-top: 8px; font-size: 11px; color: #888; border-top: 1px dashed #eee; padding-top: 5px; }
+}

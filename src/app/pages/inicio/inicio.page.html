@@ -1,0 +1,116 @@
+<ion-content [fullscreen]="true" class="bg-light">
+
+  <div class="header-banner">
+    <div class="header-title-container">
+      <span class="chicken-emoji">🍗</span>
+      <div>
+        <h1>Pollería Dylan Pollos, Chifa, Parrillas</h1>
+        <p>Sistema de Gestión - Comas</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-container">
+
+    <ion-card class="white-card summary-card">
+      <ion-card-content>
+        <h2>Resumen de Hoy</h2>
+        <p class="current-date">viernes, 17 de abril de 2026</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-grid class="ion-no-padding metrics-grid">
+      <ion-row>
+        <ion-col size="6" class="col-left">
+          <div class="metric-box bg-green">
+            <div class="metric-header">
+              <ion-icon name="cash-outline"></ion-icon>
+              <span>Ventas Hoy</span>
+            </div>
+            <div class="metric-value">S/ 62.00</div>
+            <div class="metric-sub">2 pedidos</div>
+          </div>
+        </ion-col>
+
+        <ion-col size="6" class="col-right">
+          <div class="metric-box bg-blue">
+            <div class="metric-header">
+              <ion-icon name="cube-outline"></ion-icon>
+              <span>Activos</span>
+            </div>
+            <div class="metric-value">0</div>
+            <div class="metric-sub">en proceso</div>
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-margin-top">
+        <ion-col size="6" class="col-left">
+          <div class="metric-box bg-purple">
+            <div class="metric-header">
+              <ion-icon name="trending-up-outline"></ion-icon>
+              <span>Total Pedidos</span>
+            </div>
+            <div class="metric-value">2</div>
+            <div class="metric-sub">histórico</div>
+          </div>
+        </ion-col>
+
+        <ion-col size="6" class="col-right">
+          <div class="metric-box bg-orange">
+            <div class="metric-header">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <span>Pendientes</span>
+            </div>
+            <div class="metric-value">0</div>
+            <div class="metric-sub">por atender</div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <ion-card class="white-card actions-card">
+      <ion-card-content>
+        <h2>Acciones Rápidas</h2>
+
+        <ion-button
+          expand="block"
+          color="danger"
+          class="btn-action btn-new-order"
+          routerLink="/tabs/pedido"
+          routerDirection="forward">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          + Nuevo Pedido
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          color="primary"
+          class="btn-action btn-view-orders"
+          routerLink="/tabs/activos"
+          routerDirection="forward">
+          Ver Pedidos Activos
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="white-card orders-card">
+      <ion-card-content>
+        <h2>Últimos Pedidos</h2>
+
+        <div class="order-item">
+          <div class="order-info">
+            <span class="customer-name">Juan Pérez</span>
+            <span class="customer-phone">987654321</span>
+            <span class="order-details">2 productos • Delivery</span>
+          </div>
+          <div class="order-status-price">
+            <span class="order-price">S/ 44.00</span>
+            <span class="status-badge bg-badge-gray">Entregado</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+</ion-content>

@@ -1,0 +1,198 @@
+// Banner con el gradiente idéntico
+.dylan-header-activos {
+  background: linear-gradient(135deg, #e11d48 0%, #f97316 100%);
+  padding: 24px 16px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  color: #ffffff;
+
+  h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  p {
+    margin: 4px 0 0 0;
+    font-size: 13px;
+    opacity: 0.9;
+  }
+}
+
+.activos-container {
+  padding: 16px;
+  background-color: #f8fafc;
+  min-height: 100%;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0 0 14px 0;
+}
+
+// Segmentos/Pestañas estilo píldora de tu diseño móvil
+ion-segment.custom-segment {
+  --background: #f1f5f9;
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+  border: none;
+
+  ion-segment-button {
+    --padding-top: 8px;
+    --padding-bottom: 8px;
+    --color: #64748b;
+    --color-checked: #ffffff;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 8px;
+    --indicator-color: transparent;
+
+    &::part(native) {
+      border-radius: 8px;
+    }
+  }
+
+  // Comportamientos de color idénticos para cada botón seleccionado
+  .segment-button-checked[value="Activo"] {
+    --background-checked: #ffffff;
+    --color-checked: #e11d48; // Texto rojo suave para el activo
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  }
+
+  .segment-button-checked[value="Completado"] {
+    --background-checked: #2563eb; // Azul corporativo idéntico a tu captura móvil
+    --color-checked: #ffffff;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  }
+
+  .segment-button-checked[value="Todos"] {
+    --background-checked: #cbd5e1;
+    --color-checked: #0f172a;
+  }
+}
+
+// Reset de estilos de lista nativos de Ionic
+.transparent-list {
+  background: transparent !important;
+  padding: 0;
+}
+
+.native-item-override {
+  --background: transparent !important;
+  --padding-start: 0 !important;
+  --inner-padding-end: 0 !important;
+  width: 100%;
+}
+
+// Tarjetas de Pedidos Individuales
+.pedido-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  width: 100%;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f1f5f9;
+
+  .card-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+
+    .cliente-name {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+  }
+}
+
+// Líneas de campos internos (Teléfono, Dirección)
+.info-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  color: #475569;
+  font-size: 13px;
+
+  ion-icon {
+    font-size: 16px;
+    color: #94a3b8;
+  }
+}
+
+// Fila inferior de costos
+.card-footer-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+
+  .detalles-productos {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+  }
+
+  .monto-total {
+    font-size: 16px;
+    font-weight: 700;
+    color: #b91c1c; // Rojo Pollería
+  }
+}
+
+// Etiquetas de Estado superiores
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+
+  &.en-cocina {
+    background-color: #fef2f2;
+    color: #991b1b;
+  }
+
+  &.entregado {
+    background-color: #f0fdf4;
+    color: #166534;
+  }
+}
+
+// Ajuste del panel de botones ocultos al deslizar
+ion-item-options {
+  border-bottom: 12px solid #f8fafc; // Deja espacio para que no se peguen las tarjetas
+
+  ion-item-option {
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+}
+
+// Contenedor de lista vacía
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+
+  .empty-icon {
+    font-size: 48px;
+    color: #cbd5e1;
+    margin-bottom: 8px;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}

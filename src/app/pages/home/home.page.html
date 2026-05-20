@@ -1,0 +1,101 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="custom-header">
+    <ion-title>
+      <div class="header-content">
+        <div class="main-title">
+          <ion-icon name="restaurant-outline"></ion-icon>
+          Pollería Dylan
+        </div>
+        <div class="subtitle">Sistema de Gestión - Comas</div>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding bg-light">
+
+  <ion-card class="main-card ion-no-margin ion-margin-bottom">
+    <ion-card-header>
+      <ion-card-title class="section-title">Resumen de Hoy</ion-card-title>
+      <ion-card-subtitle class="date-text">domingo, 17 de mayo de 2026</ion-card-subtitle>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-grid class="ion-no-padding ion-margin-bottom">
+    <ion-row>
+      <ion-col size="6" class="ion-padding-tiny">
+        <div class="kpi-card card-green">
+          <div class="kpi-header">
+            <ion-icon name="cash-outline"></ion-icon>
+            <span>Ventas Hoy</span>
+          </div>
+          <div class="kpi-value">S/ 62.00</div>
+          <div class="kpi-footer">2 pedidos</div>
+        </div>
+      </ion-col>
+
+      <ion-col size="6" class="ion-padding-tiny">
+        <div class="kpi-card card-blue">
+          <div class="kpi-header">
+            <ion-icon name="cube-outline"></ion-icon>
+            <span>Activos</span>
+          </div>
+          <div class="kpi-value">0</div>
+          <div class="kpi-footer">en proceso</div>
+        </div>
+      </ion-col>
+    </ion-row>
+
+    <ion-row class="ion-margin-top-tiny">
+      <ion-col size="6" class="ion-padding-tiny">
+        <div class="kpi-card card-purple">
+          <div class="kpi-header">
+            <ion-icon name="trending-up-outline"></ion-icon>
+            <span>Total Pedidos</span>
+          </div>
+          <div class="kpi-value">2</div>
+          <div class="kpi-footer">histórico</div>
+        </div>
+      </ion-col>
+
+      <ion-col size="6" class="ion-padding-tiny">
+        <div class="kpi-card card-orange">
+          <div class="kpi-header">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>Pendientes</span>
+          </div>
+          <div class="kpi-value">0</div>
+          <div class="kpi-footer">por atender</div>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-card class="main-card ion-no-margin ion-margin-bottom ion-padding">
+    <h3 class="block-title">Acciones Rápidas</h3>
+    <ion-button expand="block" color="danger" class="btn-action ion-margin-bottom" (click)="irANuevoPedido()">
+      + Nuevo Pedido
+    </ion-button>
+    <ion-button expand="block" color="primary" class="btn-action" (click)="verPedidosActivos()">
+      Ver Pedidos Activos
+    </ion-button>
+  </ion-card>
+
+  <ion-card class="main-card ion-no-margin ion-padding">
+    <h3 class="block-title">Últimos Pedidos</h3>
+    <div class="order-item">
+      <div class="order-top">
+        <div>
+          <div class="client-name">Juan Pérez</div>
+          <div class="client-phone">987654321</div>
+        </div>
+        <div class="ion-text-end">
+          <div class="order-price">S/ 44.00</div>
+          <ion-badge color="success" mode="ios" class="status-badge">Entregado</ion-badge>
+        </div>
+      </div>
+      <div class="order-footer">2 productos • Delivery</div>
+    </div>
+  </ion-card>
+
+</ion-content>

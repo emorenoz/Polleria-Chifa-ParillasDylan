@@ -1,0 +1,88 @@
+<ion-content [fullscreen]="true">
+
+  <div class="dylan-header-activos">
+    <h2>Pollería Dylan Pollos, Chifa, Parrillas</h2>
+    <p>Monitoreo e Historial de Órdenes</p>
+  </div>
+
+  <div class="activos-container">
+
+    <h1 class="section-title">Control de Comandas</h1>
+
+    <ion-segment [(ngModel)]="filtroActual" class="custom-segment">
+      <ion-segment-button value="Activo">
+        <ion-label>Activos</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="Completado">
+        <ion-label>Completados</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="Todos">
+        <ion-label>Todos</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <ion-list lines="none" class="transparent-list">
+
+      @for (pedido of pedidosFiltrados; track pedido.id) {
+        <ion-item-sliding>
+
+          <ion-item class="native-item-override">
+            <div class="pedido-card">
+
+              <div class="card-header-row">
+                <h3 class="cliente-name">{{ pedido.cliente }}</h3>
+                <span class="status-badge" [ngClass]="pedido.estado === 'Activo' ? 'en-cocina' : 'entregado'">
+                  {{ pedido.estado === 'Activo' ? 'En Cocina' : 'Entregado' }}
+                </span>
+              </div>
+
+              @if (pedido.telefono) {
+                <div class="info-line">
+                  <ion-icon name="call-outline"></ion-icon>
+                  <span>{{ pedido.telefono }}</span>
+                </div>
+              }
+
+              <div class="info-line">
+                <ion-icon [name]="pedido.tipo === 'Delivery' ? 'bicycle-outline' : 'storefront-outline'"></ion-icon>
+                <span>{{ pedido.direccion || 'Recojo en Local (Av. Los Ángeles 320)' }}</span>
+              </div>
+
+              <div class="card-footer-row">
+                <span class="detalles-productos">
+                  {{ pedido.producto || '1 producto' }}
+                </span>
+                <span class="monto-total">
+                  S/ {{ pedido.total | number:'1.2-2' }}
+                </span>
+              </div>
+
+            </div>
+          </ion-item>
+
+          <ion-item-options side="end">
+            @if (pedido.estado === 'Activo') {
+              <ion-item-option color="success" (click)="completarPedidoDirecto(pedido)">
+                <ion-icon slot="icon-only" name="checkmark-circle"></ion-icon>
+              </ion-item-option>
+            } @else {
+              <ion-item-option color="warning" (click)="reabrirPedidoDirecto(pedido)">
+                <ion-icon slot="icon-only" name="refresh-circle"></ion-icon>
+              </ion-item-option>
+            }
+            <ion-item-option color="danger" (click)="confirmarEliminar(pedido)">
+              <ion-icon slot="icon-only" name="trash"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+
+        </ion-item-sliding>
+      } @empty {
+        <div class="empty-state">
+          <ion-icon name="receipt-outline" class="empty-icon"></ion-icon>
+          <h4>No hay pedidos en esta categoría</h4>
+        </div>
+      }
+
+    </ion-list>
+  </div>
+</ion-content>

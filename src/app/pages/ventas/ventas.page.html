@@ -1,0 +1,101 @@
+<ion-content [fullscreen]="true" class="bg-dashboard">
+
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="brand-container">
+        <ion-icon name="drumstick-outline" class="logo-icon"></ion-icon>
+        <div class="brand-text">
+          <h1>Pollería Dylan Pollos, Chifa, Parrillas</h1>
+          <p>Sistema de Gestión - Comas</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-content">
+
+    <div class="dashboard-title">
+      <h2>Dashboard de Ventas</h2>
+      <p>Análisis y estadísticas del negocio</p>
+    </div>
+
+    <ion-grid class="ion-no-padding metrics-grid">
+      <ion-row>
+        <ion-col size="6" class="ion-padding-tiny">
+          <div class="metric-card bg-green">
+            <div class="metric-header">
+              <ion-icon name="cash-outline"></ion-icon>
+              <span>Ventas Hoy</span>
+            </div>
+            <div class="metric-value">S/ 62.00</div>
+          </div>
+        </ion-col>
+
+        <ion-col size="6" class="ion-padding-tiny">
+          <div class="metric-card bg-blue">
+            <div class="metric-header">
+              <ion-icon name="cart-outline"></ion-icon>
+              <span>Pedidos Hoy</span>
+            </div>
+            <div class="metric-value">2</div>
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="6" class="ion-padding-tiny">
+          <div class="metric-card bg-purple">
+            <div class="metric-header">
+              <ion-icon name="trending-up-outline"></ion-icon>
+              <span>Ticket Promedio</span>
+            </div>
+            <div class="metric-value">S/ 31.00</div>
+          </div>
+        </ion-col>
+
+        <ion-col size="6" class="ion-padding-tiny">
+          <div class="metric-card bg-orange">
+            <div class="metric-header">
+              <ion-icon name="people-outline"></ion-icon>
+              <span>Clientes</span>
+            </div>
+            <div class="metric-value">2</div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <ion-card class="chart-card">
+      <ion-card-content>
+        <h3>Ventas por Día (Últimos 7 días)</h3>
+        <div class="chart-container">
+          <svg viewBox="0 0 400 200" class="line-chart">
+            <path d="M 50 150 L 100 150 L 150 150 L 200 150 L 250 150 L 300 130 L 350 40"
+                  fill="none" stroke="#ef4444" stroke-width="4" />
+            <circle cx="350" cy="40" r="6" fill="#ef4444" />
+            <line x1="50" y1="160" x2="350" y2="160" stroke="#e5e7eb" />
+          </svg>
+          <div class="chart-labels">
+            <span>Sab</span><span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span class="active">Vie</span>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="chart-card">
+      <ion-card-content>
+        <h3>Pedidos por Día (Últimos 7 días)</h3>
+        <div class="chart-placeholder">
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar active" style="height: 80%;"></div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+</ion-content>
