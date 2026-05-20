@@ -13,7 +13,7 @@ export class AuthService {
   // 🔑 LOGIN (usuario: jesus / clave: 010703)
   login(usuario: string, password: string) {
 
-    if (usuario === 'admin' && password === '12345') {
+    if (usuario === 'admin' && password === '123456') {
 
       const user = {
         id: 1,
