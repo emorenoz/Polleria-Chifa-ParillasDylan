@@ -9,11 +9,23 @@
     "cap:open:android": "ionic cap open android"
   },
   "dependencies": {
-    "@angular/core": "^17.0.0",
-    "@angular/common": "^17.0.0",
-    "@angular/router": "^17.0.0",
-    "@ionic/angular": "^8.0.0",
+    "@angular/common": "^17.3.12",
+    "@angular/compiler": "^17.3.12",
+    "@angular/core": "^17.3.12",
+    "@angular/forms": "^17.3.12",
+    "@angular/platform-browser": "^17.3.12",
+    "@angular/platform-browser-dynamic": "^17.3.12",
+    "@angular/router": "^17.3.12",
+    "@capacitor/android": "8.3.4",
+    "@capacitor/cli": "^8.3.4",
     "@capacitor/core": "^8.3.4",
-    "@capacitor/android": "8.3.4"
+    "@ionic/angular": "^8.0.0",
+    "zone.js": "^0.16.2"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^17.3.17",
+    "@angular/cli": "^17.3.17",
+    "@angular/compiler-cli": "^17.3.12",
+    "typescript": "^5.4.5"
   }
 }
