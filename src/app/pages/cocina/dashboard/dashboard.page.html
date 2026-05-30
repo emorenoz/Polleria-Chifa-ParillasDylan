@@ -1,25 +1,93 @@
 <ion-header>
-  <ion-toolbar color="danger">
-    <ion-title>Cocina</ion-title>
+  <ion-toolbar color="warning">
+    <ion-title>
+      👨‍🍳 Cocina Dylan
+    </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-card *ngFor="let pedido of pedidos">
+<ion-content class="dashboard-content">
+
+  <div class="welcome-banner">
+    <h2>Panel de Cocina</h2>
+    <p>Control de preparación de pedidos</p>
+  </div>
+
+  <div class="stats-grid">
+
+    <ion-card class="card nuevos">
+      <ion-card-content>
+        <h3>📥 Nuevos</h3>
+        <h1>{{ pedidosNuevos }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="card preparando">
+      <ion-card-content>
+        <h3>🔥 Preparando</h3>
+        <h1>{{ pedidosPreparando }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="card listos">
+      <ion-card-content>
+        <h3>✅ Listos</h3>
+        <h1>{{ pedidosListos }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="card tiempo">
+      <ion-card-content>
+        <h3>⏱️ Promedio</h3>
+        <h1>18m</h1>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+
+  <ion-card *ngFor="let pedido of pedidos" class="pedido-card">
+
     <ion-card-header>
-      <ion-card-title>Mesa {{ pedido.mesa }}</ion-card-title>
+
+      <ion-card-title>
+        🍽️ {{ pedido.mesa }}
+      </ion-card-title>
+
     </ion-card-header>
 
     <ion-card-content>
-      <p>{{ pedido.detalle }}</p>
 
-      <ion-button color="warning">
-        Preparando
-      </ion-button>
+      <p class="detalle">
+        {{ pedido.detalle }}
+      </p>
 
-      <ion-button color="success">
-        Listo
-      </ion-button>
+      <div class="estado">
+        Estado:
+        <strong>{{ pedido.estado }}</strong>
+      </div>
+
+      <div class="buttons">
+
+        <ion-button
+          color="warning"
+          size="small">
+
+          🔥 Preparando
+
+        </ion-button>
+
+        <ion-button
+          color="success"
+          size="small">
+
+          ✅ Listo
+
+        </ion-button>
+
+      </div>
+
     </ion-card-content>
+
   </ion-card>
+
 </ion-content>

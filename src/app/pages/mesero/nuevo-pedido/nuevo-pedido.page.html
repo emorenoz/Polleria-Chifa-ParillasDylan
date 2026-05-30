@@ -1,24 +1,125 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Nuevo Pedido</ion-title>
+    <ion-title>🍽️ Nuevo Pedido</ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
-  <ion-item>
-    <ion-label>Mesa</ion-label>
-    <ion-select [(ngModel)]="mesa">
-      <ion-select-option value="1">Mesa 1</ion-select-option>
-      <ion-select-option value="2">Mesa 2</ion-select-option>
-    </ion-select>
-  </ion-item>
 
-  <ion-item>
-    <ion-label position="floating">Observaciones</ion-label>
-    <ion-textarea [(ngModel)]="comentario"></ion-textarea>
-  </ion-item>
+  <!-- 👤 CLIENTE -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>👤 Datos del Cliente</ion-card-title>
+    </ion-card-header>
 
-  <ion-button expand="block" (click)="enviarPedido()">
-    Enviar a Cocina
+    <ion-card-content>
+
+      <ion-item>
+        <ion-label position="floating">Nombres</ion-label>
+        <ion-input [(ngModel)]="cliente.nombre"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Apellidos</ion-label>
+        <ion-input [(ngModel)]="cliente.apellido"></ion-input>
+      </ion-item>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 🪑 MESA -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>🪑 Mesa</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-item>
+        <ion-label>Mesa</ion-label>
+        <ion-select [(ngModel)]="mesa">
+          <ion-select-option value="1">Mesa 1</ion-select-option>
+          <ion-select-option value="2">Mesa 2</ion-select-option>
+          <ion-select-option value="3">Mesa 3</ion-select-option>
+          <ion-select-option value="4">Mesa 4</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 🍗 PRODUCTOS -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>🍗 Productos</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <ion-item *ngFor="let producto of productos">
+        <ion-label>
+          <h2>{{ producto.nombre }}</h2>
+          <p>S/ {{ producto.precio }}</p>
+        </ion-label>
+
+        <ion-button size="small" color="primary" (click)="agregar(producto)">
+          +
+        </ion-button>
+      </ion-item>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 🛒 CARRITO -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>🛒 Pedido Actual</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <ion-item *ngFor="let item of carrito; let i = index">
+        <ion-label>
+          <h2>{{ item.nombre }}</h2>
+          <p>Cantidad: {{ item.cantidad }} | S/ {{ item.precio }}</p>
+        </ion-label>
+
+        <ion-button
+          color="danger"
+          size="small"
+          (click)="eliminar(i)">
+          🗑️
+        </ion-button>
+
+      </ion-item>
+
+      <div class="total-box">
+        <h2>Total: S/ {{ total }}</h2>
+      </div>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 📝 OBSERVACIONES -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>📝 Observaciones</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-textarea
+        [(ngModel)]="comentario"
+        placeholder="Ej: sin ají, sin cebolla">
+      </ion-textarea>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- 🚀 BOTÓN -->
+  <ion-button
+    expand="block"
+    color="success"
+    (click)="enviarPedido()">
+
+    🚀 Enviar a Cocina
+
   </ion-button>
+
 </ion-content>

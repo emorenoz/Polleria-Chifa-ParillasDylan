@@ -1,0 +1,77 @@
+.dashboard-content {
+  --background: linear-gradient(135deg, #e0f7fa, #fff);
+  padding: 15px;
+}
+
+.welcome-banner {
+  text-align: center;
+  margin: 15px 0;
+
+  h2 {
+    font-size: 22px;
+    font-weight: bold;
+    color: #00796b;
+  }
+
+  p {
+    color: #555;
+  }
+}
+
+/* TAB MENU */
+.tab-menu {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.tab {
+  background: white;
+  padding: 15px;
+  border-radius: 15px;
+  text-align: center;
+  font-weight: bold;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: 0.3s;
+
+  span {
+    display: block;
+    margin-top: 5px;
+    font-size: 13px;
+  }
+}
+
+.tab:hover {
+  transform: translateY(-5px);
+  background: #e0f2f1;
+}
+
+/* STATS */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.card {
+  border-radius: 15px;
+  text-align: center;
+}
+
+.disponibles {
+  background: #e8f5e9;
+}
+
+.ocupadas {
+  background: #ffebee;
+}
+
+.pedidos {
+  background: #e3f2fd;
+}
+
+.listos {
+  background: #fff3e0;
+}

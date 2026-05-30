@@ -1,20 +1,57 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { NavController } from '@ionic/angular/standalone'; // 👈 Cambiamos Router por NavController
+
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonCard,
+  IonCardContent
+} from '@ionic/angular/standalone';
+
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'app-dashboard-mesero',
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule]
+  imports: [
+    CommonModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonCard,
+    IonCardContent
+  ]
 })
-export class DashboardPage implements OnInit {
+export class DashboardPage {
 
-  constructor() { }
+  mesasDisponibles = 6;
+  mesasOcupadas = 4;
+  pedidosActivos = 8;
+  pedidosListos = 3;
 
-  ngOnInit() {
+  // 👈 Inyectamos NavController en lugar de Router
+  constructor(private navCtrl: NavController) {}
+
+  irDetallePedido() {
+    this.navCtrl.navigateForward('/detalle-pedido');
+  }
+
+  irMesas() {
+    this.navCtrl.navigateForward('/mesas');
+  }
+
+  irNuevoPedido() {
+    console.log('Click detectado en Nuevo Pedido'); // Para que verifiques en consola
+    this.navCtrl.navigateForward('/nuevo-pedido');
+  }
+
+  irPedidosActivos() {
+    this.navCtrl.navigateForward('/pedidos-activos');
   }
 
 }

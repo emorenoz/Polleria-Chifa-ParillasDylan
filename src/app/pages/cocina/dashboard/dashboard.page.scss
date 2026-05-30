@@ -1,3 +1,122 @@
-ion-card {
-  margin-bottom: 20px;
+.dashboard-content {
+  --background: #f6f7fb;
+}
+
+.welcome-banner {
+
+  margin: 16px;
+  padding: 24px;
+
+  border-radius: 24px;
+
+  text-align: center;
+
+  color: white;
+
+  background: linear-gradient(
+    135deg,
+    #ff9800,
+    #ff5722
+  );
+
+  box-shadow:
+    0 10px 25px rgba(255,87,34,.25);
+}
+
+.stats-grid {
+
+  display: grid;
+
+  grid-template-columns: repeat(2,1fr);
+
+  gap: 14px;
+
+  padding: 16px;
+}
+
+.card {
+
+  color: white;
+
+  text-align: center;
+
+  border-radius: 22px;
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.12);
+}
+
+.card h1 {
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.nuevos {
+  background: linear-gradient(135deg,#1e88e5,#42a5f5);
+}
+
+.preparando {
+  background: linear-gradient(135deg,#ff9800,#ffc107);
+}
+
+.listos {
+  background: linear-gradient(135deg,#00c853,#64dd17);
+}
+
+.tiempo {
+  background: linear-gradient(135deg,#8e24aa,#ba68c8);
+}
+
+.pedido-card {
+
+  margin: 16px;
+
+  border-radius: 22px;
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,.08);
+}
+
+.detalle {
+
+  font-size: 15px;
+
+  color: #555;
+
+  margin-bottom: 12px;
+}
+
+.estado {
+
+  margin-bottom: 15px;
+
+  color: #333;
+}
+
+.buttons {
+
+  display: flex;
+
+  gap: 10px;
+}
+
+ion-toolbar {
+  --background: #ff5722;
+  --color: white;
+}
+
+ion-title {
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .buttons {
+    flex-direction: column;
+  }
+
 }

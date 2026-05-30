@@ -1,126 +1,96 @@
-<ion-menu content-id="main-content">
+<ion-content class="dashboard-content">
 
-  <ion-header>
-    <ion-toolbar color="dark">
-      <ion-title>FoodPOS Admin</ion-title>
-    </ion-toolbar>
-  </ion-header>
+  <div class="welcome-banner">
+    <h2>🍗 Pollería, Chifa y Parrillas Dylan</h2>
+    <p>Panel Administrativo</p>
+  </div>
 
-  <ion-content>
+  <div class="stats-grid">
+
+    <ion-card class="card ventas">
+      <ion-card-content>
+        <h3>💰 Ventas de Hoy</h3>
+        <h1>S/ {{ ventasHoy }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="card disponibles">
+      <ion-card-content>
+        <h3>🟢 Mesas Disponibles</h3>
+        <h1>{{ mesasDisponibles }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="card ocupadas">
+      <ion-card-content>
+        <h3>🔴 Mesas Ocupadas</h3>
+        <h1>{{ mesasOcupadas }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="card transacciones">
+      <ion-card-content>
+        <h3>💳 Transacciones</h3>
+        <h1>{{ transacciones }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+
+  <ion-card>
+
+    <ion-card-header>
+      <ion-card-title>
+        📋 Resumen General
+      </ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <p>
+        Pedidos Activos:
+        <strong>{{ pedidosActivos }}</strong>
+      </p>
+
+      <p>
+        Ventas Registradas:
+        <strong>S/ {{ ventasHoy }}</strong>
+      </p>
+
+      <p>
+        Mesas Operativas:
+        <strong>{{ mesasDisponibles + mesasOcupadas }}</strong>
+      </p>
+
+    </ion-card-content>
+
+  </ion-card>
+
+  <ion-card>
+
+    <ion-card-header>
+      <ion-card-title>
+        🕒 Últimas Transacciones
+      </ion-card-title>
+    </ion-card-header>
 
     <ion-list>
 
-      <ion-item button routerLink="/admin-dashboard">
-        🏠 Dashboard
-      </ion-item>
+      <ion-item *ngFor="let venta of ultimasVentas">
 
-      <ion-item button routerLink="/productos">
-        📦 Productos
-      </ion-item>
+        <ion-label>
+          <h2>{{ venta.cliente }}</h2>
+          <p>{{ venta.descripcion }}</p>
+        </ion-label>
 
-      <ion-item button routerLink="/categorias">
-        📂 Categorías
-      </ion-item>
-
-      <ion-item button routerLink="/pedidos">
-        📋 Pedidos
-      </ion-item>
-
-      <ion-item button routerLink="/mesas">
-        🍽️ Mesas
-      </ion-item>
-
-      <ion-item button routerLink="/stock">
-        📦 Stock
-      </ion-item>
-
-      <ion-item button routerLink="/ventas">
-        💰 Ventas
-      </ion-item>
-
-      <ion-item button routerLink="/caja">
-        💵 Caja
-      </ion-item>
-
-      <ion-item button routerLink="/clientes">
-        👥 Clientes
-      </ion-item>
-
-      <ion-item button routerLink="/usuarios">
-        👤 Usuarios
-      </ion-item>
-
-      <ion-item button routerLink="/reportes">
-        📈 Reportes
-      </ion-item>
-
-      <ion-item button routerLink="/configuracion">
-        ⚙️ Configuración
-      </ion-item>
-
-      <ion-item
-        button
-        color="danger"
-        (click)="cerrarSesion()">
-
-        🚪 Cerrar Sesión
+        <ion-badge color="success">
+          S/ {{ venta.total }}
+        </ion-badge>
 
       </ion-item>
 
     </ion-list>
 
-  </ion-content>
+  </ion-card>
 
-</ion-menu>
-
-<div class="ion-page" id="main-content">
-
-  <ion-header>
-
-    <ion-toolbar color="dark">
-
-      <ion-buttons slot="start">
-        <ion-menu-button></ion-menu-button>
-      </ion-buttons>
-
-      <ion-title>
-        Dashboard Administrador
-      </ion-title>
-
-    </ion-toolbar>
-
-  </ion-header>
-
-  <ion-content class="ion-padding">
-
-    <ion-card>
-
-      <ion-card-header>
-        <ion-card-title>
-          Ventas del Día
-        </ion-card-title>
-      </ion-card-header>
-
-      <ion-card-content>
-        S/ {{ ventasDia }}
-      </ion-card-content>
-
-    </ion-card>
-
-    <ion-card>
-
-      <ion-card-header>
-        <ion-card-title>
-          Pedidos Activos
-        </ion-card-title>
-      </ion-card-header>
-
-      <ion-card-content>
-        {{ pedidosActivos }}
-      </ion-card-content>
-
-    </ion-card>
-
-  </ion-content>
-
-</div>
+</ion-content>

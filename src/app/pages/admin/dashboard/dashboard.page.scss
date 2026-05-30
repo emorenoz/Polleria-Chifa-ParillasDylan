@@ -1,12 +1,214 @@
-ion-card {
-  border-radius: 15px;
-  margin-bottom: 15px;
+:host {
+  --ion-background-color: #f5f7fb;
 }
 
-ion-card-title {
+.dashboard-content {
+  --background: #f5f7fb;
+}
+
+/* Banner principal */
+
+.welcome-banner {
+  margin: 16px;
+  padding: 24px;
+
+  border-radius: 24px;
+
+  background: linear-gradient(
+    135deg,
+    #ff6b00,
+    #ff3d00
+  );
+
+  color: white;
+
+  text-align: center;
+
+  box-shadow: 0 10px 25px rgba(255, 107, 0, 0.25);
+}
+
+.welcome-banner h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.welcome-banner p {
+  margin-top: 8px;
+  opacity: .9;
+  font-size: 14px;
+}
+
+/* Grid KPIs */
+
+.stats-grid {
+  padding: 16px;
+
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 14px;
+}
+
+.card {
+  border-radius: 22px;
+
+  overflow: hidden;
+
+  color: white;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .12);
+
+  transition: .3s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.card ion-card-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.card h1 {
+  margin-top: 12px;
+  font-size: 32px;
   font-weight: bold;
 }
 
+/* Colores KPI */
+
+.ventas {
+  background: linear-gradient(
+    135deg,
+    #00c853,
+    #64dd17
+  );
+}
+
+.disponibles {
+  background: linear-gradient(
+    135deg,
+    #00b0ff,
+    #2979ff
+  );
+}
+
+.ocupadas {
+  background: linear-gradient(
+    135deg,
+    #ff1744,
+    #ff5252
+  );
+}
+
+.transacciones {
+  background: linear-gradient(
+    135deg,
+    #ff9100,
+    #ffd600
+  );
+}
+
+/* Cards generales */
+
+ion-card {
+  margin: 16px;
+  border-radius: 22px;
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .08);
+}
+
+ion-card-title {
+  font-weight: 700;
+  color: #222;
+}
+
+/* Lista ventas */
+
 ion-item {
-  --padding-start: 15px;
+  --background: transparent;
+  --border-color: transparent;
+
+  margin-bottom: 8px;
+
+  border-radius: 12px;
+}
+
+ion-item:hover {
+  --background: #f3f4f6;
+}
+
+ion-label h2 {
+  font-weight: 600;
+  color: #222;
+}
+
+ion-label p {
+  color: #666;
+}
+
+/* Badge */
+
+ion-badge {
+  font-size: 14px;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+/* Menú lateral */
+
+ion-menu ion-toolbar {
+  --background: #1e1e1e;
+  color: white;
+}
+
+ion-menu ion-content {
+  --background: #262626;
+}
+
+ion-menu ion-item {
+  --background: transparent;
+  --color: white;
+
+  margin: 6px;
+  border-radius: 12px;
+
+  font-weight: 500;
+}
+
+ion-menu ion-item:hover {
+  --background: rgba(255,255,255,.12);
+}
+
+/* Toolbar */
+
+ion-toolbar {
+  --background: #202020;
+  --color: white;
+}
+
+/* Responsive */
+
+@media (max-width: 768px) {
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .card h1 {
+    font-size: 28px;
+  }
+
+  .welcome-banner h2 {
+    font-size: 20px;
+  }
 }

@@ -189,5 +189,15 @@ export const routes: Routes = [
       (m) => m.ClientesPage
     ),
 },
+// =========================
+// ACCIONES DEL MESERO
+// =========================
+{
+  path: 'nuevo-pedido',
+  loadComponent: () =>
+    import('./pages/mesero/nuevo-pedido/nuevo-pedido.page').then(
+      (m) => m.NuevoPedidoPage
+    ),
+},
 
 ];

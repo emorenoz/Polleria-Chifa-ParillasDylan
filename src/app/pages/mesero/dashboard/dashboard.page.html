@@ -1,13 +1,69 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>dashboard</ion-title>
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>🍽️ Mesero Dylan</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">dashboard</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="dashboard-content">
+
+  <!-- HEADER -->
+  <div class="welcome-banner">
+    <h2>Bienvenido Mesero</h2>
+    <p>Selecciona una opción</p>
+  </div>
+
+  <!-- TABS STYLE MENU -->
+  <div class="tab-menu">
+
+    <div class="tab" (click)="irDetallePedido()">
+      📋<span>Detalle Pedido</span>
+    </div>
+
+    <div class="tab" (click)="irMesas()">
+      🍽️<span>Mesas</span>
+    </div>
+
+    <div class="tab" (click)="irNuevoPedido()">
+      ➕<span>Nuevo Pedido</span>
+    </div>
+
+    <div class="tab" (click)="irPedidosActivos()">
+      🔥<span>Pedidos Activos</span>
+    </div>
+
+  </div>
+
+  <!-- ESTADÍSTICAS -->
+  <div class="stats-grid">
+
+    <ion-card class="card disponibles">
+      <ion-card-content>
+        <h3>🟢 Mesas Libres</h3>
+        <h1>{{ mesasDisponibles }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="card ocupadas">
+      <ion-card-content>
+        <h3>🔴 Mesas Ocupadas</h3>
+        <h1>{{ mesasOcupadas }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="card pedidos">
+      <ion-card-content>
+        <h3>📋 Pedidos</h3>
+        <h1>{{ pedidosActivos }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="card listos">
+      <ion-card-content>
+        <h3>🔔 Listos</h3>
+        <h1>{{ pedidosListos }}</h1>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+
 </ion-content>

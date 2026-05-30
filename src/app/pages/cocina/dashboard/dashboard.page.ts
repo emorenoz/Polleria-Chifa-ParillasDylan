@@ -27,39 +27,48 @@ import {
 
     CommonModule,
 
-    // HEADER
     IonHeader,
     IonToolbar,
     IonTitle,
 
-    // CONTENT
     IonContent,
 
-    // CARDS
     IonCard,
     IonCardHeader,
     IonCardTitle,
     IonCardContent,
 
-    // BUTTONS
     IonButton
 
   ]
 
 })
-
 export class DashboardPage {
+
+  pedidosNuevos = 6;
+
+  pedidosPreparando = 4;
+
+  pedidosListos = 3;
 
   pedidos = [
 
     {
-      mesa: 1,
-      detalle: '1 Pollo a la Brasa + Papas'
+      mesa: 'Mesa 01',
+      detalle: '1 Pollo a la Brasa + Papas',
+      estado: 'Nuevo'
     },
 
     {
-      mesa: 4,
-      detalle: '1 Chaufa Especial + Inka Cola'
+      mesa: 'Mesa 04',
+      detalle: '1 Chaufa Especial + Inka Cola',
+      estado: 'Preparando'
+    },
+
+    {
+      mesa: 'Mesa 08',
+      detalle: '1 Parrilla Familiar',
+      estado: 'Listo'
     }
 
   ];
