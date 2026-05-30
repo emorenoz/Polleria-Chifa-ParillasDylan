@@ -1,0 +1,91 @@
+<ion-content [fullscreen]="true" class="role-content">
+
+  <div class="overlay"></div>
+
+  <div class="role-container">
+
+    <div class="title-section">
+
+      <img src="assets/logo.png" alt="logo">
+
+      <h1>FoodPOS</h1>
+
+      <p>Selecciona el módulo al que deseas ingresar</p>
+
+    </div>
+
+    <div class="roles-grid">
+
+      <!-- ADMIN -->
+
+      <ion-card
+        class="role-card admin-card"
+        button
+        (click)="irAdmin()">
+
+        <div class="icon-container">
+          <ion-icon name="settings-outline"></ion-icon>
+        </div>
+
+        <h2>Administrador</h2>
+
+        <p>Control total del sistema</p>
+
+      </ion-card>
+
+      <!-- CAJERO -->
+
+      <ion-card
+        class="role-card cajero-card"
+        button
+        (click)="irCajero()">
+
+        <div class="icon-container">
+          <ion-icon name="cash-outline"></ion-icon>
+        </div>
+
+        <h2>Cajero</h2>
+
+        <p>Gestión de pagos y ventas</p>
+
+      </ion-card>
+
+      <!-- MESERA -->
+
+      <ion-card
+        class="role-card mesera-card"
+        button
+        (click)="irMesero()">
+
+        <div class="icon-container">
+          <ion-icon name="restaurant-outline"></ion-icon>
+        </div>
+
+        <h2>Mesero/a</h2>
+
+        <p>Pedidos y mesas</p>
+
+      </ion-card>
+
+      <!-- COCINA -->
+
+      <ion-card
+        class="role-card cocina-card"
+        button
+        (click)="irCocina()">
+
+        <div class="icon-container">
+          <ion-icon name="flame-outline"></ion-icon>
+        </div>
+
+        <h2>Cocina</h2>
+
+        <p>Preparación de pedidos</p>
+
+      </ion-card>
+
+    </div>
+
+  </div>
+
+</ion-content>

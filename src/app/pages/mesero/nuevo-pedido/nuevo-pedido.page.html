@@ -1,0 +1,24 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Nuevo Pedido</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-item>
+    <ion-label>Mesa</ion-label>
+    <ion-select [(ngModel)]="mesa">
+      <ion-select-option value="1">Mesa 1</ion-select-option>
+      <ion-select-option value="2">Mesa 2</ion-select-option>
+    </ion-select>
+  </ion-item>
+
+  <ion-item>
+    <ion-label position="floating">Observaciones</ion-label>
+    <ion-textarea [(ngModel)]="comentario"></ion-textarea>
+  </ion-item>
+
+  <ion-button expand="block" (click)="enviarPedido()">
+    Enviar a Cocina
+  </ion-button>
+</ion-content>

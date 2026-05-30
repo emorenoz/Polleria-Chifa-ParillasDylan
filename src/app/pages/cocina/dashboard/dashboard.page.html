@@ -1,0 +1,25 @@
+<ion-header>
+  <ion-toolbar color="danger">
+    <ion-title>Cocina</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card *ngFor="let pedido of pedidos">
+    <ion-card-header>
+      <ion-card-title>Mesa {{ pedido.mesa }}</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <p>{{ pedido.detalle }}</p>
+
+      <ion-button color="warning">
+        Preparando
+      </ion-button>
+
+      <ion-button color="success">
+        Listo
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

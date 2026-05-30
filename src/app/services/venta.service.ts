@@ -1,4 +1,4 @@
-+import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
@@ -17,7 +17,6 @@ export class VentaService {
 
   // ➕ REGISTRAR VENTA
   registrarVenta(venta: any) {
-
     const actual = this.ventas.value;
 
     venta.id = Date.now();
