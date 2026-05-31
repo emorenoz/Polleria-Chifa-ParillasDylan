@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  IonContent, 
-  IonHeader, 
-  IonTitle, 
+import {
+  IonContent,
+  IonHeader,
+  IonTitle,
   IonToolbar,
   IonCard,
   IonCardHeader,
@@ -21,10 +21,12 @@ import {
   IonBadge,
   IonItemSliding,
   IonItemOptions,
-  IonItemOption
+  IonItemOption,
+  IonButtons,    // 👈 Añadido para agrupar el botón de retroceso
+  IonBackButton  // 👈 Añadido para usar la flecha nativa de navegación
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { create, trash } from 'ionicons/icons';
+import { create, trash, arrowBack } from 'ionicons/icons'; // 👈 Añadido arrowBack
 
 @Component({
   selector: 'app-mesas',
@@ -32,11 +34,11 @@ import { create, trash } from 'ionicons/icons';
   styleUrls: ['./mesas.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    IonContent, 
-    IonHeader, 
-    IonTitle, 
+    IonContent,
+    IonHeader,
+    IonTitle,
     IonToolbar,
     IonCard,
     IonCardHeader,
@@ -53,7 +55,9 @@ import { create, trash } from 'ionicons/icons';
     IonBadge,
     IonItemSliding,
     IonItemOptions,
-    IonItemOption
+    IonItemOption,
+    IonButtons,    // 👈 Declarado en imports
+    IonBackButton  // 👈 Declarado en imports
   ]
 })
 export class MesasPage implements OnInit {
@@ -69,7 +73,7 @@ export class MesasPage implements OnInit {
   editando: boolean = false;
   idMesaEditando: string | null = null; // String para soportar los UIDs alfanuméricos de Firebase
 
-  // Datos semilla locales listos para persistir en la nube
+  // Datos semilla locales de prueba
   listaMesas: any[] = [
     { id: 'm_1', numero: 'Mesa 01', capacidad: 4, estado: 'disponible' },
     { id: 'm_2', numero: 'Mesa 02', capacidad: 6, estado: 'ocupada' },
@@ -77,8 +81,8 @@ export class MesasPage implements OnInit {
   ];
 
   constructor() {
-    // Registro obligatorio de los iconos para componentes Standalone
-    addIcons({ create, trash });
+    // Registro obligatorio de los iconos (añadido arrowBack)
+    addIcons({ create, trash, arrowBack });
   }
 
   async ngOnInit() {
@@ -88,7 +92,6 @@ export class MesasPage implements OnInit {
   // Simulación de lectura de la colección 'mesas' en Firebase Firestore
   async cargarMesasFirebase() {
     // Cuando conectes Firebase: this.firestore.collection('mesas').valueChanges()...
-    // Por ahora mantiene los datos semilla en memoria
   }
 
   // Agrega una mesa o actualiza una existente en la base de datos

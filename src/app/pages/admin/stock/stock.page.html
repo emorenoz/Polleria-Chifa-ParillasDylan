@@ -1,5 +1,9 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
     <ion-title>Control de Stock e Insumos</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -12,11 +16,11 @@
     </ion-card-header>
     <ion-card-content>
       <ion-list lines="none">
-        
+
         <ion-item class="form-item">
           <ion-input label="Descripción del Artículo" labelPlacement="stacked" type="text" placeholder="Ej. Inca Kola 1.5L, Papas Yungay (kg)" [(ngModel)]="nuevoInsumo.nombre"></ion-input>
         </ion-item>
-        
+
         <ion-item class="form-item">
           <ion-input label="Cantidad Actual / Stock" labelPlacement="stacked" type="number" placeholder="0" [(ngModel)]="nuevoInsumo.cantidad"></ion-input>
         </ion-item>
@@ -50,7 +54,7 @@
           <h2><strong>{{ insumo.nombre }}</strong></h2>
           <p>Mínimo requerido: {{ insumo.stockMinimo }} und.</p>
         </ion-label>
-        
+
         <ion-badge slot="end" [color]="insumo.cantidad <= 0 ? 'danger' : (insumo.cantidad <= insumo.stockMinimo ? 'warning' : 'success')">
           {{ insumo.cantidad }} und.
         </ion-badge>

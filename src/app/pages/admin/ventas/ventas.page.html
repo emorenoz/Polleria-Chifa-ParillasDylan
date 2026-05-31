@@ -1,5 +1,9 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
     <ion-title>Registro de Ventas</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -12,11 +16,11 @@
     </ion-card-header>
     <ion-card-content>
       <ion-list lines="none">
-        
+
         <ion-item class="form-item">
           <ion-input label="Cliente / Mesa" labelPlacement="stacked" type="text" placeholder="Ej. Mesa 4, Juan Pérez" [(ngModel)]="nuevaVenta.cliente"></ion-input>
         </ion-item>
-        
+
         <ion-item class="form-item">
           <ion-input label="Monto Total Recaudado (S/)" labelPlacement="stacked" type="number" placeholder="0.00" [(ngModel)]="nuevaVenta.total"></ion-input>
         </ion-item>
@@ -53,7 +57,7 @@
           <p>Método: {{ venta.metodoPago }}</p>
           <p class="hora-text">🕒 {{ venta.hora }}</p>
         </ion-label>
-        
+
         <ion-note slot="end" class="monto-note">
           S/ {{ venta.total | number:'1.2-2' }}
         </ion-note>

@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
+import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader,
   IonCardTitle, IonCardContent, IonList, IonItem, IonInput, IonButton,
   IonSearchbar, IonItemSliding, IonItemOptions, IonItemOption, IonIcon,
-  IonLabel, IonNote
+  IonLabel, IonNote,
+  IonButtons, IonBackButton // 👈 AGREGADOS AQUÍ PARA EL BOTÓN DE RETROCESO
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { create, trash } from 'ionicons/icons';
+import { create, trash, arrowBack } from 'ionicons/icons'; // 👈 Se agregó arrowBack por si el sistema operativo lo requiere
 
 @Component({
   selector: 'app-categorias',
@@ -19,28 +20,32 @@ import { create, trash } from 'ionicons/icons';
     CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonToolbar,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonList, IonItem,
     IonInput, IonButton, IonSearchbar, IonItemSliding, IonItemOptions,
-    IonItemOption, IonIcon, IonLabel, IonNote
+    IonItemOption, IonIcon, IonLabel, IonNote,
+    IonButtons, IonBackButton // 👈 AGREGADOS AQUÍ EN LOS IMPORTS
   ]
 })
 export class CategoriasPage implements OnInit {
 
+  // Sincronizado con tu HTML que usa 'nombre' y 'emoji'
   nuevaCategoria = {
     nombre: '',
-    descripcion: ''
+    emoji: ''
   };
 
   editando: boolean = false;
-  idCategoriaEditando: string | null = null; // Cambiado a string para Firebase UID
+  idCategoriaEditando: string | null = null;
   textoBuscar: string = '';
 
+  // Datos iniciales adaptados a tu ejemplo de comida del HTML
   listaCategorias: any[] = [
-    { id: 'cat_1', nombre: 'Cuadernos', descripcion: 'Cuadernos cuadriculados y rayados' },
-    { id: 'cat_2', nombre: 'Archivadores', descripcion: 'Archivadores lomo ancho y mediano' }
+    { id: 'cat_1', nombre: 'Pollos a la Brasa', emoji: '🍗' },
+    { id: 'cat_2', nombre: 'Bebidas', emoji: '🥤' }
   ];
   categoriasFiltradas: any[] = [];
 
   constructor() {
-    addIcons({ create, trash });
+    // Registramos los íconos (incluyendo el de retroceso por si acaso)
+    addIcons({ create, trash, arrowBack });
   }
 
   async ngOnInit() {
@@ -51,25 +56,22 @@ export class CategoriasPage implements OnInit {
     this.categoriasFiltradas = [...this.listaCategorias];
   }
 
-  // Preparado para: db.collection('categorias').add() o .doc(id).update()
   async guardarCategoria() {
-    if (!this.nuevaCategoria.nombre.trim()) return;
+    if (!this.nuevaCategoria.nombre.trim() || !this.nuevaCategoria.emoji.trim()) return;
 
     if (this.editando && this.idCategoriaEditando !== null) {
-      // ACTUALIZAR EN FIRESTORE
       const index = this.listaCategorias.findIndex(c => c.id === this.idCategoriaEditando);
       if (index !== -1) {
         this.listaCategorias[index].nombre = this.nuevaCategoria.nombre.trim();
-        this.listaCategorias[index].descripcion = this.nuevaCategoria.descripcion.trim();
+        this.listaCategorias[index].emoji = this.nuevaCategoria.emoji.trim();
       }
       this.cancelarEdicion();
     } else {
-      // CREAR EN FIRESTORE (Firebase autogenera el ID, aquí lo simulamos con un random)
-      const mockFirebaseId = 'fs_' + Math.random().toString(36).substr(2, 9);
+      const mockFirebaseId = 'fs_' + Math.random().toString(36).substring(2, 11);
       this.listaCategorias.push({
         id: mockFirebaseId,
         nombre: this.nuevaCategoria.nombre.trim(),
-        descripcion: this.nuevaCategoria.descripcion.trim()
+        emoji: this.nuevaCategoria.emoji.trim()
       });
     }
 
@@ -82,7 +84,7 @@ export class CategoriasPage implements OnInit {
     this.idCategoriaEditando = categoria.id;
     this.nuevaCategoria = {
       nombre: categoria.nombre,
-      descripcion: categoria.descripcion
+      emoji: categoria.emoji
     };
   }
 
@@ -92,7 +94,6 @@ export class CategoriasPage implements OnInit {
     this.limpiarFormulario();
   }
 
-  // Preparado para: db.collection('categorias').doc(id).delete()
   async eliminarCategoria(id: string) {
     this.listaCategorias = this.listaCategorias.filter(c => c.id !== id);
     this.buscar();
@@ -103,13 +104,13 @@ export class CategoriasPage implements OnInit {
     if (!q) {
       this.categoriasFiltradas = [...this.listaCategorias];
     } else {
-      this.categoriasFiltradas = this.listaCategorias.filter(c => 
-        c.nombre.toLowerCase().includes(q) || c.descripcion.toLowerCase().includes(q)
+      this.categoriasFiltradas = this.listaCategorias.filter(c =>
+        c.nombre.toLowerCase().includes(q)
       );
     }
   }
 
   limpiarFormulario() {
-    this.nuevaCategoria = { nombre: '', descripcion: '' };
+    this.nuevaCategoria = { nombre: '', emoji: '' };
   }
 }

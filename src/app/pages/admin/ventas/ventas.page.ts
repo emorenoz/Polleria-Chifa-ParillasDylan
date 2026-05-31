@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  IonContent, 
-  IonHeader, 
-  IonTitle, 
+import {
+  IonContent,
+  IonHeader,
+  IonTitle,
   IonToolbar,
   IonCard,
   IonCardHeader,
@@ -21,10 +21,12 @@ import {
   IonNote,
   IonItemSliding,
   IonItemOptions,
-  IonItemOption
+  IonItemOption,
+  IonButtons,    // Añadido: Contenedor para la barra de botones superior
+  IonBackButton  // Añadido: Componente nativo de la flecha de retroceso
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { cash, create, trash } from 'ionicons/icons';
+import { cash, create, trash, arrowBack } from 'ionicons/icons'; // Añadido: Icono arrowBack requerido para el botón de retroceso
 
 @Component({
   selector: 'app-ventas',
@@ -32,11 +34,11 @@ import { cash, create, trash } from 'ionicons/icons';
   styleUrls: ['./ventas.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    IonContent, 
-    IonHeader, 
-    IonTitle, 
+    IonContent,
+    IonHeader,
+    IonTitle,
     IonToolbar,
     IonCard,
     IonCardHeader,
@@ -53,7 +55,9 @@ import { cash, create, trash } from 'ionicons/icons';
     IonNote,
     IonItemSliding,
     IonItemOptions,
-    IonItemOption
+    IonItemOption,
+    IonButtons,    // Añadido al arreglo de imports
+    IonBackButton  // Añadido al arreglo de imports
   ]
 })
 export class VentasPage implements OnInit {
@@ -76,8 +80,8 @@ export class VentasPage implements OnInit {
   ];
 
   constructor() {
-    // Registro obligatorio de los recursos gráficos en componentes Standalone
-    addIcons({ cash, create, trash });
+    // Registro obligatorio de recursos gráficos incluyendo 'arrowBack' para el retroceso
+    addIcons({ cash, create, trash, arrowBack });
   }
 
   async ngOnInit() {

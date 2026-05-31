@@ -1,5 +1,9 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
     <ion-title>Gestión de Mesas</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -15,7 +19,7 @@
         <ion-item class="form-item">
           <ion-input label="Nombre / Número de Mesa" labelPlacement="stacked" type="text" placeholder="Ej. Mesa 01, Terraza 2" [(ngModel)]="nuevaMesa.numero"></ion-input>
         </ion-item>
-        
+
         <ion-item class="form-item">
           <ion-input label="Capacidad (Personas)" labelPlacement="stacked" type="number" placeholder="Ej. 4" [(ngModel)]="nuevaMesa.capacidad"></ion-input>
         </ion-item>
@@ -49,7 +53,7 @@
           <h2><strong>{{ mesa.numero }}</strong></h2>
           <p>Capacidad: {{ mesa.capacidad }} personas</p>
         </ion-label>
-        
+
         <ion-badge slot="end" [color]="mesa.estado === 'disponible' ? 'success' : (mesa.estado === 'ocupada' ? 'danger' : 'primary')">
           {{ mesa.estado | uppercase }}
         </ion-badge>

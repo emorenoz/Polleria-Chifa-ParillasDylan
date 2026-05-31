@@ -1,5 +1,9 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
     <ion-title>Configuración</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -29,15 +33,15 @@
     </ion-card-header>
     <ion-card-content>
       <ion-list lines="none">
-        
+
         <ion-item class="form-item">
           <ion-input label="RUC / Identificación" labelPlacement="stacked" type="text" placeholder="Ej. 20123456789" [(ngModel)]="config.ruc"></ion-input>
         </ion-item>
-        
+
         <ion-item class="form-item">
           <ion-input label="Nombre Comercial / Razón Social" labelPlacement="stacked" type="text" placeholder="Ej. Mi Negocio S.A.C." [(ngModel)]="config.nombreEmpresa"></ion-input>
         </ion-item>
-        
+
         <ion-item class="form-item">
           <ion-input label="Teléfono de Contacto" labelPlacement="stacked" type="tel" placeholder="Ej. 987654321" [(ngModel)]="config.telefono"></ion-input>
         </ion-item>

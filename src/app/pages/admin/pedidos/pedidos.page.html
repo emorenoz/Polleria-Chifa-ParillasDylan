@@ -1,6 +1,10 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
-    <ion-title>Comandas y Pedidos</ion-title>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
+    <ion-title>Pedidos</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -20,7 +24,7 @@
             <ion-select-option value="Para Llevar">Para Llevar 🛍️</ion-select-option>
           </ion-select>
         </ion-item>
-        
+
         <ion-item class="form-item">
           <ion-input label="Detalle del Pedido" labelPlacement="stacked" type="text" placeholder="Ej. 1 Pollo a la brasa, 1 Chaufa, 1 Gaseosa" [(ngModel)]="nuevoPedido.detalle"></ion-input>
         </ion-item>
@@ -56,7 +60,7 @@
         <ion-badge slot="end" [color]="pedido.estado === 'pendiente' ? 'warning' : (pedido.estado === 'en cocina' ? 'secondary' : 'success')">
           {{ pedido.estado | uppercase }}
         </ion-badge>
-        
+
         <ion-note slot="end" class="precio-note">
           S/ {{ pedido.total | number:'1.2-2' }}
         </ion-note>

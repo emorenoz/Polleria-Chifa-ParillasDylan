@@ -1,18 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
+import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader,
   IonCardSubtitle, IonCardTitle, IonCardContent, IonGrid, IonRow, IonCol,
   IonText, IonList, IonItem, IonSelect, IonSelectOption, IonInput,
   IonButton, IonIcon, IonNote,
-  IonLabel,        // 👈 Agregado para solucionar el error de compilación
-  IonItemSliding,  // 👈 Agregado por seguridad para directivas de listas
-  IonItemOptions,  // 👈 Agregado por seguridad
-  IonItemOption    // 👈 Agregado por seguridad
+  IonLabel,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  IonButtons,    // 👈 Añadido para el botón de retroceso
+  IonBackButton  // 👈 Añadido para el botón de retroceso
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowUpCircle, arrowDownCircle, create, trash } from 'ionicons/icons';
+import { arrowUpCircle, arrowDownCircle, create, trash, arrowBack } from 'ionicons/icons'; // 👈 Añadido arrowBack
 
 @Component({
   selector: 'app-caja',
@@ -24,10 +26,12 @@ import { arrowUpCircle, arrowDownCircle, create, trash } from 'ionicons/icons';
     IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCardContent,
     IonGrid, IonRow, IonCol, IonText, IonList, IonItem, IonSelect,
     IonSelectOption, IonInput, IonButton, IonIcon, IonNote,
-    IonLabel,        // 👈 Registrado en la metadata para el HTML
-    IonItemSliding,  // 👈 Registrado
-    IonItemOptions,  // 👈 Registrado
-    IonItemOption    // 👈 Registrado
+    IonLabel,
+    IonItemSliding,
+    IonItemOptions,
+    IonItemOption,
+    IonButtons,    // 👈 Declarado para la UI
+    IonBackButton  // 👈 Declarado para la UI
   ]
 })
 export class CajaPage implements OnInit {
@@ -45,8 +49,8 @@ export class CajaPage implements OnInit {
   historial: any[] = [];
 
   constructor() {
-    // Registro de recursos gráficos standalone
-    addIcons({ arrowUpCircle, arrowDownCircle, create, trash });
+    // Registro de recursos gráficos standalone (añadido arrowBack)
+    addIcons({ arrowUpCircle, arrowDownCircle, create, trash, arrowBack });
   }
 
   async ngOnInit() {
@@ -56,7 +60,7 @@ export class CajaPage implements OnInit {
   // Simulación de lectura desde Firestore en tiempo real
   async cargarMovimientosFirebase() {
     // Aquí irá: this.firestore.collection('caja').snapshotChanges()...
-    this.historial = []; 
+    this.historial = [];
     this.calcularTotales();
   }
 

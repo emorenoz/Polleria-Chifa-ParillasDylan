@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
+import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader,
   IonCardTitle, IonCardContent, IonList, IonItem, IonInput, IonButton,
   IonSearchbar, IonItemSliding, IonItemOptions, IonItemOption, IonIcon,
-  IonLabel, IonNote
+  IonLabel, IonNote,
+  IonButtons, IonBackButton // 👈 AGREGADOS PARA EL BOTÓN DE RETROCESO
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { create, trash } from 'ionicons/icons';
+import { create, trash, arrowBack } from 'ionicons/icons'; // 👈 Se agregó arrowBack por compatibilidad de navegación
 
 @Component({
   selector: 'app-clientes',
@@ -19,7 +20,8 @@ import { create, trash } from 'ionicons/icons';
     CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonToolbar,
     IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonList, IonItem,
     IonInput, IonButton, IonSearchbar, IonItemSliding, IonItemOptions,
-    IonItemOption, IonIcon, IonLabel, IonNote
+    IonItemOption, IonIcon, IonLabel, IonNote,
+    IonButtons, IonBackButton // 👈 AGREGADOS EN LOS IMPORTS DEL COMPONENTE
   ]
 })
 export class ClientesPage implements OnInit {
@@ -32,7 +34,7 @@ export class ClientesPage implements OnInit {
   };
 
   editando: boolean = false;
-  idClienteEditando: string | null = null; // ID Alfanumérico tipo Firebase
+  idClienteEditando: string | null = null;
   textoBuscar: string = '';
 
   listaClientes: any[] = [
@@ -41,7 +43,8 @@ export class ClientesPage implements OnInit {
   clientesFiltrados: any[] = [];
 
   constructor() {
-    addIcons({ create, trash });
+    // Registramos los íconos de las acciones y de navegación
+    addIcons({ create, trash, arrowBack });
   }
 
   async ngOnInit() {
@@ -52,12 +55,10 @@ export class ClientesPage implements OnInit {
     this.clientesFiltrados = [...this.listaClientes];
   }
 
-  // Preparado para interactuar con colecciones de Cloud Firestore
   async guardarCliente() {
     if (!this.nuevoCliente.documento.trim() || !this.nuevoCliente.nombre.trim()) return;
 
     if (this.editando && this.idClienteEditando !== null) {
-      // Firestore: db.collection('clientes').doc(id).update(...)
       const index = this.listaClientes.findIndex(c => c.id === this.idClienteEditando);
       if (index !== -1) {
         this.listaClientes[index] = {
@@ -70,8 +71,7 @@ export class ClientesPage implements OnInit {
       }
       this.cancelarEdicion();
     } else {
-      // Firestore: db.collection('clientes').add(...)
-      const mockFirebaseId = 'fs_' + Math.random().toString(36).substr(2, 9);
+      const mockFirebaseId = 'fs_' + Math.random().toString(36).substring(2, 11);
       this.listaClientes.push({
         id: mockFirebaseId,
         documento: this.nuevoCliente.documento.trim(),
@@ -91,8 +91,8 @@ export class ClientesPage implements OnInit {
     this.nuevoCliente = {
       documento: cliente.documento,
       nombre: cliente.nombre,
-      telefono: cliente.telefono,
-      direccion: cliente.direccion
+      telefono: cliente.telefono || '',
+      direccion: cliente.direccion || ''
     };
   }
 
@@ -103,7 +103,6 @@ export class ClientesPage implements OnInit {
   }
 
   async eliminarCliente(id: string) {
-    // Firestore: db.collection('clientes').doc(id).delete()
     this.listaClientes = this.listaClientes.filter(c => c.id !== id);
     this.buscar();
   }
@@ -113,7 +112,7 @@ export class ClientesPage implements OnInit {
     if (!q) {
       this.clientesFiltrados = [...this.listaClientes];
     } else {
-      this.clientesFiltrados = this.listaClientes.filter(c => 
+      this.clientesFiltrados = this.listaClientes.filter(c =>
         c.nombre.toLowerCase().includes(q) || c.documento.includes(q)
       );
     }

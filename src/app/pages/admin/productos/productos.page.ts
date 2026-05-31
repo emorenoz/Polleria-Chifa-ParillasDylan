@@ -22,10 +22,12 @@ import {
   IonSearchbar,
   IonItemSliding,
   IonItemOptions,
-  IonItemOption
+  IonItemOption,
+  IonButtons,    // 👈 Añadido para agrupar el botón de retroceso
+  IonBackButton  // 👈 Añadido para el componente de retroceso nativo
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { fastFood, create, trash } from 'ionicons/icons';
+import { fastFood, create, trash, arrowBack } from 'ionicons/icons'; // 👈 Añadido arrowBack
 
 @Component({
   selector: 'app-productos',
@@ -55,7 +57,9 @@ import { fastFood, create, trash } from 'ionicons/icons';
     IonSearchbar,
     IonItemSliding,
     IonItemOptions,
-    IonItemOption
+    IonItemOption,
+    IonButtons,    // 👈 Declarado en la sección de imports
+    IonBackButton  // 👈 Declarado en la sección de imports
   ]
 })
 export class ProductosPage implements OnInit {
@@ -80,12 +84,12 @@ export class ProductosPage implements OnInit {
     { id: 'prod_4', nombre: 'Chaufa Especial', precio: 18.90, stock: null, categoriaId: 'cat_chifa' },
     { id: 'prod_5', nombre: 'Inca Kola 1L', precio: 8.50, stock: 24, categoriaId: 'cat_bebidas' }
   ];
-  
+
   productosFiltrados: any[] = [];
 
   constructor() {
-    // Inyección de íconos requeridos para el diseño standalone
-    addIcons({ fastFood, create, trash });
+    // Inyección de íconos requeridos para el diseño standalone (añadido arrowBack)
+    addIcons({ fastFood, create, trash, arrowBack });
   }
 
   async ngOnInit() {

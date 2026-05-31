@@ -1,5 +1,9 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
     <ion-title>Control de Usuarios</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -12,11 +16,11 @@
     </ion-card-header>
     <ion-card-content>
       <ion-list lines="none">
-        
+
         <ion-item class="form-item">
           <ion-input label="Nombre Completo" labelPlacement="stacked" type="text" placeholder="Ej. Juan Pérez" [(ngModel)]="nuevoUsuario.nombre"></ion-input>
         </ion-item>
-        
+
         <ion-item class="form-item">
           <ion-input label="Correo Electrónico" labelPlacement="stacked" type="email" placeholder="ejemplo@dylan.com" [(ngModel)]="nuevoUsuario.email" [disabled]="editando"></ion-input>
         </ion-item>
@@ -56,7 +60,7 @@
           <h2><strong>{{ usuario.nombre }}</strong></h2>
           <p>{{ usuario.email }}</p>
         </ion-label>
-        
+
         <ion-badge slot="end" [color]="usuario.rol === 'admin' ? 'danger' : (usuario.rol === 'cajero' ? 'success' : 'primary')">
           {{ usuario.rol | uppercase }}
         </ion-badge>

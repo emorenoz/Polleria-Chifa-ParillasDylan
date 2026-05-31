@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  IonContent, 
-  IonHeader, 
-  IonTitle, 
+import {
+  IonContent,
+  IonHeader,
+  IonTitle,
   IonToolbar,
   IonCard,
   IonCardHeader,
@@ -22,10 +22,19 @@ import {
   IonNote,
   IonItemSliding,
   IonItemOptions,
-  IonItemOption
+  IonItemOption,
+  IonButtons,    // Añadido: Para agrupar botones en la barra de herramientas
+  IonBackButton  // Añadido: Para la flecha de retroceso automática
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { restaurant, flame, checkmarkDone, create, trash } from 'ionicons/icons';
+import {
+  restaurant,
+  flame,
+  checkmarkDone,
+  create,
+  trash,
+  arrowBack // Añadido: Icono base de retroceso para compatibilidad Standalone
+} from 'ionicons/icons';
 
 @Component({
   selector: 'app-pedidos',
@@ -33,11 +42,11 @@ import { restaurant, flame, checkmarkDone, create, trash } from 'ionicons/icons'
   styleUrls: ['./pedidos.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    IonContent, 
-    IonHeader, 
-    IonTitle, 
+    IonContent,
+    IonHeader,
+    IonTitle,
     IonToolbar,
     IonCard,
     IonCardHeader,
@@ -55,7 +64,9 @@ import { restaurant, flame, checkmarkDone, create, trash } from 'ionicons/icons'
     IonNote,
     IonItemSliding,
     IonItemOptions,
-    IonItemOption
+    IonItemOption,
+    IonButtons,    // Añadido al array de imports
+    IonBackButton  // Añadido al array de imports
   ]
 })
 export class PedidosPage implements OnInit {
@@ -69,7 +80,7 @@ export class PedidosPage implements OnInit {
 
   // Estados para control de edición
   editando: boolean = false;
-  idPedidoEditando: string | null = null; // String para emparejar con los strings aleatorios de Firebase UIDs
+  idPedidoEditando: string | null = null;
 
   // Datos semilla locales (Simulación de colecciones en tiempo real)
   listaPedidos: any[] = [
@@ -78,8 +89,8 @@ export class PedidosPage implements OnInit {
   ];
 
   constructor() {
-    // Registro de iconos para la arquitectura Standalone
-    addIcons({ restaurant, flame, checkmarkDone, create, trash });
+    // Registro de iconos actualizado con arrowBack
+    addIcons({ restaurant, flame, checkmarkDone, create, trash, arrowBack });
   }
 
   async ngOnInit() {
@@ -99,7 +110,6 @@ export class PedidosPage implements OnInit {
     const horaFormateada = `${ahora.getHours().toString().padStart(2, '0')}:${ahora.getMinutes().toString().padStart(2, '0')}`;
 
     if (this.editando && this.idPedidoEditando !== null) {
-      // Simulación de actualización: db.collection('pedidos').doc(id).update(...)
       const index = this.listaPedidos.findIndex(p => p.id === this.idPedidoEditando);
       if (index !== -1) {
         this.listaPedidos[index].mesa = this.nuevoPedido.mesa;
@@ -108,7 +118,6 @@ export class PedidosPage implements OnInit {
       }
       this.cancelarEdicion();
     } else {
-      // Simulación de inserción: db.collection('pedidos').add(...)
       const mockFirebaseId = 'fs_p_' + Math.random().toString(36).substr(2, 9);
       this.listaPedidos.push({
         id: mockFirebaseId,
@@ -125,7 +134,6 @@ export class PedidosPage implements OnInit {
 
   // Cambia el estado de la comanda de forma asíncrona al deslizar el elemento
   async cambiarEstado(id: string, nuevoEstado: string) {
-    // Simula: db.collection('pedidos').doc(id).update({ estado: nuevoEstado })
     const index = this.listaPedidos.findIndex(p => p.id === id);
     if (index !== -1) {
       this.listaPedidos[index].estado = nuevoEstado;
@@ -149,7 +157,6 @@ export class PedidosPage implements OnInit {
     this.limpiarFormulario();
   }
 
-  // Simula: db.collection('pedidos').doc(id).delete()
   async eliminarPedido(id: string) {
     this.listaPedidos = this.listaPedidos.filter(p => p.id !== id);
   }

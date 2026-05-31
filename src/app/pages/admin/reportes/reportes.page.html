@@ -1,5 +1,9 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
     <ion-title>Reportes Financieros</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -15,7 +19,7 @@
         <ion-item class="form-item">
           <ion-input label="Fecha Inicio" labelPlacement="stacked" type="date" [(ngModel)]="filtros.fechaInicio"></ion-input>
         </ion-item>
-        
+
         <ion-item class="form-item last-item">
           <ion-input label="Fecha Fin" labelPlacement="stacked" type="date" [(ngModel)]="filtros.fechaFin"></ion-input>
         </ion-item>
@@ -31,9 +35,9 @@
   </ion-card>
 
   <div *ngIf="reporteGenerado">
-    
+
     <h3>Resumen del Período</h3>
-    
+
     <div class="report-grid">
       <ion-card class="kpi-card ingresos">
         <ion-card-content>

@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common'; // 👈 Se agregó DecimalPipe para los pipes de números del HTML
 import { FormsModule } from '@angular/forms';
-import { 
-  IonContent, 
-  IonHeader, 
-  IonTitle, 
+import {
+  IonContent,
+  IonHeader,
+  IonTitle,
   IonToolbar,
   IonCard,
   IonCardHeader,
@@ -16,10 +16,12 @@ import {
   IonButton,
   IonIcon,
   IonLabel,
-  IonNote
+  IonNote,
+  IonButtons,   // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
+  IonBackButton // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { analytics, documentTextOutline } from 'ionicons/icons';
+import { analytics, documentTextOutline, arrowBack } from 'ionicons/icons'; // 👈 Se agregó arrowBack
 
 @Component({
   selector: 'app-reportes',
@@ -27,11 +29,12 @@ import { analytics, documentTextOutline } from 'ionicons/icons';
   styleUrls: ['./reportes.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    IonContent, 
-    IonHeader, 
-    IonTitle, 
+    DecimalPipe, // 👈 Se añade a los imports para que el HTML reconozca el formato '| number'
+    IonContent,
+    IonHeader,
+    IonTitle,
     IonToolbar,
     IonCard,
     IonCardHeader,
@@ -43,7 +46,9 @@ import { analytics, documentTextOutline } from 'ionicons/icons';
     IonButton,
     IonIcon,
     IonLabel,
-    IonNote
+    IonNote,
+    IonButtons,   // 👈 REGISTRADO EN LOS IMPORTS DEL COMPONENTE
+    IonBackButton // 👈 REGISTRADO EN LOS IMPORTS DEL COMPONENTE
   ]
 })
 export class ReportesPage implements OnInit {
@@ -69,8 +74,8 @@ export class ReportesPage implements OnInit {
   metodosPago: any[] = [];
 
   constructor() {
-    // Inyección de íconos analíticos en modo Standalone
-    addIcons({ analytics, documentTextOutline });
+    // Inyección de íconos analíticos y de navegación en modo Standalone
+    addIcons({ analytics, documentTextOutline, arrowBack });
   }
 
   ngOnInit() {

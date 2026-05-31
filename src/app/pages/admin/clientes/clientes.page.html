@@ -1,5 +1,9 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
     <ion-title>Clientes</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -15,7 +19,7 @@
         <ion-item class="form-item">
           <ion-input label="DNI / RUC" labelPlacement="stacked" type="text" placeholder="Número de documento" [(ngModel)]="nuevoCliente.documento"></ion-input>
         </ion-item>
-        
+
         <ion-item class="form-item">
           <ion-input label="Nombre / Razón Social" labelPlacement="stacked" type="text" placeholder="Nombre completo" [(ngModel)]="nuevoCliente.nombre"></ion-input>
         </ion-item>

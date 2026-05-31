@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  IonContent, 
-  IonHeader, 
-  IonTitle, 
+import {
+  IonContent,
+  IonHeader,
+  IonTitle,
   IonToolbar,
   IonCard,
   IonCardHeader,
@@ -21,10 +21,12 @@ import {
   IonBadge,
   IonItemSliding,
   IonItemOptions,
-  IonItemOption
+  IonItemOption,
+  IonButtons,   // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
+  IonBackButton // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { people, create, trash } from 'ionicons/icons';
+import { people, create, trash, arrowBack } from 'ionicons/icons'; // 👈 Se agregó arrowBack
 
 @Component({
   selector: 'app-usuarios',
@@ -32,11 +34,11 @@ import { people, create, trash } from 'ionicons/icons';
   styleUrls: ['./usuarios.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    IonContent, 
-    IonHeader, 
-    IonTitle, 
+    IonContent,
+    IonHeader,
+    IonTitle,
     IonToolbar,
     IonCard,
     IonCardHeader,
@@ -53,7 +55,9 @@ import { people, create, trash } from 'ionicons/icons';
     IonBadge,
     IonItemSliding,
     IonItemOptions,
-    IonItemOption
+    IonItemOption,
+    IonButtons,   // 👈 REGISTRADO EN LOS IMPORTS
+    IonBackButton // 👈 REGISTRADO EN LOS IMPORTS
   ]
 })
 export class UsuariosPage implements OnInit {
@@ -77,8 +81,8 @@ export class UsuariosPage implements OnInit {
   ];
 
   constructor() {
-    // Registro de iconos obligatorios en componentes Standalone
-    addIcons({ people, create, trash });
+    // Registro de iconos obligatorios en componentes Standalone (incluyendo la navegación)
+    addIcons({ people, create, trash, arrowBack });
   }
 
   async ngOnInit() {
@@ -104,7 +108,7 @@ export class UsuariosPage implements OnInit {
       this.cancelarEdicion();
     } else {
       // Simula el flujo compuesto: 1. Crear en Firebase Auth -> 2. Guardar en Firestore con el UID resultante
-      const mockFirebaseUid = 'auth_uid_' + Math.random().toString(36).substr(2, 9);
+      const mockFirebaseUid = 'auth_uid_' + Math.random().toString(36).substring(2, 11);
       this.listaUsuarios.push({
         id: mockFirebaseUid,
         nombre: this.nuevoUsuario.nombre.trim(),

@@ -1,5 +1,9 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
     <ion-title>Control de Caja</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -60,11 +64,11 @@
   </ion-card>
 
   <h3 class="ion-padding-horizontal">Historial Reciente</h3>
-  
+
   <ion-list lines="inset">
     <ion-item *ngFor="let mov of historial">
-      <ion-icon slot="start" 
-                [name]="mov.tipo === 'ingreso' ? 'arrow-up-circle' : 'arrow-down-circle'" 
+      <ion-icon slot="start"
+                [name]="mov.tipo === 'ingreso' ? 'arrow-up-circle' : 'arrow-down-circle'"
                 [color]="mov.tipo === 'ingreso' ? 'success' : 'danger'">
       </ion-icon>
       <ion-label>

@@ -1,5 +1,9 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+
     <ion-title>Gestión de Productos</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -12,11 +16,11 @@
     </ion-card-header>
     <ion-card-content>
       <ion-list lines="none">
-        
+
         <ion-item class="form-item">
           <ion-input label="Nombre del Producto / Plato" labelPlacement="stacked" type="text" placeholder="Ej. 1/4 de Pollo a la Brasa" [(ngModel)]="nuevoProducto.nombre"></ion-input>
         </ion-item>
-        
+
         <ion-item class="form-item">
           <ion-input label="Precio de Venta (S/)" labelPlacement="stacked" type="number" placeholder="0.00" [(ngModel)]="nuevoProducto.precio"></ion-input>
         </ion-item>
@@ -57,7 +61,7 @@
           <h2><strong>{{ producto.nombre }}</strong></h2>
           <p> Stock: {{ producto.stock !== null ? producto.stock + ' und.' : 'Ilimitado (Cocina)' }}</p>
         </ion-label>
-        
+
         <ion-note slot="end" class="precio-note">
           S/ {{ producto.precio | number:'1.2-2' }}
         </ion-note>

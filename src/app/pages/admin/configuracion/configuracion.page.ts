@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  IonContent, 
-  IonHeader, 
-  IonTitle, 
+import {
+  IonContent,
+  IonHeader,
+  IonTitle,
   IonToolbar,
   IonCard,
   IonCardHeader,
@@ -19,10 +19,12 @@ import {
   IonButton,
   IonIcon,
   IonLabel,
-  IonNote
+  IonNote,
+  IonButtons,   // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
+  IonBackButton // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { cloudDone, save } from 'ionicons/icons';
+import { cloudDone, save, arrowBack } from 'ionicons/icons'; // 👈 Se agregó arrowBack
 
 @Component({
   selector: 'app-configuracion',
@@ -30,11 +32,11 @@ import { cloudDone, save } from 'ionicons/icons';
   styleUrls: ['./configuracion.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    IonContent, 
-    IonHeader, 
-    IonTitle, 
+    IonContent,
+    IonHeader,
+    IonTitle,
     IonToolbar,
     IonCard,
     IonCardHeader,
@@ -49,7 +51,9 @@ import { cloudDone, save } from 'ionicons/icons';
     IonButton,
     IonIcon,
     IonLabel,
-    IonNote
+    IonNote,
+    IonButtons,   // 👈 REGISTRADO EN IMPORTS
+    IonBackButton // 👈 REGISTRADO EN IMPORTS
   ]
 })
 export class ConfiguracionPage implements OnInit {
@@ -67,8 +71,8 @@ export class ConfiguracionPage implements OnInit {
   guardando: boolean = false;
 
   constructor() {
-    // Inyección de íconos requeridos para Standalone
-    addIcons({ cloudDone, save });
+    // Inyección de íconos requeridos para Standalone (incluido el de navegación)
+    addIcons({ cloudDone, save, arrowBack });
   }
 
   async ngOnInit() {
@@ -97,7 +101,7 @@ export class ConfiguracionPage implements OnInit {
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     console.log('Datos guardados con éxito en Firebase Firestore:', this.config);
-    
+
     this.guardando = false;
   }
 }
