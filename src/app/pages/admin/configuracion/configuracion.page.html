@@ -29,19 +29,21 @@
     </ion-card-header>
     <ion-card-content>
       <ion-list lines="none">
+        
         <ion-item class="form-item">
           <ion-input label="RUC / Identificación" labelPlacement="stacked" type="text" placeholder="Ej. 20123456789" [(ngModel)]="config.ruc"></ion-input>
         </ion-item>
         
         <ion-item class="form-item">
-          <ion-input label="Nombre Comercial / Razón Social" labelPlacement="stacked" type="text" placeholder="Ej. Mi Negocio S.A.C." [(ngModel)]="config.nombreEmpresa"></ion-item>
+          <ion-input label="Nombre Comercial / Razón Social" labelPlacement="stacked" type="text" placeholder="Ej. Mi Negocio S.A.C." [(ngModel)]="config.nombreEmpresa"></ion-input>
+        </ion-item>
         
         <ion-item class="form-item">
           <ion-input label="Teléfono de Contacto" labelPlacement="stacked" type="tel" placeholder="Ej. 987654321" [(ngModel)]="config.telefono"></ion-input>
         </ion-item>
 
         <ion-item class="form-item">
-          <ion-input label="Dirección Fiscal" labelPlacement="stacked" type="text" placeholder="Dirección del local" [(ngModel)]="config.direccion"></ion-item>
+          <ion-input label="Dirección Fiscal" labelPlacement="stacked" type="text" placeholder="Dirección del local" [(ngModel)]="config.direccion"></ion-input>
         </ion-item>
 
         <ion-item class="form-item last-item">
