@@ -5,10 +5,14 @@ import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader,
   IonCardSubtitle, IonCardTitle, IonCardContent, IonGrid, IonRow, IonCol,
   IonText, IonList, IonItem, IonSelect, IonSelectOption, IonInput,
-  IonButton, IonIcon, IonNote
+  IonButton, IonIcon, IonNote,
+  IonLabel,        // 👈 Agregado para solucionar el error de compilación
+  IonItemSliding,  // 👈 Agregado por seguridad para directivas de listas
+  IonItemOptions,  // 👈 Agregado por seguridad
+  IonItemOption    // 👈 Agregado por seguridad
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { arrowUpCircle, arrowDownCircle } from 'ionicons/icons';
+import { arrowUpCircle, arrowDownCircle, create, trash } from 'ionicons/icons';
 
 @Component({
   selector: 'app-caja',
@@ -19,7 +23,11 @@ import { arrowUpCircle, arrowDownCircle } from 'ionicons/icons';
     CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonToolbar,
     IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCardContent,
     IonGrid, IonRow, IonCol, IonText, IonList, IonItem, IonSelect,
-    IonSelectOption, IonInput, IonButton, IonIcon, IonNote
+    IonSelectOption, IonInput, IonButton, IonIcon, IonNote,
+    IonLabel,        // 👈 Registrado en la metadata para el HTML
+    IonItemSliding,  // 👈 Registrado
+    IonItemOptions,  // 👈 Registrado
+    IonItemOption    // 👈 Registrado
   ]
 })
 export class CajaPage implements OnInit {
@@ -37,7 +45,8 @@ export class CajaPage implements OnInit {
   historial: any[] = [];
 
   constructor() {
-    addIcons({ arrowUpCircle, arrowDownCircle });
+    // Registro de recursos gráficos standalone
+    addIcons({ arrowUpCircle, arrowDownCircle, create, trash });
   }
 
   async ngOnInit() {
