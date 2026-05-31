@@ -1,0 +1,121 @@
+// Estilos para el Monitoreo de Pedidos y Comandas - Pollería Dylan
+
+ion-content {
+  --background: #f4f5f8;
+}
+
+ion-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+
+  ion-card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+}
+
+ion-list {
+  background: transparent;
+  
+  .form-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    --background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    
+    ion-input, ion-select {
+      font-size: 0.95rem;
+      --padding-start: 8px;
+    }
+  }
+
+  .last-item {
+    margin-bottom: 0px;
+  }
+}
+
+ion-button {
+  --border-radius: 8px;
+  font-weight: 600;
+  height: 48px;
+  margin-top: 4px;
+
+  ion-icon {
+    margin-right: 6px;
+    font-size: 18px;
+  }
+  
+  &.ion-margin-top {
+    margin-top: 12px;
+  }
+}
+
+h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ion-color-step-600, #666666);
+  margin: 24px 0 12px 0;
+  padding-left: 8px;
+}
+
+ion-item-sliding {
+  margin-bottom: 6px;
+  background: transparent;
+  
+  ion-item {
+    --background: #ffffff;
+    
+    ion-label {
+      h2 {
+        font-size: 1.05rem;
+        color: var(--ion-color-dark);
+        margin-bottom: 4px;
+      }
+      .detalle-text {
+        font-size: 0.9rem;
+        color: #444444;
+        white-space: normal; // Permite que los platos largos bajen de renglón de forma legible
+        margin-bottom: 4px;
+      }
+      .hora-text {
+        font-size: 0.8rem;
+        color: var(--ion-color-step-600, #666666);
+        font-weight: 500;
+      }
+    }
+
+    ion-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      padding: 5px 8px;
+      border-radius: 6px;
+      margin-right: 8px;
+    }
+
+    .precio-note {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #2e7d32; // Color verde de contabilidad para totales
+      background: #e8f5e9;
+      padding: 4px 8px;
+      border-radius: 6px;
+      align-self: center;
+    }
+  }
+}
+
+ion-item-options {
+  ion-item-option {
+    font-size: 1.1rem;
+    padding-left: 12px;
+    padding-right: 12px;
+    
+    ion-icon {
+      font-size: 22px;
+    }
+  }
+}

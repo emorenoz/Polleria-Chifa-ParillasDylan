@@ -1,13 +1,86 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>pedidos</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title>Comandas y Pedidos</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">pedidos</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ editando ? 'Modificar Comanda' : 'Nueva Comanda' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item class="form-item">
+          <ion-select label="Mesa / Destino" labelPlacement="stacked" placeholder="Selecciona mesa" [(ngModel)]="nuevoPedido.mesa">
+            <ion-select-option value="Mesa 01">Mesa 01</ion-select-option>
+            <ion-select-option value="Mesa 02">Mesa 02</ion-select-option>
+            <ion-select-option value="Mesa 03">Mesa 03</ion-select-option>
+            <ion-select-option value="Para Llevar">Para Llevar 🛍️</ion-select-option>
+          </ion-select>
+        </ion-item>
+        
+        <ion-item class="form-item">
+          <ion-input label="Detalle del Pedido" labelPlacement="stacked" type="text" placeholder="Ej. 1 Pollo a la brasa, 1 Chaufa, 1 Gaseosa" [(ngModel)]="nuevoPedido.detalle"></ion-input>
+        </ion-item>
+
+        <ion-item class="form-item last-item">
+          <ion-input label="Total Estimado (S/)" labelPlacement="stacked" type="number" placeholder="0.00" [(ngModel)]="nuevoPedido.total"></ion-input>
+        </ion-item>
+      </ion-list>
+
+      <div class="ion-padding-top">
+        <ion-button expand="block" (click)="guardarPedido()" [disabled]="!nuevoPedido.mesa || !nuevoPedido.detalle.trim() || !nuevoPedido.total">
+          <ion-icon slot="start" name="restaurant"></ion-icon>
+          {{ editando ? 'Actualizar Pedido' : 'Enviar a Cocina' }}
+        </ion-button>
+        <ion-button *ngIf="editando" expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
+          Cancelar Edición
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <h3>Monitoreo de Comandas (Realtime)</h3>
+
+  <ion-list lines="inset">
+    <ion-item-sliding *ngFor="let pedido of listaPedidos">
+      <ion-item>
+        <ion-label>
+          <h2><strong>{{ pedido.mesa }}</strong></h2>
+          <p class="detalle-text">{{ pedido.detalle }}</p>
+          <p class="hora-text">🕒 {{ pedido.hora }}</p>
+        </ion-label>
+
+        <ion-badge slot="end" [color]="pedido.estado === 'pendiente' ? 'warning' : (pedido.estado === 'en cocina' ? 'secondary' : 'success')">
+          {{ pedido.estado | uppercase }}
+        </ion-badge>
+        
+        <ion-note slot="end" class="precio-note">
+          S/ {{ pedido.total | number:'1.2-2' }}
+        </ion-note>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option *ngIf="pedido.estado === 'pendiente'" color="secondary" (click)="cambiarEstado(pedido.id, 'en cocina')">
+          <ion-icon slot="icon-only" name="flame"></ion-icon>
+        </ion-item-option>
+        <ion-item-option *ngIf="pedido.estado === 'en cocina'" color="success" (click)="cambiarEstado(pedido.id, 'entregado')">
+          <ion-icon slot="icon-only" name="checkmark-done"></ion-icon>
+        </ion-item-option>
+        <ion-item-option color="warning" (click)="seleccionarPedido(pedido)">
+          <ion-icon slot="icon-only" name="create"></ion-icon>
+        </ion-item-option>
+        <ion-item-option color="danger" (click)="eliminarPedido(pedido.id)">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+
+    <ion-item *ngIf="listaPedidos.length === 0" class="ion-text-center">
+      <ion-label color="medium">No hay pedidos pendientes en cocina.</ion-label>
+    </ion-item>
+  </ion-list>
+
 </ion-content>

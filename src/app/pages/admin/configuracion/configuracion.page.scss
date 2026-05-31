@@ -1,0 +1,78 @@
+// Estilos para el módulo de Configuración (Consistente con Caja, Categorías y Clientes)
+
+ion-content {
+  --background: #f4f5f8;
+}
+
+ion-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+
+  ion-card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+}
+
+// Bloque de estado de sincronización
+.estado-conexion {
+  --background: #ffffff;
+  border-radius: 8px;
+  padding: 4px 0;
+
+  ion-icon {
+    font-size: 28px;
+  }
+
+  ion-label {
+    h2 {
+      font-weight: 600;
+      color: var(--ion-color-dark);
+    }
+    p {
+      font-size: 0.85rem;
+      color: var(--ion-color-step-500, #737373);
+    }
+  }
+
+  ion-note {
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+}
+
+// Estructura de formulario unificada
+ion-list {
+  background: transparent;
+  
+  .form-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    --background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    
+    ion-input, ion-select {
+      font-size: 0.95rem;
+      --padding-start: 8px;
+    }
+  }
+
+  .last-item {
+    margin-bottom: 0px;
+  }
+}
+
+ion-button {
+  --border-radius: 8px;
+  font-weight: 600;
+  height: 48px;
+  margin-top: 4px;
+
+  ion-icon {
+    margin-right: 6px;
+  }
+}

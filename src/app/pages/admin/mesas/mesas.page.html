@@ -1,13 +1,73 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>mesas</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title>Gestión de Mesas</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">mesas</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ editando ? 'Modificar Mesa' : 'Nueva Mesa' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item class="form-item">
+          <ion-input label="Nombre / Número de Mesa" labelPlacement="stacked" type="text" placeholder="Ej. Mesa 01, Terraza 2" [(ngModel)]="nuevaMesa.numero"></ion-input>
+        </ion-item>
+        
+        <ion-item class="form-item">
+          <ion-input label="Capacidad (Personas)" labelPlacement="stacked" type="number" placeholder="Ej. 4" [(ngModel)]="nuevaMesa.capacidad"></ion-input>
+        </ion-item>
+
+        <ion-item class="form-item last-item">
+          <ion-select label="Estado Inicial" labelPlacement="stacked" [(ngModel)]="nuevaMesa.estado">
+            <ion-select-option value="disponible">Disponible 🟢</ion-select-option>
+            <ion-select-option value="ocupada">Ocupada 🔴</ion-select-option>
+            <ion-select-option value="reservada">Reservada 🔵</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-list>
+
+      <div class="ion-padding-top">
+        <ion-button expand="block" (click)="guardarMesa()" [disabled]="!nuevaMesa.numero.trim() || !nuevaMesa.capacidad">
+          {{ editando ? 'Actualizar Mesa' : 'Agregar Mesa' }}
+        </ion-button>
+        <ion-button *ngIf="editando" expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
+          Cancelar Edición
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <h3>Mesas del Establecimiento</h3>
+
+  <ion-list lines="inset">
+    <ion-item-sliding *ngFor="let mesa of listaMesas">
+      <ion-item>
+        <ion-label>
+          <h2><strong>{{ mesa.numero }}</strong></h2>
+          <p>Capacidad: {{ mesa.capacidad }} personas</p>
+        </ion-label>
+        
+        <ion-badge slot="end" [color]="mesa.estado === 'disponible' ? 'success' : (mesa.estado === 'ocupada' ? 'danger' : 'primary')">
+          {{ mesa.estado | uppercase }}
+        </ion-badge>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="warning" (click)="seleccionarMesa(mesa)">
+          <ion-icon slot="icon-only" name="create"></ion-icon>
+        </ion-item-option>
+        <ion-item-option color="danger" (click)="eliminarMesa(mesa.id)">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+
+    <ion-item *ngIf="listaMesas.length === 0" class="ion-text-center">
+      <ion-label color="medium">No hay mesas configuradas en este momento.</ion-label>
+    </ion-item>
+  </ion-list>
+
 </ion-content>

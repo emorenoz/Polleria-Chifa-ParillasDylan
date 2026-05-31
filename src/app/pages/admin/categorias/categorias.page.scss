@@ -1,0 +1,109 @@
+// Estilos personalizados para el módulo de Categorías (Coherente con Módulo Caja)
+
+// Contenedor principal
+ion-content {
+  --background: #f4f5f8; // El mismo fondo gris claro sutil para dar relieve a las tarjetas
+}
+
+// Tarjeta del Formulario (Nueva / Editar Categoría)
+ion-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+
+  ion-card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+}
+
+// Estructura de los inputs dentro del formulario
+ion-list {
+  background: transparent;
+  
+  ion-item {
+    --background: var(--ion-color-white, #ffffff);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    
+    ion-input {
+      font-size: 0.95rem;
+      --padding-start: 8px;
+    }
+  }
+}
+
+// Botones de acción (Agregar, Actualizar, Cancelar)
+ion-button {
+  --border-radius: 8px;
+  font-weight: 600;
+  height: 48px; // Altura optimizada para interacción táctil cómoda
+  margin-top: 4px;
+  
+  &.ion-margin-top {
+    margin-top: 12px;
+  }
+}
+
+// Buscador dinámico (Searchbar)
+ion-searchbar {
+  --border-radius: 10px;
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding-left: 8px;
+  padding-right: 8px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+// Título de la sección del listado
+h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ion-color-step-600, #666666);
+  margin: 24px 0 12px 0;
+}
+
+// Listado de categorías registradas (Soporta el deslizamiento lateral)
+ion-item-sliding {
+  margin-bottom: 6px;
+  background: transparent;
+  
+  ion-item {
+    --background: #ffffff;
+    --border-radius: 0; // Se mantiene limpio en bloques de lista enlazada
+    
+    ion-label {
+      h2 {
+        font-size: 1.05rem;
+        color: var(--ion-color-dark);
+        margin-bottom: 4px;
+      }
+      p {
+        font-size: 0.85rem;
+        color: var(--ion-color-step-500, #737373);
+      }
+    }
+
+    ion-note {
+      font-size: 0.8rem;
+      font-weight: 500;
+      align-self: center;
+      background: #f0f0f2;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+  }
+}
+
+// Estilos para los botones ocultos que aparecen al deslizar (Slide options)
+ion-item-options {
+  ion-item-option {
+    font-size: 1.1rem;
+    padding-left: 16px;
+    padding-right: 16px;
+    
+    ion-icon {
+      font-size: 22px;
+    }
+  }
+}

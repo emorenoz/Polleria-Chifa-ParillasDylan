@@ -1,0 +1,97 @@
+// Estilos personalizados para el módulo de Caja
+
+// Contenedor principal
+ion-content {
+  --background: #f4f5f8; // Un fondo gris claro sutil para resaltar las tarjetas blancas
+}
+
+// Tarjeta de Balance General (Muestra el saldo total en grande)
+ion-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+
+  ion-card-title {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-top: 4px;
+    color: var(--ion-color-dark);
+  }
+}
+
+// Separadores visuales en el resumen de ingresos/egresos
+ion-grid {
+  ion-col {
+    padding: 8px;
+    
+    // Añade una pequeña línea divisoria vertical entre Ingresos y Egresos
+    &:first-child {
+      border-right: 1px solid rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  p {
+    font-size: 0.95rem;
+    
+    strong {
+      font-weight: 600;
+    }
+  }
+}
+
+// Formulario de registro
+ion-list {
+  background: transparent;
+  
+  ion-item {
+    --border-radius: 8px;
+    --margin-bottom: 8px;
+    --background: var(--ion-color-white, #ffffff);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    
+    // Estilo para inputs y selects
+    ion-input, ion-select {
+      font-size: 0.95rem;
+    }
+  }
+}
+
+// Botón de guardado
+ion-button {
+  --border-radius: 8px;
+  font-weight: 600;
+  height: 48px; // Un poco más alto para que sea fácil de presionar en móviles
+  margin-top: 8px;
+}
+
+// Sección del Historial Reciente
+h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ion-color-step-600, #666666);
+  margin: 20px 0 10px 0;
+}
+
+// Ajustes en la lista de movimientos para que parezcan tarjetas individuales
+ion-item {
+  ion-icon {
+    font-size: 24px; // Íconos de flecha más visibles
+  }
+
+  ion-label {
+    h2 {
+      font-weight: 500;
+      color: var(--ion-color-dark);
+    }
+    p {
+      font-size: 0.8rem;
+      color: var(--ion-color-step-400, #999999);
+    }
+  }
+
+  ion-note {
+    font-size: 1rem;
+    align-self: center;
+  }
+}

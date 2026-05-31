@@ -1,0 +1,90 @@
+// Estilos para el Control de Usuarios y Roles - Pollería Dylan
+
+ion-content {
+  --background: #f4f5f8;
+}
+
+ion-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  margin-bottom: 16px;
+
+  ion-card-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+}
+
+ion-list {
+  background: transparent;
+  
+  .form-item {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    --background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    
+    ion-input, ion-select {
+      font-size: 0.95rem;
+      --padding-start: 8px;
+    }
+  }
+
+  .last-item {
+    margin-bottom: 0px;
+  }
+}
+
+ion-button {
+  --border-radius: 8px;
+  font-weight: 600;
+  height: 48px;
+  margin-top: 4px;
+
+  ion-icon {
+    margin-right: 6px;
+    font-size: 18px;
+  }
+  
+  &.ion-margin-top {
+    margin-top: 12px;
+  }
+}
+
+h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--ion-color-step-600, #666666);
+  margin: 24px 0 12px 0;
+  padding-left: 4px;
+}
+
+ion-item-sliding {
+  margin-bottom: 6px;
+  
+  ion-item {
+    --background: #ffffff;
+    
+    ion-label {
+      h2 {
+        font-size: 1.05rem;
+        color: var(--ion-color-dark);
+        font-weight: 600;
+      }
+      p {
+        font-size: 0.85rem;
+        color: var(--ion-color-step-500, #737373);
+      }
+    }
+
+    ion-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 6px;
+      letter-spacing: 0.3px;
+    }
+  }
+}

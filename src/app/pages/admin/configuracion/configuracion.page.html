@@ -1,13 +1,64 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>configuracion</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title>Configuración</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">configuracion</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <ion-card color="light">
+    <ion-card-header>
+      <ion-card-subtitle>Estado del Sistema</ion-card-subtitle>
+      <ion-card-title>Sincronización Cloud</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="none" class="estado-conexion">
+        <ion-icon slot="start" name="cloud-done" color="success"></ion-icon>
+        <ion-label>
+          <h2>Conectado a Firebase</h2>
+          <p>Base de datos en la nube activa</p>
+        </ion-label>
+        <ion-note slot="end" color="success">ONLINE</ion-note>
+      </ion-item>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Datos del Establecimiento</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item class="form-item">
+          <ion-input label="RUC / Identificación" labelPlacement="stacked" type="text" placeholder="Ej. 20123456789" [(ngModel)]="config.ruc"></ion-input>
+        </ion-item>
+        
+        <ion-item class="form-item">
+          <ion-input label="Nombre Comercial / Razón Social" labelPlacement="stacked" type="text" placeholder="Ej. Mi Negocio S.A.C." [(ngModel)]="config.nombreEmpresa"></ion-item>
+        
+        <ion-item class="form-item">
+          <ion-input label="Teléfono de Contacto" labelPlacement="stacked" type="tel" placeholder="Ej. 987654321" [(ngModel)]="config.telefono"></ion-input>
+        </ion-item>
+
+        <ion-item class="form-item">
+          <ion-input label="Dirección Fiscal" labelPlacement="stacked" type="text" placeholder="Dirección del local" [(ngModel)]="config.direccion"></ion-item>
+        </ion-item>
+
+        <ion-item class="form-item last-item">
+          <ion-select label="Moneda Principal" labelPlacement="stacked" [(ngModel)]="config.moneda">
+            <ion-select-option value="PEN">Soles (S/.)</ion-select-option>
+            <ion-select-option value="USD">Dólares ($)</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-list>
+
+      <div class="ion-padding-top">
+        <ion-button expand="block" (click)="guardarConfiguracion()" [disabled]="guardando || !config.nombreEmpresa.trim()">
+          <ion-icon slot="start" name="save"></ion-icon>
+          {{ guardando ? 'Guardando en Cloud...' : 'Guardar Configuración' }}
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
 </ion-content>

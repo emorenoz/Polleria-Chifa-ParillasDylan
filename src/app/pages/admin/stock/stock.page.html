@@ -1,13 +1,74 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>stock</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title>Control de Stock e Insumos</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">stock</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ editando ? 'Ajustar Inventario' : 'Nuevo Insumo / Artículo' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list lines="none">
+        
+        <ion-item class="form-item">
+          <ion-input label="Descripción del Artículo" labelPlacement="stacked" type="text" placeholder="Ej. Inca Kola 1.5L, Papas Yungay (kg)" [(ngModel)]="nuevoInsumo.nombre"></ion-input>
+        </ion-item>
+        
+        <ion-item class="form-item">
+          <ion-input label="Cantidad Actual / Stock" labelPlacement="stacked" type="number" placeholder="0" [(ngModel)]="nuevoInsumo.cantidad"></ion-input>
+        </ion-item>
+
+        <ion-item class="form-item last-item">
+          <ion-input label="Stock Mínimo (Alerta de reposición)" labelPlacement="stacked" type="number" placeholder="Ej. 10" [(ngModel)]="nuevoInsumo.stockMinimo"></ion-input>
+        </ion-item>
+
+      </ion-list>
+
+      <div class="ion-padding-top">
+        <ion-button expand="block" (click)="guardarInsumo()" [disabled]="!nuevoInsumo.nombre.trim() || nuevoInsumo.cantidad === null || !nuevoInsumo.stockMinimo">
+          <ion-icon slot="start" name="cube"></ion-icon>
+          {{ editando ? 'Actualizar Existencias' : 'Registrar en Almacén' }}
+        </ion-button>
+        <ion-button *ngIf="editando" expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
+          Cancelar Ajuste
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-searchbar placeholder="Buscar insumo o bebida..." [(ngModel)]="textoBuscar" (ionInput)="buscar()"></ion-searchbar>
+
+  <h3>Inventario en Tiempo Real</h3>
+
+  <ion-list lines="inset">
+    <ion-item-sliding *ngFor="let insumo of insumosFiltrados">
+      <ion-item>
+        <ion-label>
+          <h2><strong>{{ insumo.nombre }}</strong></h2>
+          <p>Mínimo requerido: {{ insumo.stockMinimo }} und.</p>
+        </ion-label>
+        
+        <ion-badge slot="end" [color]="insumo.cantidad <= 0 ? 'danger' : (insumo.cantidad <= insumo.stockMinimo ? 'warning' : 'success')">
+          {{ insumo.cantidad }} und.
+        </ion-badge>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="warning" (click)="seleccionarInsumo(insumo)">
+          <ion-icon slot="icon-only" name="create"></ion-icon>
+        </ion-item-option>
+        <ion-item-option color="danger" (click)="eliminarInsumo(insumo.id)">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+
+    <ion-item *ngIf="insumosFiltrados.length === 0" class="ion-text-center">
+      <ion-label color="medium">No hay alertas ni insumos registrados.</ion-label>
+    </ion-item>
+  </ion-list>
+
 </ion-content>

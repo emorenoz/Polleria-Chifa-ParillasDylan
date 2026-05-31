@@ -2,7 +2,7 @@
 
   <div class="welcome-banner">
     <h2>🍗 Pollería, Chifa y Parrillas Dylan</h2>
-    <p>Panel Administrativo</p>
+    <p>Panel Administrativo Cloud</p>
   </div>
 
   <div class="stats-grid">
@@ -10,7 +10,7 @@
     <ion-card class="card ventas">
       <ion-card-content>
         <h3>💰 Ventas de Hoy</h3>
-        <h1>S/ {{ ventasHoy }}</h1>
+        <h1>S/ {{ ventasHoy | number:'1.2-2' }}</h1>
       </ion-card-content>
     </ion-card>
 
@@ -37,60 +37,46 @@
 
   </div>
 
-  <ion-card>
-
+  <ion-card class="resume-card">
     <ion-card-header>
-      <ion-card-title>
-        📋 Resumen General
-      </ion-card-title>
+      <ion-card-title>📋 Resumen General</ion-card-title>
     </ion-card-header>
-
     <ion-card-content>
-
       <p>
-        Pedidos Activos:
+        <span>Pedidos Activos:</span>
         <strong>{{ pedidosActivos }}</strong>
       </p>
-
       <p>
-        Ventas Registradas:
-        <strong>S/ {{ ventasHoy }}</strong>
+        <span>Ventas Registradas:</span>
+        <strong>S/ {{ ventasHoy | number:'1.2-2' }}</strong>
       </p>
-
       <p>
-        Mesas Operativas:
+        <span>Mesas Operativas Totales:</span>
         <strong>{{ mesasDisponibles + mesasOcupadas }}</strong>
       </p>
-
     </ion-card-content>
-
   </ion-card>
 
-  <ion-card>
-
+  <ion-card class="history-card">
     <ion-card-header>
-      <ion-card-title>
-        🕒 Últimas Transacciones
-      </ion-card-title>
+      <ion-card-title>🕒 Últimas Transacciones (Cloud)</ion-card-title>
     </ion-card-header>
-
-    <ion-list>
-
+    
+    <ion-list lines="inset">
       <ion-item *ngFor="let venta of ultimasVentas">
-
         <ion-label>
-          <h2>{{ venta.cliente }}</h2>
+          <h2><strong>{{ venta.cliente }}</strong></h2>
           <p>{{ venta.descripcion }}</p>
         </ion-label>
-
-        <ion-badge color="success">
-          S/ {{ venta.total }}
+        <ion-badge slot="end" color="success">
+          S/ {{ venta.total | number:'1.2-2' }}
         </ion-badge>
-
       </ion-item>
 
+      <ion-item *ngIf="ultimasVentas.length === 0" class="ion-text-center">
+        <ion-label color="medium">Sincronizando flujos de Firebase...</ion-label>
+      </ion-item>
     </ion-list>
-
   </ion-card>
 
 </ion-content>

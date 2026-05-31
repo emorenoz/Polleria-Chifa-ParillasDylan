@@ -1,13 +1,75 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>clientes</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title>Clientes</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">clientes</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ editando ? 'Modificar Cliente' : 'Nuevo Cliente' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item class="form-item">
+          <ion-input label="DNI / RUC" labelPlacement="stacked" type="text" placeholder="Número de documento" [(ngModel)]="nuevoCliente.documento"></ion-input>
+        </ion-item>
+        
+        <ion-item class="form-item">
+          <ion-input label="Nombre / Razón Social" labelPlacement="stacked" type="text" placeholder="Nombre completo" [(ngModel)]="nuevoCliente.nombre"></ion-input>
+        </ion-item>
+
+        <ion-item class="form-item">
+          <ion-input label="Teléfono" labelPlacement="stacked" type="tel" placeholder="Ej. 987654321" [(ngModel)]="nuevoCliente.telefono"></ion-input>
+        </ion-item>
+
+        <ion-item class="form-item last-item">
+          <ion-input label="Dirección" labelPlacement="stacked" type="text" placeholder="Dirección del cliente" [(ngModel)]="nuevoCliente.direccion"></ion-input>
+        </ion-item>
+      </ion-list>
+
+      <div class="ion-padding-top">
+        <ion-button expand="block" (click)="guardarCliente()" [disabled]="!nuevoCliente.documento.trim() || !nuevoCliente.nombre.trim()">
+          {{ editando ? 'Actualizar Cliente' : 'Agregar Cliente' }}
+        </ion-button>
+        <ion-button *ngIf="editando" expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
+          Cancelar Edición
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-searchbar placeholder="Buscar por nombre o documento..." [(ngModel)]="textoBuscar" (ionInput)="buscar()"></ion-searchbar>
+
+  <h3>Clientes Registrados</h3>
+
+  <ion-list lines="inset">
+    <ion-item-sliding *ngFor="let cliente of clientesFiltrados">
+      <ion-item>
+        <ion-label>
+          <h2><strong>{{ cliente.nombre }}</strong></h2>
+          <p>Doc: {{ cliente.documento }} | Tel: {{ cliente.telefono || '---' }}</p>
+          <p *ngIf="cliente.direccion" class="direccion-text">Dir: {{ cliente.direccion }}</p>
+        </ion-label>
+        <ion-note slot="end" color="medium">
+          ID: {{ cliente.id }}
+        </ion-note>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="warning" (click)="seleccionarCliente(cliente)">
+          <ion-icon slot="icon-only" name="create"></ion-icon>
+        </ion-item-option>
+        <ion-item-option color="danger" (click)="eliminarCliente(cliente.id)">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+
+    <ion-item *ngIf="clientesFiltrados.length === 0" class="ion-text-center">
+      <ion-label color="medium">No se encontraron clientes disponibles.</ion-label>
+    </ion-item>
+  </ion-list>
+
 </ion-content>

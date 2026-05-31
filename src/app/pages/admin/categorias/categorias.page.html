@@ -1,13 +1,65 @@
 <ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>categorias</ion-title>
+  <ion-toolbar color="primary">
+    <ion-title>Categorías</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">categorias</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content [fullscreen]="true" class="ion-padding">
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>{{ editando ? 'Modificar Categoría' : 'Nueva Categoría' }}</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item class="ion-margin-bottom" style="border: 1px solid #e0e0e0; border-radius: 8px;">
+          <ion-input label="Nombre" labelPlacement="stacked" type="text" placeholder="Ej. Cuadernos, Mochilas" [(ngModel)]="nuevaCategoria.nombre"></ion-input>
+        </ion-item>
+        <ion-item style="border: 1px solid #e0e0e0; border-radius: 8px;">
+          <ion-input label="Descripción" labelPlacement="stacked" type="text" placeholder="Breve descripción (opcional)" [(ngModel)]="nuevaCategoria.descripcion"></ion-input>
+        </ion-item>
+      </ion-list>
+
+      <div class="ion-padding-top">
+        <ion-button expand="block" (click)="guardarCategoria()" [disabled]="!nuevaCategoria.nombre.trim()">
+          {{ editando ? 'Actualizar Categoría' : 'Agregar Categoría' }}
+        </ion-button>
+        <ion-button *ngIf="editando" expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
+          Cancelar Edición
+        </ion-button>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-searchbar placeholder="Buscar categoría..." [(ngModel)]="textoBuscar" (ionInput)="buscar()"></ion-searchbar>
+
+  <h3 class="ion-padding-horizontal" style="font-size: 1.1rem; font-weight: 600; color: #666;">Categorías Registradas</h3>
+
+  <ion-list lines="inset">
+    <ion-item-sliding *ngFor="let cat of categoriasFiltradas">
+      <ion-item>
+        <ion-label>
+          <h2><strong>{{ cat.nombre }}</strong></h2>
+          <p>{{ cat.descripcion || 'Sin descripción asignada' }}</p>
+        </ion-label>
+        <ion-note slot="end" color="medium">
+          ID: {{ cat.id }}
+        </ion-note>
+      </ion-item>
+
+      <ion-item-options side="end">
+        <ion-item-option color="warning" (click)="seleccionarCategoria(cat)">
+          <ion-icon slot="icon-only" name="create"></ion-icon>
+        </ion-item-option>
+        <ion-item-option color="danger" (click)="eliminarCategoria(cat.id)">
+          <ion-icon slot="icon-only" name="trash"></ion-icon>
+        </ion-item-option>
+      </ion-item-options>
+    </ion-item-sliding>
+
+    <ion-item *ngIf="categoriasFiltradas.length === 0" class="ion-text-center">
+      <ion-label color="medium">No se encontraron categorías disponibles.</ion-label>
+    </ion-item>
+  </ion-list>
+
 </ion-content>
