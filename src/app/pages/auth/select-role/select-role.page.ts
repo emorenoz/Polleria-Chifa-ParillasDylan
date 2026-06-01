@@ -54,10 +54,10 @@ irCajero() {
 }
 
 irMesero() {
-  this.router.navigate(['/login-mesero']);
+  this.router.navigate(['/mesero-dashboard']);
 }
 
 irCocina() {
-  this.router.navigate(['/login-cocina']);
+  this.router.navigate(['/cocina-dashboard']);
 }
 }

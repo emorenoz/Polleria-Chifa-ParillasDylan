@@ -46,26 +46,6 @@ export const routes: Routes = [
       ),
   },
 
-  // LOGIN MESERO
-
-  {
-    path: 'login-mesero',
-    loadComponent: () =>
-      import('./pages/auth/login-mesero/login-mesero.page').then(
-        (m) => m.LoginMeseroPage
-      ),
-  },
-
-  // LOGIN COCINA
-
-  {
-    path: 'login-cocina',
-    loadComponent: () =>
-      import('./pages/auth/login-cocina/login-cocina.page').then(
-        (m) => m.LoginCocinaPage
-      ),
-  },
-
   // =========================
   // DASHBOARDS
   // =========================
