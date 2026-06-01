@@ -1,8 +1,6 @@
 import { Component, inject } from '@angular/core';
-
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common'; // Agregamos Location
 import { FormsModule } from '@angular/forms';
-
 import { Router } from '@angular/router';
 
 import {
@@ -21,7 +19,15 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { personOutline, lockClosedOutline } from 'ionicons/icons';
+// Nuevos íconos según el diseño de Figma
+import { 
+  personOutline, 
+  lockClosedOutline, 
+  arrowBackOutline, 
+  shieldCheckmarkOutline, 
+  eyeOutline, 
+  eyeOffOutline 
+} from 'ionicons/icons';
 
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
 
@@ -51,19 +57,35 @@ export class LoginAdminPage {
 
   usuario = '';
   password = '';
+  mostrarPassword = false; // Control para el ojito de la contraseña
 
-  // Inyectamos la base de datos de manera segura y compatible con Angular
   private firestore = inject(Firestore);
 
-  constructor(private router: Router) {
+  constructor(
+    private router: Router,
+    private location: Location // Inyectamos Location para el botón Volver
+  ) {
     addIcons({
       personOutline,
-      lockClosedOutline
+      lockClosedOutline,
+      arrowBackOutline,
+      shieldCheckmarkOutline,
+      eyeOutline,
+      eyeOffOutline
     });
-
-   
   }
 
+  // --- Lógica de Figma (Interfaz) ---
+  togglePassword() {
+    this.mostrarPassword = !this.mostrarPassword;
+  }
+
+  volver() {
+    // Esto te regresará a la página anterior (por ejemplo, al menú de selección de roles)
+    this.location.back(); 
+  }
+
+  // --- Tu Lógica de Firebase (Intacta) ---
   async login() {
     if (
       this.usuario === 'admin' &&

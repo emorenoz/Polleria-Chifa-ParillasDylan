@@ -1,135 +1,148 @@
 :host {
-  --ion-background-color: transparent;
+  --ion-background-color: #f4f6f9;
 }
 
-ion-content {
+.custom-bg {
+   --background: none;
 
-  --background:
-    linear-gradient(
-      135deg,
-      #2196f3,
-      #1565c0
-    );
+  background:
+  linear-gradient(
+    rgba(42, 15, 37, 0.75),
+    rgba(40, 15, 42, 0.75)
+  ),
+    url('https://i.ibb.co/Z67TYz2T/foto-polleria-editado.jpg');
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
-.logo-container {
+/* --- Botón Volver --- */
+.header-action {
+  padding: 15px 10px;
+}
 
+.header-action ion-button {
+  --color: #ffffff;
+  font-weight: 500;
+  font-size: 15px;
+  text-transform: none;
+}
+
+/* --- Contenedor de la Tarjeta --- */
+.login-container {
+  max-width: 400px;
+  width: 90%;
+  margin: 20px auto 10px auto;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  background: #ffffff;
+  overflow: hidden;
+}
+
+/* --- Parte Morada (Arriba) --- */
+.top-section {
+  background: linear-gradient(135deg, #a020f0, #800080);
+  padding: 40px 20px 30px 20px;
+  text-align: center;
+  color: white;
+}
+
+.icon-circle {
+  background: rgba(255, 255, 255, 0.2);
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
   display: flex;
   justify-content: center;
+  align-items: center;
+  margin: 0 auto 15px auto;
+}
 
-  margin-top: 40px;
+.icon-circle ion-icon {
+  font-size: 32px;
+  color: white;
+}
+
+.top-section h1 {
+  font-size: 26px;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+}
+
+.top-section p {
+  font-size: 16px;
+  margin: 0;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+/* --- Parte del Formulario (Abajo) --- */
+.form-section {
+  padding: 30px 25px;
+}
+
+.input-group {
   margin-bottom: 20px;
 }
 
-.logo-container img {
-
-  width: 140px;
-  height: 140px;
-
-  background: white;
-
-  border-radius: 50%;
-
-  padding: 10px;
-
-  object-fit: contain;
-
-  box-shadow:
-    0 10px 25px rgba(0,0,0,.25);
-
-  animation: floatLogo 3s ease-in-out infinite;
-}
-
-ion-card {
-
-  max-width: 420px;
-
-  margin: auto;
-
-  border-radius: 28px;
-
-  background: rgba(255,255,255,.95);
-
-  backdrop-filter: blur(15px);
-
-  box-shadow:
-    0 15px 35px rgba(0,0,0,.25);
-}
-
-ion-card-header {
-
-  text-align: center;
-}
-
-ion-card-title {
-
-  color: #1565c0;
-
-  font-size: 24px;
-
-  font-weight: bold;
-}
-
-.subtitle {
-
-  margin-top: 10px;
-
-  color: #666;
-
+.input-group label {
+  display: block;
   font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
 }
 
-ion-item {
-
-  --background: #f5faff;
-
-  border: 1px solid #d6eaff;
-
-  border-radius: 16px;
-
-  margin-bottom: 15px;
+.input-wrapper {
+  background: #f4f5f8;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  height: 50px;
 }
 
-ion-icon {
-
-  color: #1565c0;
+ion-input {
+  --background: transparent;
+  --padding-start: 0;
+  font-size: 14px;
+  color: #333;
 }
 
-ion-button {
+.eye-icon {
+  font-size: 22px;
+  color: #888;
+  cursor: pointer;
+  padding-left: 10px;
+}
 
-  --background:
-    linear-gradient(
-      135deg,
-      #2196f3,
-      #1565c0
-    );
-
-  --border-radius: 18px;
-
-  height: 52px;
-
-  font-weight: bold;
-
-  margin-top: 15px;
-
+/* --- Botón Ingresar --- */
+.btn-ingresar {
+  --background: #ae48ff;
+  --background-hover: #9b2bd8;
+  --border-radius: 12px;
+  height: 50px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 10px;
   text-transform: none;
-
-  box-shadow:
-    0 8px 20px rgba(33,150,243,.35);
+  box-shadow: none;
 }
 
-@keyframes floatLogo {
+.forgot-password {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #5c6c7b;
+  cursor: pointer;
+}
 
-  0% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-8px);
-  }
-
-  100% {
-    transform: translateY(0);
-  }
-
+/* --- Texto Fuera de la Tarjeta --- */
+.test-credentials {
+  text-align: center;
+  color: #ffffff;
+  font-size: 13px;
+  margin-top: 20px;
 }

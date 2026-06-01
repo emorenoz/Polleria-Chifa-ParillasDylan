@@ -1,68 +1,73 @@
-<ion-content fullscreen>
-
-  <div class="logo-container">
-
-    <img
-      src="https://i.postimg.cc/Twy2BRvy/logopolleriadylan.png"
-      alt="Pollería Dylan">
-
+<ion-content class="custom-bg">
+  
+  <!-- Botón Volver -->
+  <div class="header-action">
+    <ion-button fill="clear" (click)="volver()">
+      <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+      Volver
+    </ion-button>
   </div>
 
-  <ion-card>
+  <!-- Contenedor Principal del Login -->
+  <div class="login-container">
+    
+    <!-- Sección Superior Morada -->
+    <div class="top-section">
+      <div class="icon-circle">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+      </div>
+      <h1>Iniciar Sesión</h1>
+      <p>Mesero</p>
+    </div>
 
-    <ion-card-header>
+    <!-- Sección del Formulario Blanca -->
+    <div class="form-section">
+      
+      <!-- Input Usuario -->
+      <div class="input-group">
+        <label>Usuario</label>
+        <div class="input-wrapper">
+          <ion-input
+            placeholder="Ingresa tu usuario"
+            [(ngModel)]="usuario">
+          </ion-input>
+        </div>
+      </div>
 
-      <ion-card-title>
-        🍽️ Login Mesero
-      </ion-card-title>
+      <!-- Input Contraseña -->
+      <div class="input-group">
+        <label>Contraseña</label>
+        <div class="input-wrapper">
+          <ion-input
+            [type]="mostrarPassword ? 'text' : 'password'"
+            placeholder="Ingresa tu contraseña"
+            [(ngModel)]="password">
+          </ion-input>
+          <!-- Botón de ojito para ver/ocultar -->
+          <ion-icon
+            [name]="mostrarPassword ? 'eye-outline' : 'eye-off-outline'"
+            class="eye-icon"
+            (click)="togglePassword()">
+          </ion-icon>
+        </div>
+      </div>
 
-      <p class="subtitle">
-        Sistema de Atención de Mesas
-      </p>
-
-    </ion-card-header>
-
-    <ion-card-content>
-
-      <ion-item>
-
-        <ion-icon
-          name="person-outline"
-          slot="start">
-        </ion-icon>
-
-        <ion-input
-          placeholder="Usuario"
-          [(ngModel)]="usuario">
-        </ion-input>
-
-      </ion-item>
-
-      <ion-item>
-
-        <ion-icon
-          name="lock-closed-outline"
-          slot="start">
-        </ion-icon>
-
-        <ion-input
-          type="password"
-          placeholder="Contraseña"
-          [(ngModel)]="password">
-        </ion-input>
-
-      </ion-item>
-
-      <ion-button
-        expand="block"
-        (click)="login()">
-
+      <!-- Botón Ingresar -->
+      <ion-button expand="block" class="btn-ingresar" (click)="login()">
         Ingresar al Sistema
-
       </ion-button>
 
-    </ion-card-content>
+      <!-- Olvidaste contraseña -->
+      <div class="forgot-password">
+        <a>¿Olvidaste tu contraseña?</a>
+      </div>
 
-  </ion-card>
+    </div>
+  </div>
+
+  <!-- Texto inferior -->
+  <div class="test-credentials">
+    Modo de Prueba: mesero / 123456
+  </div>
 
 </ion-content>

@@ -1,143 +1,148 @@
 :host {
-  --ion-background-color: transparent;
+  --ion-background-color: #f4f6f9; /* Fondo gris claro de Figma */
 }
 
-ion-content {
+.custom-bg {
+  --background: none;
 
-  --background:
-    linear-gradient(
-      135deg,
-      rgba(255, 87, 34, 0.95),
-      rgba(255, 152, 0, 0.95)
-    );
+  background:
+  linear-gradient(
+    #143278bf,
+    rgba(1, 6, 93, 0.75)
+  ),
+    url('https://i.ibb.co/Z67TYz2T/foto-polleria-editado.jpg');
 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+/* --- Botón Volver --- */
+.header-action {
+  padding: 15px 10px;
+}
+
+.header-action ion-button {
+  --color: #ffffff;
+  font-weight: 500;
+  font-size: 15px;
+  text-transform: none;
+}
+
+/* --- Contenedor de la Tarjeta --- */
+.login-container {
+  max-width: 400px;
+  width: 90%;
+  margin: 20px auto 10px auto;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  background: #ffffff;
+  overflow: hidden; /* Para que la parte superior respete el borde curvo */
+}
+
+/* --- Parte Morada (Arriba) --- */
+.top-section {
+  background: linear-gradient(135deg, #0f3c98, #030542); /* Ajuste al morado de Figma */
+  padding: 40px 20px 30px 20px;
+  text-align: center;
+  color: white;
+}
+
+.icon-circle {
+  background: rgba(255, 255, 255, 0.2);
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: 0 auto 15px auto;
 }
 
-.logo-container {
+.icon-circle ion-icon {
+  font-size: 32px;
+  color: white;
+}
 
-  display: flex;
-  justify-content: center;
-  margin-top: 40px;
+.top-section h1 {
+  font-size: 26px;
+  font-weight: 600;
+  margin: 0 0 5px 0;
+}
+
+.top-section p {
+  font-size: 16px;
+  margin: 0;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+/* --- Parte del Formulario (Abajo) --- */
+.form-section {
+  padding: 30px 25px;
+}
+
+.input-group {
   margin-bottom: 20px;
 }
 
-.logo-container img {
-
-  width: 140px;
-  height: 140px;
-
-  object-fit: contain;
-
-  border-radius: 50%;
-
-  background: white;
-
-  padding: 10px;
-
-  box-shadow:
-    0 10px 25px rgba(0, 0, 0, 0.25);
-
-  animation: floatLogo 3s ease-in-out infinite;
+.input-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
 }
 
-ion-card {
-
-  max-width: 420px;
-  margin: auto;
-
-  border-radius: 28px;
-
-  backdrop-filter: blur(15px);
-
-  background: rgba(255,255,255,0.95);
-
-  box-shadow:
-    0 15px 35px rgba(0,0,0,0.25);
-
-  overflow: hidden;
-}
-
-ion-card-header {
-
-  text-align: center;
-  padding-top: 25px;
-}
-
-ion-card-title {
-
-  font-size: 24px;
-  font-weight: 700;
-
-  color: #d84315;
-}
-
-ion-item {
-
-  --background: #fff7f2;
-
-  border-radius: 16px;
-
-  margin-bottom: 15px;
-
-  --padding-start: 12px;
-
-  border: 1px solid #ffd6c2;
-}
-
-ion-icon {
-
-  color: #ff5722;
-  font-size: 22px;
+.input-wrapper {
+  background: #f4f5f8; /* Gris claro de los inputs */
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 15px;
+  height: 50px;
 }
 
 ion-input {
-
-  --padding-start: 10px;
-  font-size: 15px;
+  --background: transparent;
+  --padding-start: 0;
+  font-size: 14px;
+  color: #333;
 }
 
-ion-button {
+.eye-icon {
+  font-size: 22px;
+  color: #888;
+  cursor: pointer;
+  padding-left: 10px;
+}
 
-  --background: linear-gradient(
-    135deg,
-    #ff5722,
-    #ff9800
-  );
-
-  --border-radius: 18px;
-
-  height: 52px;
-
+/* --- Botón Ingresar --- */
+.btn-ingresar {
+  --background: #051e64; /* Morado del botón */
+  --background-hover: #2b84d8;
+  --border-radius: 12px;
+  height: 50px;
   font-size: 16px;
-  font-weight: bold;
-
-  margin-top: 15px;
-
+  font-weight: 600;
+  margin-top: 10px;
   text-transform: none;
-
-  box-shadow:
-    0 8px 20px rgba(255,87,34,0.4);
+  box-shadow: none;
 }
 
-ion-button:hover {
-  transform: translateY(-2px);
+.forgot-password {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #5c6c7b;
+  cursor: pointer;
 }
 
-@keyframes floatLogo {
-
-  0% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-8px);
-  }
-
-  100% {
-    transform: translateY(0);
-  }
-
+/* --- Texto Fuera de la Tarjeta --- */
+.test-credentials {
+  text-align: center;
+  color: #f2f4f7;
+  font-size: 13px;
+  margin-top: 20px;
 }
