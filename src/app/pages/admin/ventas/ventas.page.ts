@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -22,11 +22,23 @@ import {
   IonItemSliding,
   IonItemOptions,
   IonItemOption,
-  IonButtons,    // Añadido: Contenedor para la barra de botones superior
-  IonBackButton  // Añadido: Componente nativo de la flecha de retroceso
+  IonButtons,
+  IonBackButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { cash, create, trash, arrowBack } from 'ionicons/icons'; // Añadido: Icono arrowBack requerido para el botón de retroceso
+import { cash, create, trash, arrowBack } from 'ionicons/icons';
+
+// 🔥 Importaciones nativas de Angular Fire para Firestore
+import {
+  Firestore,
+  collection,
+  collectionData,
+  addDoc,
+  doc,
+  updateDoc,
+  deleteDoc
+} from '@angular/fire/firestore';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-ventas',
@@ -56,11 +68,11 @@ import { cash, create, trash, arrowBack } from 'ionicons/icons'; // Añadido: Ic
     IonItemSliding,
     IonItemOptions,
     IonItemOption,
-    IonButtons,    // Añadido al arreglo de imports
-    IonBackButton  // Añadido al arreglo de imports
+    IonButtons,
+    IonBackButton
   ]
 })
-export class VentasPage implements OnInit {
+export class VentasPage implements OnInit, OnDestroy {
 
   // Modelo reactivo para capturar las entradas del flujo de caja
   nuevaVenta = {
@@ -70,17 +82,16 @@ export class VentasPage implements OnInit {
   };
 
   editando: boolean = false;
-  idVentaEditando: string | null = null; // String acoplado para soportar los hashes de Firebase
+  idVentaEditando: string | null = null;
 
-  // Datos semilla para emular los cierres de caja en Firestore
-  listaVentas: any[] = [
-    { id: 'vnt_1', cliente: 'Mesa 04', total: 72.50, metodoPago: 'Yape / Plin 📱', hora: '13:15' },
-    { id: 'vnt_2', cliente: 'Mesa 02', total: 118.00, metodoPago: 'Efectivo 💵', hora: '13:42' },
-    { id: 'vnt_3', cliente: 'Pedido Delivery', total: 45.00, metodoPago: 'Tarjeta 💳', hora: '14:05' }
-  ];
+  // Lista dinámica vinculada directamente con Firestore
+  listaVentas: any[] = [];
+
+  // 🔥 Inyectamos la base de datos idéntico a como lo hiciste en tu Login
+  private firestore = inject(Firestore);
+  private ventasSubscription!: Subscription;
 
   constructor() {
-    // Registro obligatorio de recursos gráficos incluyendo 'arrowBack' para el retroceso
     addIcons({ cash, create, trash, arrowBack });
   }
 
@@ -88,40 +99,72 @@ export class VentasPage implements OnInit {
     await this.cargarVentasFirebase();
   }
 
-  // Simulación de escucha asíncrona para sincronizar transacciones
+  // 🔥 Escucha asíncrona sin filtros para evitar bloqueos de índices
   async cargarVentasFirebase() {
-    // Listo para: this.firestore.collection('ventas').orderBy('hora').valueChanges()...
+    try {
+      const ventasCollection = collection(this.firestore, 'ventas');
+
+      this.ventasSubscription = collectionData(ventasCollection, { idField: 'id' }).subscribe({
+        next: (ventas) => {
+          console.log("📦 Datos recibidos en tiempo real de Firestore:", ventas);
+          this.listaVentas = ventas;
+        },
+        error: (error) => {
+          console.error("❌ Error en lectura de Firebase:", error);
+        }
+      });
+    } catch (err: any) {
+      console.error("❌ Error al inicializar la colección:", err);
+    }
   }
 
   // Registra una nueva transacción monetaria o actualiza un comprobante auditado
   async guardarVenta() {
-    if (!this.nuevaVenta.cliente.trim() || !this.nuevaVenta.total || !this.nuevaVenta.metodoPago) return;
+    // Validación de seguridad antes de proceder
+    if (!this.nuevaVenta.cliente || !this.nuevaVenta.total || !this.nuevaVenta.metodoPago) {
+      alert("Por favor rellena todos los campos.");
+      return;
+    }
 
     const ahora = new Date();
     const horaFormateada = `${ahora.getHours().toString().padStart(2, '0')}:${ahora.getMinutes().toString().padStart(2, '0')}`;
 
-    if (this.editando && this.idVentaEditando !== null) {
-      // Simula: db.collection('ventas').doc(id).update(...)
-      const index = this.listaVentas.findIndex(v => v.id === this.idVentaEditando);
-      if (index !== -1) {
-        this.listaVentas[index].cliente = this.nuevaVenta.cliente.trim();
-        this.listaVentas[index].total = Number(this.nuevaVenta.total);
-        this.listaVentas[index].metodoPago = this.nuevaVenta.metodoPago;
-      }
-      this.cancelarEdicion();
-    } else {
-      // Simula: db.collection('ventas').add(...) con UID automático en la nube
-      const mockFirebaseId = 'fs_vnt_' + Math.random().toString(36).substr(2, 9);
-      this.listaVentas.push({
-        id: mockFirebaseId,
-        cliente: this.nuevaVenta.cliente.trim(),
-        total: Number(this.nuevaVenta.total),
-        metodoPago: this.nuevaVenta.metodoPago,
-        hora: horaFormateada
-      });
-    }
+    try {
+      if (this.editando && this.idVentaEditando !== null) {
+        // 🔥 Actualización física del documento existente
+        const ventaDocRef = doc(this.firestore, 'ventas', this.idVentaEditando);
 
-    this.limpiarFormulario();
+        await updateDoc(ventaDocRef, {
+          cliente: this.nuevaVenta.cliente,
+          total: this.nuevaVenta.total,
+          metodoPago: this.nuevaVenta.metodoPago
+        });
+
+        console.log('🔥 Venta modificada');
+        this.cancelarEdicion();
+      } else {
+        // 🔥 Estructura de guardado directo en la colección 'ventas', igual que tu login
+        const docRef = await addDoc(
+          collection(this.firestore, 'ventas'),
+          {
+            cliente: this.nuevaVenta.cliente,
+            total: this.nuevaVenta.total,
+            metodoPago: this.nuevaVenta.metodoPago,
+            hora: horaFormateada,
+            fecha: ahora
+          }
+        );
+
+        console.log('🔥 Venta registrada');
+        console.log('ID Documento:', docRef.id);
+      }
+
+      this.limpiarFormulario();
+
+    } catch (error: any) {
+      console.error('❌ Error Firebase:', error);
+      alert('Error Firebase:\n\n' + JSON.stringify(error, null, 2));
+    }
   }
 
   // Pasa los datos de la boleta seleccionada al formulario para re-auditar el cobro
@@ -141,9 +184,15 @@ export class VentasPage implements OnInit {
     this.limpiarFormulario();
   }
 
-  // Simula la anulación física de un documento: db.collection('ventas').doc(id).delete()
+  // 🔥 Eliminación de registros por ID único de Firebase
   async eliminarVenta(id: string) {
-    this.listaVentas = this.listaVentas.filter(v => v.id !== id);
+    try {
+      const ventaDocRef = doc(this.firestore, 'ventas', id);
+      await deleteDoc(ventaDocRef);
+      console.log('🔥 Venta eliminada con ID:', id);
+    } catch (error: any) {
+      console.error('❌ Error al eliminar en Firebase:', error);
+    }
   }
 
   limpiarFormulario() {
@@ -152,5 +201,12 @@ export class VentasPage implements OnInit {
       total: null,
       metodoPago: ''
     };
+  }
+
+  // Liberación obligatoria de memoria para componentes Standalone
+  ngOnDestroy() {
+    if (this.ventasSubscription) {
+      this.ventasSubscription.unsubscribe();
+    }
   }
 }

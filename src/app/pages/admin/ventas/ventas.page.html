@@ -3,7 +3,6 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/dashboard"></ion-back-button>
     </ion-buttons>
-
     <ion-title>Registro de Ventas</ion-title>
   </ion-toolbar>
 </ion-header>
@@ -12,7 +11,9 @@
 
   <ion-card>
     <ion-card-header>
-      <ion-card-title>{{ editando ? 'Modificar Registro' : 'Nueva Venta / Cobro' }}</ion-card-title>
+      <ion-card-title>
+        @if (editando) { Modificar Registro } @else { Nueva Venta / Cobro }
+      </ion-card-title>
     </ion-card-header>
     <ion-card-content>
       <ion-list lines="none">
@@ -36,13 +37,16 @@
       </ion-list>
 
       <div class="ion-padding-top">
-        <ion-button expand="block" (click)="guardarVenta()" [disabled]="!nuevaVenta.cliente.trim() || !nuevaVenta.total || !nuevaVenta.metodoPago">
+        <ion-button expand="block" (click)="guardarVenta()" [disabled]="!nuevaVenta.cliente || !nuevaVenta.total || !nuevaVenta.metodoPago">
           <ion-icon slot="start" name="cash"></ion-icon>
           {{ editando ? 'Actualizar Comprobante' : 'Cerrar y Cobrar Venta' }}
         </ion-button>
-        <ion-button *ngIf="editando" expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
-          Cancelar Edición
-        </ion-button>
+
+        @if (editando) {
+          <ion-button expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
+            Cancelar Edición
+          </ion-button>
+        }
       </div>
     </ion-card-content>
   </ion-card>
@@ -50,32 +54,34 @@
   <h3>Ingresos del Turno (Cloud)</h3>
 
   <ion-list lines="inset">
-    <ion-item-sliding *ngFor="let venta of listaVentas">
-      <ion-item>
-        <ion-label>
-          <h2><strong>{{ venta.cliente }}</strong></h2>
-          <p>Método: {{ venta.metodoPago }}</p>
-          <p class="hora-text">🕒 {{ venta.hora }}</p>
-        </ion-label>
+    @for (venta of listaVentas; track venta.id) {
+      <ion-item-sliding>
+        <ion-item>
+          <ion-label>
+            <h2><strong>{{ venta.cliente }}</strong></h2>
+            <p>Método: {{ venta.metodoPago }}</p>
+            <p class="hora-text">🕒 {{ venta.hora }}</p>
+          </ion-label>
 
-        <ion-note slot="end" class="monto-note">
-          S/ {{ venta.total | number:'1.2-2' }}
-        </ion-note>
+          <ion-note slot="end" class="monto-note">
+            S/ {{ venta.total | number:'1.2-2' }}
+          </ion-note>
+        </ion-item>
+
+        <ion-item-options side="end">
+          <ion-item-option color="warning" (click)="seleccionarVenta(venta)">
+            <ion-icon slot="icon-only" name="create"></ion-icon>
+          </ion-item-option>
+          <ion-item-option color="danger" (click)="eliminarVenta(venta.id)">
+            <ion-icon slot="icon-only" name="trash"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+    } @empty {
+      <ion-item class="ion-text-center">
+        <ion-label color="medium">No se registran ventas cobradas el día de hoy.</ion-label>
       </ion-item>
-
-      <ion-item-options side="end">
-        <ion-item-option color="warning" (click)="seleccionarVenta(venta)">
-          <ion-icon slot="icon-only" name="create"></ion-icon>
-        </ion-item-option>
-        <ion-item-option color="danger" (click)="eliminarVenta(venta.id)">
-          <ion-icon slot="icon-only" name="trash"></ion-icon>
-        </ion-item-option>
-      </ion-item-options>
-    </ion-item-sliding>
-
-    <ion-item *ngIf="listaVentas.length === 0" class="ion-text-center">
-      <ion-label color="medium">No se registran ventas cobradas el día de hoy.</ion-label>
-    </ion-item>
+    }
   </ion-list>
 
 </ion-content>
