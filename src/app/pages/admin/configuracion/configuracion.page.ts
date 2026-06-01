@@ -20,8 +20,8 @@ import {
   IonIcon,
   IonLabel,
   IonNote,
-  IonButtons,   // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
-  IonBackButton // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
+  IonButtons,    
+  IonBackButton  
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { cloudDone, save, arrowBack } from 'ionicons/icons'; // 👈 Se agregó arrowBack
@@ -81,12 +81,12 @@ export class ConfiguracionPage implements OnInit {
 
   // Simulación de lectura del documento único de configuración en Firestore
   async cargarConfiguracionFirebase() {
-    // Simula que recuperamos los datos guardados previamente
+    //los datos guardados previamente
     this.config = {
-      ruc: '20123456789',
-      nombreEmpresa: 'Librería Continental S.A.C.',
-      telefono: '987654321',
-      direccion: 'Av. España 1230, Trujillo',
+      ruc: '10436830560',
+      nombreEmpresa: 'Polleria Dylan',
+      telefono: '982061791',
+      direccion: 'Av. Los Angeles 320, Comas, Lima',
       moneda: 'PEN'
     };
   }
@@ -97,7 +97,7 @@ export class ConfiguracionPage implements OnInit {
 
     this.guardando = true;
 
-    // Simulamos los milisegundos que tarda Firebase en responder a la nube
+    // Respuesta de la Base De Datos Firebase
     await new Promise(resolve => setTimeout(resolve, 1500));
 
     console.log('Datos guardados con éxito en Firebase Firestore:', this.config);
