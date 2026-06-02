@@ -1,91 +1,80 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
+<ion-header class="ion-no-border top-header">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
-
-    <ion-title>Pedidos</ion-title>
+    <div class="header-content">
+      <div class="breadcrumb">
+        <span class="muted">Pollería Dylan</span> / <strong>Pedidos / Ventas</strong>
+      </div>
+      <div class="date-display">{{ fechaActual }}</div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content class="page-bg">
+  <div class="main-container">
 
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>{{ editando ? 'Modificar Pedido' : 'Nuevo Pedido' }}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-list lines="none">
-        <ion-item class="form-item">
-          <ion-select label="Mesa / Destino" labelPlacement="stacked" placeholder="Selecciona mesa" [(ngModel)]="nuevoPedido.mesa">
-            <ion-select-option value="Mesa 01">Mesa 01</ion-select-option>
-            <ion-select-option value="Mesa 02">Mesa 02</ion-select-option>
-            <ion-select-option value="Mesa 03">Mesa 03</ion-select-option>
-            <ion-select-option value="Mesa 03">Mesa 04</ion-select-option>
-            <ion-select-option value="Para Llevar">Para Llevar 🛍️</ion-select-option>
-          </ion-select>
-        </ion-item>
-
-        <ion-item class="form-item">
-          <ion-input label="Detalle del Pedido" labelPlacement="stacked" type="text" placeholder="Ej. 1 Pollo a la brasa, 1 Chaufa, 1 Gaseosa" [(ngModel)]="nuevoPedido.detalle"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item last-item">
-          <ion-input label="Total Estimado (S/)" labelPlacement="stacked" type="number" placeholder="0.00" [(ngModel)]="nuevoPedido.total"></ion-input>
-        </ion-item>
-      </ion-list>
-
-      <div class="ion-padding-top">
-        <ion-button expand="block" (click)="guardarPedido()" [disabled]="!nuevoPedido.mesa || !nuevoPedido.detalle.trim() || !nuevoPedido.total">
-          <ion-icon slot="start" name="restaurant"></ion-icon>
-          {{ editando ? 'Actualizar Pedido' : 'Enviar a Cocina' }}
-        </ion-button>
-        <ion-button *ngIf="editando" expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
-          Cancelar Edición
-        </ion-button>
+    <div class="kpi-status-row">
+      <div class="status-card">
+        <div class="status-label"><span class="dot grey"></span> Pendiente</div>
+        <span class="status-count">{{ totalPendientes }}</span>
       </div>
-    </ion-card-content>
-  </ion-card>
+      <div class="status-card">
+        <div class="status-label"><span class="dot orange"></span> Cocina</div>
+        <span class="status-count">{{ totalCocina }}</span>
+      </div>
+      <div class="status-card">
+        <div class="status-label"><span class="dot green"></span> Entregado</div>
+        <span class="status-count">{{ totalEntregados }}</span>
+      </div>
+      <div class="status-card">
+        <div class="status-label"><span class="dot red"></span> Anulado</div>
+        <span class="status-count">{{ totalAnulados }}</span>
+      </div>
+    </div>
 
-  <h3>Monitoreo de Comandas (Realtime)</h3>
+    <div class="action-toolbar">
+      <div class="search-box">
+        <ion-icon name="search-outline"></ion-icon>
+        <input type="text" placeholder="Buscar pedido, mesa o mesero...">
+      </div>
+      <div class="actions">
+        <button class="btn-outline" (click)="filtrarPedidos()"><ion-icon name="funnel-outline"></ion-icon> Filtrar</button>
+        <button class="btn-outline" (click)="actualizarDatos()"><ion-icon name="sync-outline"></ion-icon> Actualizar</button>
+        <button class="btn-outline">Todos</button>
+      </div>
+    </div>
 
-  <ion-list lines="inset">
-    <ion-item-sliding *ngFor="let pedido of listaPedidos">
-      <ion-item>
-        <ion-label>
-          <h2><strong>{{ pedido.mesa }}</strong></h2>
-          <p class="detalle-text">{{ pedido.detalle }}</p>
-          <p class="hora-text">🕒 {{ pedido.hora }}</p>
-        </ion-label>
+    <div class="table-card">
+      <div class="table-card-header">
+        <div class="table-summary">
+          {{ listaPedidos.length }} pedidos · Total S/ {{ montoTotalGlobal | number:'1.2-2' }}
+        </div>
+        <button class="btn-outline export-btn"><ion-icon name="print-outline"></ion-icon> Exportar</button>
+      </div>
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr><th>Pedido</th><th>Mesa</th><th>Mesero</th><th>Items</th><th>Total</th><th>Estado</th><th>Hora</th><th class="action-col">Acción</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of listaPedidos">
+              <td class="id-cell">{{ p.id }}</td>
+              <td>{{ p.mesa }}</td>
+              <td>{{ p.mesero }}</td>
+              <td>{{ p.items }}</td>
+              <td class="bold-cell">S/ {{ p.total | number:'1.2-2' }}</td>
+              <td><span class="status-badge" [ngClass]="p.estado">{{ p.estado }}</span></td>
+              <td class="time-cell">{{ p.hora }}</td>
+              <td class="action-col">
+                <button class="action-btn" (click)="verDetallePedido(p.id)"><ion-icon name="eye-outline"></ion-icon></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-        <ion-badge slot="end" [color]="pedido.estado === 'pendiente' ? 'warning' : (pedido.estado === 'en cocina' ? 'secondary' : 'success')">
-          {{ pedido.estado | uppercase }}
-        </ion-badge>
-
-        <ion-note slot="end" class="precio-note">
-          S/ {{ pedido.total | number:'1.2-2' }}
-        </ion-note>
-      </ion-item>
-
-      <ion-item-options side="end">
-        <ion-item-option *ngIf="pedido.estado === 'pendiente'" color="secondary" (click)="cambiarEstado(pedido.id, 'en cocina')">
-          <ion-icon slot="icon-only" name="flame"></ion-icon>
-        </ion-item-option>
-        <ion-item-option *ngIf="pedido.estado === 'en cocina'" color="success" (click)="cambiarEstado(pedido.id, 'entregado')">
-          <ion-icon slot="icon-only" name="checkmark-done"></ion-icon>
-        </ion-item-option>
-        <ion-item-option color="warning" (click)="seleccionarPedido(pedido)">
-          <ion-icon slot="icon-only" name="create"></ion-icon>
-        </ion-item-option>
-        <ion-item-option color="danger" (click)="eliminarPedido(pedido.id)">
-          <ion-icon slot="icon-only" name="trash"></ion-icon>
-        </ion-item-option>
-      </ion-item-options>
-    </ion-item-sliding>
-
-    <ion-item *ngIf="listaPedidos.length === 0" class="ion-text-center">
-      <ion-label color="medium">No hay pedidos pendientes en cocina.</ion-label>
-    </ion-item>
-  </ion-list>
-
+  </div>
 </ion-content>

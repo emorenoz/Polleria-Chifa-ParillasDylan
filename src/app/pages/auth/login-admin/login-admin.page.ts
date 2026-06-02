@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule, Location } from '@angular/common'; // Agregamos Location
+import { CommonModule, Location } from '@angular/common'; 
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -19,7 +19,6 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-// Nuevos íconos según el diseño de Figma
 import { 
   personOutline, 
   lockClosedOutline, 
@@ -57,13 +56,13 @@ export class LoginAdminPage {
 
   usuario = '';
   password = '';
-  mostrarPassword = false; // Control para el ojito de la contraseña
+  mostrarPassword = false;
 
   private firestore = inject(Firestore);
 
   constructor(
     private router: Router,
-    private location: Location // Inyectamos Location para el botón Volver
+    private location: Location
   ) {
     addIcons({
       personOutline,
@@ -81,11 +80,10 @@ export class LoginAdminPage {
   }
 
   volver() {
-    // Esto te regresará a la página anterior (por ejemplo, al menú de selección de roles)
     this.location.back(); 
   }
 
-  // --- Tu Lógica de Firebase (Intacta) ---
+  // --- Lógica de Firebase (Corregida con la nueva ruta) ---
   async login() {
     if (
       this.usuario === 'admin' &&
@@ -101,18 +99,16 @@ export class LoginAdminPage {
           }
         );
 
-        console.log('🔥 Login registrado');
-        console.log('ID Documento:', docRef.id);
+        console.log('🔥 Login registrado. ID:', docRef.id);
 
       } catch (error: any) {
         console.error('❌ Error Firebase:', error);
-        alert(
-          'Error Firebase:\n\n' +
-          JSON.stringify(error, null, 2)
-        );
+        alert('Error al registrar acceso en Firebase.');
       }
 
-      this.router.navigate(['/admin-dashboard']);
+      // NAVEGACIÓN CORREGIDA A LA RUTA DEL LAYOUT
+      this.router.navigate(['/admin/dashboard']);
+      
     } else {
       alert('Usuario o contraseña incorrectos');
     }

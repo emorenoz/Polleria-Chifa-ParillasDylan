@@ -1,69 +1,161 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>🍽️ Mesero Dylan</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true">
+  <div class="pos-layout">
+    
+    <header class="pos-header">
+      <div class="header-left">
+        <div class="icon-bg">
+          <ion-icon name="people-outline"></ion-icon>
+        </div>
+        <div class="user-info">
+          <span class="role">Panel de Mesero</span>
+          <span class="name">Mesero Activo</span> 
+        </div>
+      </div>
+      
+      <div class="header-right">
+        <div class="stats">
+          <span class="stat-item"><span class="dot blue"></span> {{ mesasOcupadas }} activas</span>
+          <span class="stat-item"><span class="dot yellow"></span> {{ mesasCuenta }} en cuenta</span>
+          <span class="stat-item"><span class="dot gray"></span> {{ mesasDisponibles }} libres</span>
+        </div>
+        <div class="time">
+          <ion-icon name="time-outline"></ion-icon>
+          Panel de Control
+        </div>
+        <button class="btn-salir" (click)="salir()">
+          <ion-icon name="log-out-outline"></ion-icon> Salir
+        </button>
+      </div>
+    </header>
 
-<ion-content class="dashboard-content">
+    <div class="pos-body">
+      
+      <aside class="sidebar-mesas">
+        <div class="sidebar-header">MESAS DEL SALÓN</div>
+        
+        <div class="mesas-grid">
+          <div 
+            *ngFor="let mesa of mesas" 
+            class="mesa-card" 
+            [ngClass]="{'activa': mesa.estado === 'activa', 'cuenta': mesa.estado === 'cuenta', 'seleccionada': mesaSeleccionada?.id === mesa.id}"
+            (click)="seleccionarMesa(mesa)">
+            <span class="mesa-prefix">M</span>
+            <span class="mesa-number">{{ mesa.numero }}</span>
+            <div class="status-dot" *ngIf="mesa.estado !== 'libre'"></div>
+          </div>
+        </div>
 
-  <!-- HEADER -->
-  <div class="welcome-banner">
-    <h2>Bienvenido Mesero</h2>
-    <p>Selecciona una opción</p>
+        <div class="leyenda">
+          <div class="leyenda-title">LEYENDA</div>
+          <div class="leyenda-item"><span class="circle libre"></span> Libre</div>
+          <div class="leyenda-item"><span class="circle activa"></span> Activa</div>
+          <div class="leyenda-item"><span class="circle cuenta"></span> Cuenta</div>
+        </div>
+      </aside>
+
+      <main class="main-menu">
+        
+        <div class="alert-top alert-info" *ngIf="!mesaSeleccionada">
+          <ion-icon name="cart-outline"></ion-icon>
+          Selecciona una mesa para tomar el pedido
+        </div>
+
+        <div class="alert-top alert-active" *ngIf="mesaSeleccionada">
+          <div class="alert-left">
+            <ion-icon name="people-outline"></ion-icon>
+            <strong>Mesa {{ mesaSeleccionada.numero }}</strong>
+            <span class="badge">Activa</span>
+          </div>
+          <button class="btn-cambiar-mesa" (click)="mesaSeleccionada = null">cambiar mesa</button>
+        </div>
+
+        <div class="categories-tabs">
+          <div 
+            class="tab" 
+            *ngFor="let cat of categorias" 
+            [class.active]="categoriaActiva === cat.id"
+            (click)="cambiarCategoria(cat.id)">
+            {{ cat.nombre }}
+          </div>
+        </div>
+
+        <div class="productos-grid">
+          
+          <div *ngIf="productosFiltrados.length === 0" style="grid-column: 1 / -1; text-align: center; color: #64748b; padding: 20px;">
+            No hay productos disponibles en esta categoría.
+          </div>
+
+          <div class="producto-card" *ngFor="let prod of productosFiltrados" (click)="agregarAlCarrito(prod)">
+            <div class="prod-img">{{ prod.icono || '🍗' }}</div> 
+            <div class="prod-title">{{ prod.nombre }}</div>
+            <div class="prod-desc">{{ prod.descripcion }}</div>
+            <div class="prod-price">S/ {{ prod.precio | number:'1.2-2' }}</div>
+          </div>
+        </div>
+      </main>
+
+      <aside class="sidebar-cart">
+        
+        <div class="cart-header">
+          <div class="cart-title">
+            <ion-icon name="cart-outline"></ion-icon>
+            Pedido {{ mesaSeleccionada ? '— Mesa ' + mesaSeleccionada.numero : 'actual' }}
+          </div>
+          <div class="cart-items-count" *ngIf="carrito.length > 0">{{ carrito.length }} items</div>
+        </div>
+
+        <div class="cart-empty" *ngIf="!mesaSeleccionada || carrito.length === 0">
+          <ion-icon name="cart-outline"></ion-icon>
+          <div class="empty-text">Sin items aún</div>
+          <div class="empty-subtext">Selecciona una mesa</div>
+        </div>
+
+        <div class="cart-content" *ngIf="mesaSeleccionada && carrito.length > 0">
+          <div class="cart-items">
+            <div class="cart-item" *ngFor="let item of carrito; let i = index">
+              <div class="item-icon">{{ item.producto.icono || '🍗' }}</div>
+              <div class="item-details">
+                <div class="item-name">{{ item.producto.nombre }}</div>
+                <div class="item-price">S/ {{ item.producto.precio | number:'1.2-2' }}</div>
+              </div>
+              <div class="item-actions">
+                <button class="btn-qty" (click)="disminuirCantidad(i)"><ion-icon name="remove-outline"></ion-icon></button>
+                <span class="qty">{{ item.cantidad }}</span>
+                <button class="btn-qty btn-plus" (click)="aumentarCantidad(i)"><ion-icon name="add-outline"></ion-icon></button>
+                <button class="btn-delete" (click)="eliminarDelCarrito(i)"><ion-icon name="trash-outline"></ion-icon></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cart-footer">
+            <div class="cart-summary-list">
+              <div class="summary-line" *ngFor="let item of carrito">
+                <span>{{ item.cantidad }}x {{ item.producto.nombre }}</span>
+                <span>S/ {{ (item.cantidad * item.producto.precio) | number:'1.2-2' }}</span>
+              </div>
+            </div>
+            
+            <div class="cart-total">
+              <span>Total</span>
+              <span class="total-amount">S/ {{ calcularTotal() | number:'1.2-2' }}</span>
+            </div>
+
+            <button class="btn-enviar-cocina" (click)="enviarCocina()">
+              <ion-icon name="paper-plane-outline"></ion-icon> Enviar a Cocina
+            </button>
+            
+            <div class="cart-dual-buttons">
+              <button class="btn-cuenta" (click)="pedirCuenta()">
+                <ion-icon name="receipt-outline"></ion-icon> Cuenta
+              </button>
+              <button class="btn-liberar" (click)="liberarMesa()">
+                <ion-icon name="checkmark-circle-outline"></ion-icon> Liberar
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </aside>
+    </div>
   </div>
-
-  <!-- TABS STYLE MENU -->
-  <div class="tab-menu">
-
-    <div class="tab" (click)="irDetallePedido()">
-      📋<span>Detalle Pedido</span>
-    </div>
-
-    <div class="tab" (click)="irMesas()">
-      🍽️<span>Mesas</span>
-    </div>
-
-    <div class="tab" (click)="irNuevoPedido()">
-      ➕<span>Nuevo Pedido</span>
-    </div>
-
-    <div class="tab" (click)="irPedidosActivos()">
-      🔥<span>Pedidos Activos</span>
-    </div>
-
-  </div>
-
-  <!-- ESTADÍSTICAS -->
-  <div class="stats-grid">
-
-    <ion-card class="card disponibles">
-      <ion-card-content>
-        <h3>🟢 Mesas Libres</h3>
-        <h1>{{ mesasDisponibles }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="card ocupadas">
-      <ion-card-content>
-        <h3>🔴 Mesas Ocupadas</h3>
-        <h1>{{ mesasOcupadas }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="card pedidos">
-      <ion-card-content>
-        <h3>📋 Pedidos</h3>
-        <h1>{{ pedidosActivos }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="card listos">
-      <ion-card-content>
-        <h3>🔔 Listos</h3>
-        <h1>{{ pedidosListos }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-  </div>
-
 </ion-content>

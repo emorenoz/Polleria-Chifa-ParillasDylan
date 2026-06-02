@@ -1,40 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
-  IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-  IonList,
-  IonItem,
-  IonInput,
-  IonSelect,
-  IonSelectOption,
-  IonButton,
-  IonIcon,
-  IonLabel,
-  IonBadge,
-  IonNote,
-  IonItemSliding,
-  IonItemOptions,
-  IonItemOption,
-  IonButtons,    // Añadido: Para agrupar botones en la barra de herramientas
-  IonBackButton  // Añadido: Para la flecha de retroceso automática
+  IonContent, IonHeader, IonToolbar, IonButtons, IonMenuButton, IonIcon
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import {
-  restaurant,
-  flame,
-  checkmarkDone,
-  create,
-  trash,
-  arrowBack // Añadido: Icono base de retroceso para compatibilidad Standalone
-} from 'ionicons/icons';
+import { searchOutline, funnelOutline, syncOutline, printOutline, eyeOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-pedidos',
@@ -42,130 +13,51 @@ import {
   styleUrls: ['./pedidos.page.scss'],
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent,
-    IonList,
-    IonItem,
-    IonInput,
-    IonSelect,
-    IonSelectOption,
-    IonButton,
-    IonIcon,
-    IonLabel,
-    IonBadge,
-    IonNote,
-    IonItemSliding,
-    IonItemOptions,
-    IonItemOption,
-    IonButtons,    // Añadido al array de imports
-    IonBackButton  // Añadido al array de imports
-  ]
+    CommonModule, FormsModule, IonContent, IonHeader, IonToolbar, IonButtons, IonMenuButton, IonIcon
+  ],
+  providers: [DatePipe]
 })
 export class PedidosPage implements OnInit {
 
-  // Modelo reactivo del formulario de comandas
-  nuevoPedido = {
-    mesa: '',
-    detalle: '',
-    total: null as number | null
-  };
+  fechaActual: string = '';
+  totalPendientes: number = 0; totalCocina: number = 0; totalEntregados: number = 0; totalAnulados: number = 0; montoTotalGlobal: number = 0;
 
-  // Estados para control de edición
-  editando: boolean = false;
-  idPedidoEditando: string | null = null;
-
-  // Datos semilla locales (Simulación de colecciones en tiempo real)
   listaPedidos: any[] = [
-    { id: 'ped_1', mesa: 'Mesa 01', detalle: '1 Pollo a la Brasa + Papas + Gaseosa Litro', total: 65.00, estado: 'pendiente', hora: '19:30' },
-    { id: 'ped_2', mesa: 'Mesa 03', detalle: '1 Chaufa de Pollo + 1 Porción de Wantán', total: 38.50, estado: 'en cocina', hora: '19:42' }
+    { id: '#1031', mesa: 'Mesa 1', mesero: 'Carlos', items: 3, total: 28.00, estado: 'entregado', hora: '11:02' },
+    { id: '#1032', mesa: 'Mesa 4', mesero: 'Ana', items: 5, total: 67.50, estado: 'entregado', hora: '11:18' },
+    { id: '#1033', mesa: 'Mesa 7', mesero: 'Carlos', items: 2, total: 22.00, estado: 'entregado', hora: '11:35' },
+    { id: '#1034', mesa: 'Mesa 9', mesero: 'Pedro', items: 4, total: 45.00, estado: 'entregado', hora: '11:50' },
+    { id: '#1035', mesa: 'Mesa 2', mesero: 'Ana', items: 1, total: 12.50, estado: 'anulado', hora: '12:00' },
+    { id: '#1036', mesa: 'Mesa 6', mesero: 'Pedro', items: 6, total: 89.00, estado: 'entregado', hora: '12:05' },
+    { id: '#1037', mesa: 'Mesa 10', mesero: 'Carlos', items: 3, total: 36.50, estado: 'entregado', hora: '12:10' },
+    { id: '#1038', mesa: 'Mesa 3', mesero: 'Ana', items: 2, total: 24.00, estado: 'entregado', hora: '12:14' },
+    { id: '#1044', mesa: 'Mesa 1', mesero: 'Luis', items: 2, total: 40.00, estado: 'pendiente', hora: '12:45' },
+    { id: '#1045', mesa: 'Mesa 8', mesero: 'Luis', items: 4, total: 70.00, estado: 'cocina', hora: '12:50' }
   ];
 
-  constructor() {
-    // Registro de iconos actualizado con arrowBack
-    addIcons({ restaurant, flame, checkmarkDone, create, trash, arrowBack });
+  constructor(private datePipe: DatePipe) {
+    addIcons({ searchOutline, funnelOutline, syncOutline, printOutline, eyeOutline });
   }
 
-  async ngOnInit() {
-    await this.cargarPedidosFirebase();
+  ngOnInit() {
+    this.configurarFecha();
+    this.calcularMetricas();
   }
 
-  // Simulación de escucha asíncrona de Firestore
-  async cargarPedidosFirebase() {
-    // Listo para: this.firestore.collection('pedidos').snapshotChanges()...
+  configurarFecha() {
+    const hoy = new Date();
+    this.fechaActual = this.datePipe.transform(hoy, 'EEEE, d \'de\' MMMM \'de\' yyyy', '', 'es-PE') || '';
   }
 
-  // Agrega una comanda o actualiza la información modificada
-  async guardarPedido() {
-    if (!this.nuevoPedido.mesa || !this.nuevoPedido.detalle.trim() || !this.nuevoPedido.total) return;
-
-    const ahora = new Date();
-    const horaFormateada = `${ahora.getHours().toString().padStart(2, '0')}:${ahora.getMinutes().toString().padStart(2, '0')}`;
-
-    if (this.editando && this.idPedidoEditando !== null) {
-      const index = this.listaPedidos.findIndex(p => p.id === this.idPedidoEditando);
-      if (index !== -1) {
-        this.listaPedidos[index].mesa = this.nuevoPedido.mesa;
-        this.listaPedidos[index].detalle = this.nuevoPedido.detalle.trim();
-        this.listaPedidos[index].total = Number(this.nuevoPedido.total);
-      }
-      this.cancelarEdicion();
-    } else {
-      const mockFirebaseId = 'fs_p_' + Math.random().toString(36).substr(2, 9);
-      this.listaPedidos.push({
-        id: mockFirebaseId,
-        mesa: this.nuevoPedido.mesa,
-        detalle: this.nuevoPedido.detalle.trim(),
-        total: Number(this.nuevoPedido.total),
-        estado: 'pendiente',
-        hora: horaFormateada
-      });
-    }
-
-    this.limpiarFormulario();
+  calcularMetricas() {
+    this.totalPendientes = this.listaPedidos.filter(p => p.estado === 'pendiente').length;
+    this.totalCocina = this.listaPedidos.filter(p => p.estado === 'cocina').length;
+    this.totalEntregados = this.listaPedidos.filter(p => p.estado === 'entregado').length;
+    this.totalAnulados = this.listaPedidos.filter(p => p.estado === 'anulado').length;
+    this.montoTotalGlobal = this.listaPedidos.reduce((acc, pedido) => acc + pedido.total, 0);
   }
 
-  // Cambia el estado de la comanda de forma asíncrona al deslizar el elemento
-  async cambiarEstado(id: string, nuevoEstado: string) {
-    const index = this.listaPedidos.findIndex(p => p.id === id);
-    if (index !== -1) {
-      this.listaPedidos[index].estado = nuevoEstado;
-    }
-  }
-
-  // Carga los datos de la comanda en los inputs para su edición
-  seleccionarPedido(pedido: any) {
-    this.editando = true;
-    this.idPedidoEditando = pedido.id;
-    this.nuevoPedido = {
-      mesa: pedido.mesa,
-      detalle: pedido.detalle,
-      total: pedido.total
-    };
-  }
-
-  cancelarEdicion() {
-    this.editando = false;
-    this.idPedidoEditando = null;
-    this.limpiarFormulario();
-  }
-
-  async eliminarPedido(id: string) {
-    this.listaPedidos = this.listaPedidos.filter(p => p.id !== id);
-  }
-
-  limpiarFormulario() {
-    this.nuevoPedido = {
-      mesa: '',
-      detalle: '',
-      total: null
-    };
-  }
+  filtrarPedidos() {}
+  actualizarDatos() {}
+  verDetallePedido(id: string) { console.log('Detalle:', id); }
 }
