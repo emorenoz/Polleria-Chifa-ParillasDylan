@@ -1,7 +1,11 @@
+/* =====================================================
+   VARIABLES
+===================================================== */
 $blue-primary: #1976d2;
 $blue-light: #e3f2fd;
 $bg-body: #f5f7fa;
 $white: #ffffff;
+
 $text-dark: #333333;
 $text-muted: #757575;
 
@@ -9,184 +13,326 @@ $color-free: #e0e0e0;
 $color-active: #2196f3;
 $color-bill: #ffb300;
 
+$success: #10b981;
+
+$shadow-soft: 0 6px 18px rgba(0,0,0,0.08);
+$shadow-hover: 0 10px 25px rgba(0,0,0,0.12);
+
+/* =====================================================
+   CONTAINER GENERAL
+===================================================== */
 .panel-container {
   font-family: 'Segoe UI', Roboto, sans-serif;
-  background-color: $bg-body;
+  background: linear-gradient(180deg, $bg-body 0%, #eef2f7 100%);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   position: relative;
+  overflow: hidden;
 }
 
-// BARRA DE NAVEGACIÓN
+/* =====================================================
+   NAVBAR
+===================================================== */
 .navbar {
-  background-color: $blue-primary;
+  background: linear-gradient(135deg, $blue-primary, #1e88e5);
   color: $white;
-  padding: 10px 20px;
+  padding: 12px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: $shadow-soft;
 
   .user-info {
     display: flex;
     align-items: center;
     gap: 10px;
-    .icon-user { font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px; border-radius: 50%; }
+
+    .icon-user {
+      font-size: 20px;
+      padding: 7px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+    }
+
     .user-text {
-      display: flex; flex-direction: column;
-      .title { font-size: 12px; opacity: 0.8; }
-      .name { font-weight: bold; font-size: 15px; }
+      display: flex;
+      flex-direction: column;
+
+      .title {
+        font-size: 11px;
+        opacity: 0.8;
+      }
+
+      .name {
+        font-size: 14px;
+        font-weight: 600;
+      }
     }
   }
 
   .stats-and-actions {
     display: flex;
     align-items: center;
-    gap: 30px;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
 
-    .stats {
+  .stats {
+    display: flex;
+    gap: 10px;
+
+    .stat-item {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.12);
       display: flex;
-      gap: 15px;
-      font-size: 14px;
+      align-items: center;
+      gap: 6px;
 
-      .stat-item {
-        display: flex; align-items: center; gap: 6px;
-        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-        &.active .dot { background-color: $white; border: 2px solid $white; }
-        &.bill .dot { background-color: $color-bill; }
-        &.free .dot { background-color: rgba(255,255,255,0.6); }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
       }
+
+      &.active .dot { background: #fff; }
+      &.bill .dot { background: $color-bill; }
+      &.free .dot { background: rgba(255,255,255,0.7); }
+    }
+  }
+
+  .time-exit {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    .time {
+      font-size: 13px;
     }
 
-    .time-exit {
-      display: flex; align-items: center; gap: 20px;
-      .time { font-size: 14px; }
-      .btn-exit {
-        background: transparent; border: none; color: $white; font-weight: 500; cursor: pointer;
-        &:hover { opacity: 0.8; }
+    .btn-exit {
+      border: none;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.2s;
+
+      &:hover {
+        background: rgba(255,255,255,0.25);
       }
     }
   }
 }
 
-// ARQUITECTURA DE TRES COLUMNAS
+/* =====================================================
+   LAYOUT PRINCIPAL
+===================================================== */
 .main-content {
   display: grid;
-  grid-template-columns: 240px 1fr 300px;
-  flex-grow: 1;
-  height: calc(100vh - 60px);
+  grid-template-columns: 260px 1fr 320px;
+  gap: 10px;
+  padding: 10px;
+  height: calc(100vh - 70px);
   overflow: hidden;
 }
 
-// PANEL DE MESAS
+/* =====================================================
+   MESAS
+===================================================== */
 .sidebar-mesas {
-  background-color: $white;
-  border-right: 1px solid #e0e0e0;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
+  background: $white;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: $shadow-soft;
+  overflow-y: auto;
 
-  h3 { font-size: 13px; color: $text-muted; margin-bottom: 15px; letter-spacing: 0.5px; }
+  h3 {
+    font-size: 12px;
+    color: $text-muted;
+    margin-bottom: 10px;
+  }
 
   .grid-mesas {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 10px;
-    flex-grow: 1;
-    align-content: flex-start;
+  }
 
-    .card-mesa {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 12px;
-      height: 65px;
-      position: relative;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s ease;
+  .card-mesa {
+    height: 65px;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    background: #f8fafc;
+    position: relative;
+    cursor: pointer;
+    transition: 0.25s;
 
-      .num-mesa { font-weight: 600; color: #475569; font-size: 15px; }
-      .badge-dot { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; }
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-      &.libre .badge-dot { background: transparent; }
-      &.activa {
-        border-color: $color-active;
-        .num-mesa { color: $color-active; }
-        .badge-dot { background: $color-active; }
-      }
-      &.cuenta {
-        border-color: $color-bill; background-color: #fffbeb;
-        .num-mesa { color: $color-bill; }
-        .badge-dot { background: $color-bill; }
-      }
+    .num-mesa {
+      font-weight: 600;
+      color: #475569;
+    }
 
-      &.selected { box-shadow: 0 0 0 2px $blue-primary; }
-      &:hover { transform: translateY(-2px); }
+    .badge-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    &.libre { background: #f9fafb; }
+
+    &.activa {
+      border-color: $color-active;
+      .num-mesa { color: $color-active; }
+      .badge-dot { background: $color-active; }
+    }
+
+    &.cuenta {
+      border-color: $color-bill;
+      background: #fff7ed;
+      .num-mesa { color: $color-bill; }
+      .badge-dot { background: $color-bill; }
+    }
+
+    &.selected {
+      outline: 2px solid $blue-primary;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $shadow-hover;
     }
   }
 
   .leyenda {
-    border-top: 1px solid #f0f0f0; padding-top: 15px;
-    h4 { font-size: 11px; color: $text-muted; margin-bottom: 8px; }
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+
     .leyenda-item {
-      display: flex; align-items: center; gap: 8px; font-size: 13px; color: $text-dark; margin-bottom: 5px;
-      .dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #ccc;
-        &.free { background: $white; }
-        &.active { background: $color-active; border-color: $color-active; }
-        &.bill { background: $color-bill; border-color: $color-bill; }
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      margin-top: 5px;
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
       }
+
+      .free { background: $color-free; }
+      .active { background: $color-active; }
+      .bill { background: $color-bill; }
     }
   }
 }
 
-// PANEL CENTRAL DE MENÚS
+/* =====================================================
+   MENU
+===================================================== */
 .menu-section {
-  padding: 15px;
+  background: $white;
+  border-radius: 14px;
+  padding: 14px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  box-shadow: $shadow-soft;
 
   .info-helper {
-    background-color: $blue-light; color: #0d47a1;
-    padding: 12px; border-radius: 8px; font-size: 14px;
-    &.selected { background-color: #e8f5e9; color: #1b5e20; }
+    padding: 10px;
+    border-radius: 10px;
+    background: $blue-light;
+    margin-bottom: 10px;
+
+    &.selected {
+      background: #e8f5e9;
+      color: #1b5e20;
+    }
   }
 
   .categories-nav {
-    display: flex; gap: 10px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin-bottom: 10px;
+
     button {
-      background: none; border: none; padding: 10px 15px; font-size: 14px; cursor: pointer; color: $text-muted;
-      border-bottom: 2px solid transparent;
-      &.active { color: $blue-primary; border-bottom-color: $blue-primary; font-weight: bold; }
+      border: none;
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: #f1f5f9;
+      font-size: 12px;
+      cursor: pointer;
+
+      &.active {
+        background: $blue-primary;
+        color: white;
+      }
     }
   }
 
   .grid-productos {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 12px;
+  }
 
-    .card-producto {
-      background: $white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px;
-      display: flex; gap: 15px; align-items: center; transition: box-shadow 0.2s;
+  .card-producto {
+    background: $white;
+    border: 1px solid #eef2f7;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    gap: 10px;
+    transition: 0.2s;
 
-      &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-      .prod-img { font-size: 32px; background: #f5f5f5; padding: 10px; border-radius: 50%; }
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: $shadow-hover;
+    }
 
-      .prod-details {
-        flex-grow: 1;
-        h4 { margin: 0 0 4px; font-size: 15px; color: $text-dark; }
-        p { margin: 0 0 10px; font-size: 12px; color: $text-muted; }
+    .prod-img {
+      font-size: 26px;
+    }
 
-        .prod-footer {
-          display: flex; justify-content: space-between; align-items: center;
-          .price { font-weight: bold; color: $blue-primary; font-size: 15px; }
-          .btn-add {
-            background-color: #f1f5f9; border: none; padding: 4px 10px; border-radius: 20px;
-            color: $blue-primary; font-size: 12px; font-weight: 500; cursor: pointer;
-            &:disabled { opacity: 0.5; cursor: not-allowed; }
-            &:not(:disabled):hover { background-color: $blue-light; }
+    .prod-details {
+      flex: 1;
+
+      h4 { margin: 0; font-size: 14px; }
+      p { font-size: 11px; color: $text-muted; }
+
+      .prod-footer {
+        display: flex;
+        justify-content: space-between;
+
+        .price {
+          color: $blue-primary;
+          font-weight: bold;
+        }
+
+        .btn-add {
+          border: none;
+          background: $blue-light;
+          color: $blue-primary;
+          padding: 5px 10px;
+          border-radius: 20px;
+          font-size: 11px;
+
+          &:disabled {
+            opacity: 0.5;
           }
         }
       }
@@ -194,59 +340,135 @@ $color-bill: #ffb300;
   }
 }
 
-// PANEL DE FACTURACIÓN (DERECHA)
+/* =====================================================
+   CARRITO
+===================================================== */
 .sidebar-pedido {
-  background-color: $white; border-left: 1px solid #e0e0e0; padding: 15px;
-  display: flex; flex-direction: column;
+  background: $white;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: $shadow-soft;
+  display: flex;
+  flex-direction: column;
 
-  h3 { font-size: 15px; color: $text-dark; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;}
-
-  .empty-cart {
-    flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: $text-muted;
-    .cart-icon { font-size: 48px; opacity: 0.3; margin-bottom: 10px; }
-    p { margin: 0; font-weight: 500; }
-    span { font-size: 12px; opacity: 0.7; text-align: center; margin-top: 5px;}
+  h3 {
+    margin-bottom: 10px;
   }
 
-  .cart-content {
-    display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between;
+  .empty-cart {
+    text-align: center;
+    color: $text-muted;
+    margin-top: 40px;
 
-    .cart-items-list {
-      overflow-y: auto; max-height: 60vh;
-      .cart-item {
-        display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f8fafc;
-        .item-info {
-          display: flex; flex-direction: column;
-          .item-name { font-size: 13px; font-weight: 500; }
-          .item-price { font-size: 12px; color: $text-muted; }
-        }
-        .item-controls {
-          display: flex; align-items: center; gap: 8px;
-          button { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #cbd5e1; background: $white; cursor: pointer; }
-          .qty { font-size: 13px; font-weight: bold; min-width: 15px; text-align: center; }
-        }
-      }
+    .cart-icon {
+      font-size: 40px;
+      opacity: 0.3;
+    }
+  }
+
+  .cart-items-list {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .cart-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px;
+    border-radius: 10px;
+
+    &:hover {
+      background: #f8fafc;
     }
 
-    .cart-summary {
-      border-top: 2px dashed #e2e8f0; padding-top: 15px; margin-top: 15px;
-      .total-row {
-        display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 15px;
-        strong { color: $blue-primary; font-size: 18px; }
-      }
-      .cart-actions {
-        display: flex; flex-direction: column; gap: 10px;
-        button { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
-        .btn-bill { background-color: $color-bill; color: $text-dark; }
-        .btn-free { background-color: #10b981; color: $white; }
+    .item-price {
+      font-size: 12px;
+      color: $text-muted;
+    }
+
+    .item-controls {
+      display: flex;
+      gap: 6px;
+
+      button {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid #ddd;
+        background: white;
       }
     }
+  }
+
+  .cart-summary {
+    border-top: 1px dashed #ddd;
+    padding-top: 10px;
+  }
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+
+    strong {
+      color: $blue-primary;
+    }
+  }
+
+  .cart-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
   }
 }
 
+/* =====================================================
+   BOTÓN COCINA
+===================================================== */
+.btn-kitchen {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, $success, #059669);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  &:disabled {
+    background: #cbd5e1;
+  }
+}
+
+/* =====================================================
+   BOTÓN HELP
+===================================================== */
 .btn-help {
-  position: absolute; bottom: 20px; right: 20px; width: 36px; height: 36px;
-  background-color: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 50%;
-  font-weight: bold; color: $text-muted; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  &:hover { background-color: #e2e8f0; }
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: none;
+  background: $blue-primary;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: $shadow-soft;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+@media (max-width: 900px) {
+  .main-content {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
 }

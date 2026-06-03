@@ -7,7 +7,7 @@ import {
   collectionData,
   doc,
   updateDoc,
-  addDoc   // 🔥 NUEVO
+  addDoc
 } from '@angular/fire/firestore';
 
 import { Observable, Subscription } from 'rxjs';
@@ -96,7 +96,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  // 🔥 FIREBASE
+  // ================= FIREBASE =================
   initFirebaseRealtime(): void {
     const mesasCollection = collection(this.firestore, 'mesas');
 
@@ -119,9 +119,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     });
   }
 
-  // =========================
-  // 🔥 NUEVO: PROCESAR PAGO
-  // =========================
+  // ================= ENVIAR A COCINA =================
   async procesarPago(): Promise<void> {
     if (!this.mesaSeleccionada) return;
 
@@ -141,30 +139,28 @@ export class DashboardPage implements OnInit, OnDestroy {
       fecha: new Date()
     };
 
-    // 🔥 1. Guardar en cocina
     await addDoc(collection(this.firestore, 'pedidos_cocina'), pedidoFinal);
-
-    // 🔥 2. Guardar en ventas
     await addDoc(collection(this.firestore, 'ventas'), pedidoFinal);
 
-    // 🔥 3. Liberar mesa
     await this.guardar({
       ...mesa,
       estado: 'libre',
       pedido: []
     });
 
-    // 🔥 4. ENVIAR A COCINA (NAVEGACIÓN)
+    this.mesaSeleccionada = null;
+
     this.router.navigate(['/cocina/dashboard'], {
       state: { pedido: pedidoFinal }
     });
-
-    this.mesaSeleccionada = null;
   }
 
-  // =========================
-  // TU LÓGICA ORIGINAL
-  // =========================
+  // ================= ALIAS PARA TU HTML =================
+  async enviarACocina(): Promise<void> {
+    await this.procesarPago();
+  }
+
+  // ================= TU LÓGICA ORIGINAL =================
   get totalActivas() {
     return this.mesas.filter(m => m.estado === 'activa').length;
   }
@@ -196,7 +192,6 @@ export class DashboardPage implements OnInit, OnDestroy {
     if (!this.mesaSeleccionada) return;
 
     let estadoActualizado = this.mesaSeleccionada.estado;
-
     if (estadoActualizado === 'libre') estadoActualizado = 'activa';
 
     const pedido = [...this.mesaSeleccionada.pedido];
@@ -224,7 +219,6 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     if (index !== -1) {
       pedido[index].cantidad += cambio;
-
       if (pedido[index].cantidad <= 0) pedido.splice(index, 1);
     }
 

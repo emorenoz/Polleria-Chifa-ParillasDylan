@@ -24,8 +24,10 @@
 
   <div class="main-content">
 
+    <!-- MESAS -->
     <aside class="sidebar-mesas">
       <h3>MESAS DEL SALÓN</h3>
+
       <div class="grid-mesas">
         <button
           *ngFor="let mesa of mesas"
@@ -50,12 +52,17 @@
       </div>
     </aside>
 
+    <!-- MENU -->
     <section class="menu-section">
+
       <div class="info-helper" *ngIf="!mesaSeleccionada">
         🛒 Selecciona una mesa para tomar el pedido
       </div>
+
       <div class="info-helper selected" *ngIf="mesaSeleccionada">
-        📍 Editando Pedido: <strong>{{ mesaSeleccionada.numero }}</strong> ({{ mesaSeleccionada.estado | uppercase }})
+        📍 Editando Pedido:
+        <strong>{{ mesaSeleccionada.numero }}</strong>
+        ({{ mesaSeleccionada.estado | uppercase }})
       </div>
 
       <nav class="categories-nav">
@@ -69,22 +76,34 @@
 
       <div class="grid-productos">
         <div class="card-producto" *ngFor="let prod of productosFiltrados">
+
           <div class="prod-img">{{ prod.imagen }}</div>
+
           <div class="prod-details">
             <h4>{{ prod.nombre }}</h4>
             <p>{{ prod.descripcion }}</p>
+
             <div class="prod-footer">
               <span class="price">S/ {{ prod.precio.toFixed(2) }}</span>
-              <button class="btn-add" [disabled]="!mesaSeleccionada" (click)="agregarProducto(prod)">
+
+              <button
+                class="btn-add"
+                [disabled]="!mesaSeleccionada"
+                (click)="agregarProducto(prod)">
                 + agregar
               </button>
+
             </div>
           </div>
+
         </div>
       </div>
+
     </section>
 
+    <!-- CARRITO -->
     <aside class="sidebar-pedido">
+
       <h3>Pedido actual</h3>
 
       <div class="empty-cart" *ngIf="!mesaSeleccionada || mesaSeleccionada.pedido.length === 0">
@@ -94,45 +113,71 @@
       </div>
 
       <div class="cart-content" *ngIf="mesaSeleccionada && mesaSeleccionada.pedido.length > 0">
+
         <div class="cart-items-list">
+
           <div class="cart-item" *ngFor="let item of mesaSeleccionada.pedido">
+
             <div class="item-info">
               <span class="item-name">{{ item.producto.nombre }}</span>
-              <span class="item-price">S/ {{ (item.producto.precio * item.cantidad).toFixed(2) }}</span>
+              <span class="item-price">
+                S/ {{ (item.producto.precio * item.cantidad).toFixed(2) }}
+              </span>
             </div>
+
             <div class="item-controls">
               <button (click)="modificarCantidad(item, -1)">-</button>
               <span class="qty">{{ item.cantidad }}</span>
               <button (click)="modificarCantidad(item, 1)">+</button>
             </div>
+
           </div>
+
         </div>
 
         <div class="cart-summary">
+
           <div class="total-row">
             <span>Total:</span>
             <strong>S/ {{ calcularTotal().toFixed(2) }}</strong>
           </div>
 
           <div class="cart-actions">
+
+            <!-- CUENTA -->
             <button
               class="btn-bill"
               *ngIf="mesaSeleccionada.estado === 'activa'"
               (click)="pedirCuenta()">
-               Pedir Cuenta
+              🧾 Pedir Cuenta
             </button>
+
+            <!-- PAGAR -->
             <button
               class="btn-free"
               *ngIf="mesaSeleccionada.estado === 'cuenta'"
               (click)="liberarMesa()">
               💵 Procesar Pago y Liberar
             </button>
+
+            <!-- 🔥 NUEVO: ENVIAR A COCINA -->
+            <button
+              class="btn-kitchen"
+              [disabled]="!mesaSeleccionada || mesaSeleccionada.pedido.length === 0"
+              (click)="procesarPago()">
+              📤 Procesar pedido / Enviar a cocina
+            </button>
+
           </div>
+
         </div>
+
       </div>
+
     </aside>
 
   </div>
 
   <button class="btn-help">?</button>
+
 </div>
