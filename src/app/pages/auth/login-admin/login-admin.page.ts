@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule, Location } from '@angular/common'; 
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
@@ -19,13 +19,13 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { 
-  personOutline, 
-  lockClosedOutline, 
-  arrowBackOutline, 
-  shieldCheckmarkOutline, 
-  eyeOutline, 
-  eyeOffOutline 
+import {
+  personOutline,
+  lockClosedOutline,
+  arrowBackOutline,
+  shieldCheckmarkOutline,
+  eyeOutline,
+  eyeOffOutline
 } from 'ionicons/icons';
 
 import { Firestore, collection, addDoc } from '@angular/fire/firestore';
@@ -74,22 +74,23 @@ export class LoginAdminPage {
     });
   }
 
-  // --- Lógica de Figma (Interfaz) ---
   togglePassword() {
     this.mostrarPassword = !this.mostrarPassword;
   }
 
   volver() {
-    this.location.back(); 
+    this.location.back();
   }
 
-  // --- Lógica de Firebase (Corregida con la nueva ruta) ---
   async login() {
+
     if (
       this.usuario === 'admin' &&
       this.password === '1234567'
     ) {
+
       try {
+
         const docRef = await addDoc(
           collection(this.firestore, 'Login Admin'),
           {
@@ -102,15 +103,19 @@ export class LoginAdminPage {
         console.log('🔥 Login registrado. ID:', docRef.id);
 
       } catch (error: any) {
+
         console.error('❌ Error Firebase:', error);
-        alert('Error al registrar acceso en Firebase.');
+
       }
 
-      // NAVEGACIÓN CORREGIDA A LA RUTA DEL LAYOUT
-      this.router.navigate(['/admin/dashboard']);
-      
+      console.log('✅ LOGIN CORRECTO');
+
+      window.location.href = '/admin/dashboard';
+
     } else {
+
       alert('Usuario o contraseña incorrectos');
+
     }
   }
 }
