@@ -1,18 +1,35 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, OnInit, LOCALE_ID } from '@angular/core'; // 1. Importamos LOCALE_ID para la fecha en español
+import { CommonModule, DatePipe, registerLocaleData } from '@angular/common';
+import localeEsPe from '@angular/common/locales/es-PE'; // Registrar el idioma de Perú
+
+// Importamos de manera estricta todos los componentes estructurales que de seguro usas en tu diseño
 import {
-  IonContent, IonHeader, IonToolbar, IonButtons, IonMenuButton, IonIcon
+  IonContent, IonHeader, IonToolbar, IonButtons, IonMenuButton, IonIcon,
+  IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCardContent,
+  IonBadge, IonList, IonItem, IonLabel
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { trendingUpOutline, cartOutline, gridOutline, peopleOutline, timeOutline } from 'ionicons/icons';
+
+// Registramos de forma nativa el formato de fecha para que el DatePipe no falle nunca
+registerLocaleData(localeEsPe);
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-  imports: [ CommonModule, IonContent, IonHeader, IonToolbar, IonButtons, IonMenuButton, IonIcon ],
-  providers: [DatePipe]
+  // 2. Agregamos todos los componentes visuales al arreglo de imports
+  imports: [
+    CommonModule,
+    IonContent, IonHeader, IonToolbar, IonButtons, IonMenuButton, IonIcon,
+    IonGrid, IonRow, IonCol, IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCardContent,
+    IonBadge, IonList, IonItem, IonLabel
+  ],
+  providers: [
+    DatePipe,
+    { provide: LOCALE_ID, useValue: 'es-PE' } // Forzar el sistema a usar es-PE
+  ]
 })
 export class DashboardPage implements OnInit {
 
@@ -34,7 +51,8 @@ export class DashboardPage implements OnInit {
 
   configurarFecha() {
     const hoy = new Date();
-    this.fechaActual = this.datePipe.transform(hoy, 'EEEE, d \'de\' MMMM \'de\' yyyy', '', 'es-PE') || 'Hoy';
+    // Al haber registrado el idioma arriba, esto ya funcionará perfectamente en frío
+    this.fechaActual = this.datePipe.transform(hoy, "EEEE, d 'de' MMMM 'de' yyyy", '', 'es-PE') || 'Hoy';
   }
 
   async cargarDashboardFirebase() {

@@ -1,8 +1,10 @@
 <ion-app>
   <ion-split-pane contentId="main-content" class="custom-split-pane" [class.collapsed]="isCollapsed">
 
+    <!-- MENÚ LATERAL (SIDEBAR) -->
     <ion-menu contentId="main-content" class="dark-sidebar" [class.collapsed]="isCollapsed">
-      
+
+      <!-- Encabezado con logo de la Pollería -->
       <ion-header class="ion-no-border">
         <div class="sidebar-brand">
           <div class="logo-icon">
@@ -15,61 +17,73 @@
         </div>
       </ion-header>
 
+      <!-- Lista de Navegación del Menú -->
       <ion-content class="menu-content">
         <ion-list lines="none" class="custom-nav-list">
-          
+
+          <!-- Dashboard -->
           <ion-item button routerLink="/admin/dashboard" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="apps-outline"></ion-icon>
             <ion-label>Dashboard</ion-label>
           </ion-item>
 
+          <!-- Pedidos / Ventas -->
           <ion-item button routerLink="/admin/pedidos" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="cart-outline"></ion-icon>
             <ion-label>Pedidos / Ventas</ion-label>
             <div class="nav-badge" slot="end">4</div>
           </ion-item>
 
+          <!-- Caja -->
           <ion-item button routerLink="/admin/caja" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="wallet-outline"></ion-icon>
             <ion-label>Caja</ion-label>
           </ion-item>
 
+          <!-- Mesas -->
           <ion-item button routerLink="/admin/mesas" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="grid-outline"></ion-icon>
             <ion-label>Mesas</ion-label>
           </ion-item>
 
+          <!-- Productos -->
           <ion-item button routerLink="/admin/productos" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="cube-outline"></ion-icon>
             <ion-label>Productos</ion-label>
           </ion-item>
 
+          <!-- Categorías -->
           <ion-item button routerLink="/admin/categorias" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="pricetag-outline"></ion-icon>
             <ion-label>Categorías</ion-label>
           </ion-item>
 
+          <!-- Stock / Inventario -->
           <ion-item button routerLink="/admin/stock" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="archive-outline"></ion-icon>
             <ion-label>Stock / Inventario</ion-label>
             <div class="nav-badge" slot="end">3</div>
           </ion-item>
 
+          <!-- Clientes -->
           <ion-item button routerLink="/admin/clientes" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="people-outline"></ion-icon>
             <ion-label>Clientes</ion-label>
           </ion-item>
 
+          <!-- Usuarios -->
           <ion-item button routerLink="/admin/usuarios" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="person-add-outline"></ion-icon>
             <ion-label>Usuarios</ion-label>
           </ion-item>
 
+          <!-- Reportes -->
           <ion-item button routerLink="/admin/reportes" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="bar-chart-outline"></ion-icon>
             <ion-label>Reportes</ion-label>
           </ion-item>
 
+          <!-- Configuración -->
           <ion-item button routerLink="/admin/configuracion" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="settings-outline"></ion-icon>
             <ion-label>Configuración</ion-label>
@@ -78,6 +92,7 @@
         </ion-list>
       </ion-content>
 
+      <!-- Footer: Perfil y Botones de Acción -->
       <ion-footer class="ion-no-border sidebar-footer">
         <div class="user-profile">
           <div class="avatar">A</div>
@@ -88,19 +103,23 @@
         </div>
 
         <button class="logout-btn" (click)="cerrarSesion()">
-          <ion-icon name="log-out-outline"></ion-icon> 
+          <ion-icon name="log-out-outline"></ion-icon>
           <span class="fade-text">Cerrar Sesión</span>
         </button>
 
         <div class="collapse-btn" (click)="toggleSidebar()">
-          <ion-icon [name]="isCollapsed ? 'chevron-forward-outline' : 'chevron-back-outline'"></ion-icon> 
+          <ion-icon [name]="isCollapsed ? 'chevron-forward-outline' : 'chevron-back-outline'"></ion-icon>
           <span class="fade-text">Contraer</span>
         </div>
       </ion-footer>
 
     </ion-menu>
 
-    <div class="ion-page" id="main-content">
+    <!-- ============================================================ -->
+    <!-- CONTENEDOR DERECHO CORREGIDO: INTERCAMBIADOR DE PÁGINAS -->
+    <!-- ============================================================ -->
+    <div id="main-content" class="ion-page">
+      <!-- El outlet debe procesar directamente los componentes hijos mapeados de image_d8edbe.png -->
       <ion-router-outlet></ion-router-outlet>
     </div>
 
