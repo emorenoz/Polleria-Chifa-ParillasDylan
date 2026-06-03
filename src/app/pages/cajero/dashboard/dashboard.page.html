@@ -1,10 +1,18 @@
 <ion-header>
   <ion-toolbar color="success">
+
     <ion-title>
       💰 Caja Dylan
     </ion-title>
+
+    <!-- BOTÓN CERRAR SESIÓN (SIN ion-buttons PARA EVITAR ERROR) -->
+    <ion-button slot="end" fill="clear" (click)="cerrarSesion()">
+      🚪 Salir
+    </ion-button>
+
   </ion-toolbar>
 </ion-header>
+
 
 <ion-content class="dashboard-content">
 
@@ -18,28 +26,28 @@
     <ion-card class="card ventas">
       <ion-card-content>
         <h3>💰 Ventas Hoy</h3>
-        <h1>S/ 1850</h1>
+        <h1>S/ {{ ventasHoy }}</h1>
       </ion-card-content>
     </ion-card>
 
     <ion-card class="card pendientes">
       <ion-card-content>
         <h3>🧾 Pendientes</h3>
-        <h1>8</h1>
+        <h1>{{ pedidosPendientes }}</h1>
       </ion-card-content>
     </ion-card>
 
     <ion-card class="card cobrados">
       <ion-card-content>
         <h3>✅ Cobrados</h3>
-        <h1>35</h1>
+        <h1>{{ pedidosCobrados }}</h1>
       </ion-card-content>
     </ion-card>
 
     <ion-card class="card caja">
       <ion-card-content>
         <h3>💵 Caja Actual</h3>
-        <h1>S/ 2340</h1>
+        <h1>S/ {{ cajaActual }}</h1>
       </ion-card-content>
     </ion-card>
 
@@ -89,48 +97,17 @@
 
     <ion-list>
 
-      <ion-item>
+      <ion-item *ngFor="let p of pedidos">
+
         <ion-label>
-          <h2>Mesa 01</h2>
-          <p>Pollo a la Brasa Familiar</p>
+          <h2>{{ p.mesa }}</h2>
+          <p>{{ p.detalle || 'Sin detalle' }}</p>
         </ion-label>
 
-        <ion-badge color="warning">
-          Pendiente
+        <ion-badge [color]="p.estado === 'cobrado' ? 'success' : 'warning'">
+          {{ p.estado }}
         </ion-badge>
-      </ion-item>
 
-      <ion-item>
-        <ion-label>
-          <h2>Mesa 05</h2>
-          <p>Chaufa Especial</p>
-        </ion-label>
-
-        <ion-badge color="success">
-          Cobrado
-        </ion-badge>
-      </ion-item>
-
-      <ion-item>
-        <ion-label>
-          <h2>Mesa 12</h2>
-          <p>Parrilla Familiar</p>
-        </ion-label>
-
-        <ion-badge color="warning">
-          Pendiente
-        </ion-badge>
-      </ion-item>
-
-      <ion-item>
-        <ion-label>
-          <h2>Pedido #003</h2>
-          <p>Para Llevar</p>
-        </ion-label>
-
-        <ion-badge color="success">
-          Cobrado
-        </ion-badge>
       </ion-item>
 
     </ion-list>

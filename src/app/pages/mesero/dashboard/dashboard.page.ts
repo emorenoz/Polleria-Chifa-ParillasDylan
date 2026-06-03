@@ -1,219 +1,277 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { NavController } from '@ionic/angular/standalone';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-
-import { Firestore, collection, query, where, onSnapshot, doc, updateDoc } from '@angular/fire/firestore';
 
 import {
-  IonContent,
-  IonIcon
-} from '@ionic/angular/standalone';
+  Firestore,
+  collection,
+  collectionData,
+  doc,
+  updateDoc,
+  addDoc   // 🔥 NUEVO
+} from '@angular/fire/firestore';
 
-import { addIcons } from 'ionicons';
-import { 
-  peopleOutline, timeOutline, logOutOutline, cartOutline,
-  addOutline, removeOutline, trashOutline, paperPlaneOutline,
-  receiptOutline, checkmarkCircleOutline
-} from 'ionicons/icons';
+import { Observable, Subscription } from 'rxjs';
+import { Router } from '@angular/router';
+
+export interface Producto {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  categoria: string;
+  imagen: string;
+}
+
+export interface ItemCarrito {
+  producto: Producto;
+  cantidad: number;
+}
+
+export interface Mesa {
+  id: string;
+  numero: string;
+  estado: 'libre' | 'activa' | 'cuenta';
+  pedido: ItemCarrito[];
+}
 
 @Component({
   selector: 'app-dashboard-mesero',
-  templateUrl: './dashboard.page.html',
-  styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    IonContent,
-    IonIcon
-  ]
+  imports: [CommonModule],
+  templateUrl: './dashboard.page.html',
+  styleUrls: ['./dashboard.page.scss']
 })
-export class DashboardPage implements OnInit {
+export class DashboardPage implements OnInit, OnDestroy {
 
-  mesasDisponibles = 0;
-  mesasOcupadas = 0;
-  mesasCuenta = 0; 
+  private firestore: Firestore = inject(Firestore);
 
-  mesas: any[] = [];
-  mesaSeleccionada: any = null;
-  carrito: any[] = [];
+  nombreMesero: string = 'Carlos Ramos';
+  horaActual: string = new Date().toLocaleTimeString();
 
-  categorias: any[] = [];
-  productosBD: any[] = []; 
-  productosFiltrados: any[] = []; 
-  categoriaActiva: string = '';
+  private relojInterval: any;
 
-  private firestore = inject(Firestore);
+  categorias: string[] = [
+    'Bebidas Frias','Bebidas Calientes','Criollos','Caldo de Gallina',
+    'Guarniciones','Chifa a la Carta','Sopas y Entradas',
+    'Ofertas de la Casa','Parrillas','Ofertas Parrillas','Salchipapas'
+  ];
 
-  constructor(private navCtrl: NavController) {
-    addIcons({
-      peopleOutline, timeOutline, logOutOutline, cartOutline, 
-      addOutline, removeOutline, trashOutline, paperPlaneOutline,
-      receiptOutline, checkmarkCircleOutline
-    });
+  categoriaSeleccionada: string = 'Bebidas Frias';
+
+  productos: Producto[] = [
+    { id: 1, nombre: 'Inca Kola / Coca Cola 3L', descripcion: '', precio: 14, categoria: 'Bebidas Frias', imagen: '🥤' },
+    { id: 2, nombre: 'Inca Kola / Coca Cola 1.5L', descripcion: '', precio: 10, categoria: 'Bebidas Frias', imagen: '🥤' },
+    { id: 3, nombre: 'Té', descripcion: '', precio: 2, categoria: 'Bebidas Calientes', imagen: '🍵' },
+    { id: 4, nombre: 'Lomo Saltado', descripcion: '', precio: 14, categoria: 'Criollos', imagen: '🍛' },
+    { id: 5, nombre: 'Caldo de Gallina', descripcion: '', precio: 12, categoria: 'Caldo de Gallina', imagen: '🍲' },
+    { id: 6, nombre: 'Papas Fritas', descripcion: '', precio: 7, categoria: 'Guarniciones', imagen: '🍟' },
+    { id: 7, nombre: 'Mostrito', descripcion: '', precio: 12, categoria: 'Ofertas de la Casa', imagen: '🍗' },
+    { id: 8, nombre: 'Salchipapa Clásica', descripcion: '', precio: 8, categoria: 'Salchipapas', imagen: '🌭' }
+  ];
+
+  productosFiltrados: Producto[] = [];
+
+  mesas$: Observable<Mesa[]> | undefined;
+  mesas: Mesa[] = [];
+  mesaSeleccionada: Mesa | null = null;
+
+  private mesasSubscription?: Subscription;
+
+  constructor(private router: Router) {}
+
+  ngOnInit(): void {
+    this.filtrarProductos();
+    this.initFirebaseRealtime();
+    this.iniciarReloj();
   }
 
-  ngOnInit() {
-    this.cargarMesas();
-    this.cargarCategorias();
-    this.cargarProductos();
+  ngOnDestroy(): void {
+    if (this.mesasSubscription) this.mesasSubscription.unsubscribe();
+    if (this.relojInterval) clearInterval(this.relojInterval);
   }
 
-  cargarMesas() {
-    const mesasRef = collection(this.firestore, 'mesas');
-    
-    onSnapshot(mesasRef, (snapshot) => {
-      // 1. Aquí está la corrección para TypeScript (as any)
-      this.mesas = snapshot.docs.map(doc => {
-        const data = doc.data() as any;
-        return { id: doc.id, ...data };
-      });
+  iniciarReloj(): void {
+    this.relojInterval = setInterval(() => {
+      this.horaActual = new Date().toLocaleTimeString();
+    }, 1000);
+  }
 
-      // 2. Ordenamos asegurando que a y b sean any
-      this.mesas.sort((a: any, b: any) => a.numero - b.numero);
-      
-      this.calcularEstadisticas();
+  // 🔥 FIREBASE
+  initFirebaseRealtime(): void {
+    const mesasCollection = collection(this.firestore, 'mesas');
 
-      if (this.mesaSeleccionada) {
-        const mesaActualizada = this.mesas.find(m => m.id === this.mesaSeleccionada.id);
-        if (mesaActualizada && mesaActualizada.estado === 'libre' && this.mesaSeleccionada.estado !== 'libre') {
-           this.mesaSeleccionada = null;
-           this.carrito = [];
-        } else {
-           this.mesaSeleccionada = mesaActualizada || null;
+    this.mesas$ = collectionData(mesasCollection, { idField: 'id' }) as Observable<Mesa[]>;
+
+    this.mesasSubscription = this.mesas$.subscribe(res => {
+      this.mesas = res;
+
+      const id = this.mesaSeleccionada?.id;
+
+      if (id) {
+        const encontrada = this.mesas.find(m => m.id === id);
+        if (encontrada) {
+          this.mesaSeleccionada = {
+            ...encontrada,
+            pedido: encontrada.pedido ?? []
+          };
         }
       }
     });
   }
 
-  calcularEstadisticas() {
-    this.mesasDisponibles = this.mesas.filter(m => m.estado === 'libre').length;
-    this.mesasOcupadas = this.mesas.filter(m => m.estado === 'activa').length;
-    this.mesasCuenta = this.mesas.filter(m => m.estado === 'cuenta').length;
-  }
+  // =========================
+  // 🔥 NUEVO: PROCESAR PAGO
+  // =========================
+  async procesarPago(): Promise<void> {
+    if (!this.mesaSeleccionada) return;
 
-  cargarCategorias() {
-    const categoriasRef = collection(this.firestore, 'categorias');
-    onSnapshot(categoriasRef, (snapshot) => {
-      // Aplicamos la corrección aquí también por seguridad
-      this.categorias = snapshot.docs.map(doc => {
-        const data = doc.data() as any;
-        return { id: doc.id, ...data };
-      });
+    const mesa = this.mesaSeleccionada;
 
-      if (this.categorias.length > 0 && !this.categoriaActiva) {
-        this.categoriaActiva = this.categorias[0].id;
-        this.filtrarProductos();
-      }
+    const total = mesa.pedido.reduce(
+      (acc, i) => acc + i.producto.precio * i.cantidad,
+      0
+    );
+
+    const pedidoFinal = {
+      mesa: mesa.numero,
+      items: mesa.pedido,
+      total,
+      mesero: this.nombreMesero,
+      estado: 'enviado_cocina',
+      fecha: new Date()
+    };
+
+    // 🔥 1. Guardar en cocina
+    await addDoc(collection(this.firestore, 'pedidos_cocina'), pedidoFinal);
+
+    // 🔥 2. Guardar en ventas
+    await addDoc(collection(this.firestore, 'ventas'), pedidoFinal);
+
+    // 🔥 3. Liberar mesa
+    await this.guardar({
+      ...mesa,
+      estado: 'libre',
+      pedido: []
     });
-  }
 
-  cargarProductos() {
-    const q = query(collection(this.firestore, 'productos'), where('estado', '==', true));
-    onSnapshot(q, (snapshot) => {
-      // Y también corregimos los productos
-      this.productosBD = snapshot.docs.map(doc => {
-        const data = doc.data() as any;
-        return { id: doc.id, ...data };
-      });
-      this.filtrarProductos();
+    // 🔥 4. ENVIAR A COCINA (NAVEGACIÓN)
+    this.router.navigate(['/cocina/dashboard'], {
+      state: { pedido: pedidoFinal }
     });
+
+    this.mesaSeleccionada = null;
   }
 
-  cambiarCategoria(categoriaId: string) {
-    this.categoriaActiva = categoriaId;
+  // =========================
+  // TU LÓGICA ORIGINAL
+  // =========================
+  get totalActivas() {
+    return this.mesas.filter(m => m.estado === 'activa').length;
+  }
+
+  get totalEnCuenta() {
+    return this.mesas.filter(m => m.estado === 'cuenta').length;
+  }
+
+  get totalLibres() {
+    return this.mesas.filter(m => m.estado === 'libre').length;
+  }
+
+  seleccionarMesa(mesa: Mesa) {
+    this.mesaSeleccionada = { ...mesa, pedido: mesa.pedido ?? [] };
+  }
+
+  seleccionarCategoria(cat: string) {
+    this.categoriaSeleccionada = cat;
     this.filtrarProductos();
   }
 
   filtrarProductos() {
-    this.productosFiltrados = this.productosBD.filter(prod => prod.categoria_id === this.categoriaActiva);
+    this.productosFiltrados = this.productos.filter(
+      p => p.categoria === this.categoriaSeleccionada
+    );
   }
 
-  seleccionarMesa(mesa: any) {
-    this.mesaSeleccionada = mesa;
-    this.carrito = mesa.pedido || []; 
+  async agregarProducto(producto: Producto) {
+    if (!this.mesaSeleccionada) return;
+
+    let estadoActualizado = this.mesaSeleccionada.estado;
+
+    if (estadoActualizado === 'libre') estadoActualizado = 'activa';
+
+    const pedido = [...this.mesaSeleccionada.pedido];
+
+    const item = pedido.find(i => i.producto.id === producto.id);
+
+    if (item) item.cantidad++;
+    else pedido.push({ producto, cantidad: 1 });
+
+    this.mesaSeleccionada = {
+      ...this.mesaSeleccionada,
+      estado: estadoActualizado,
+      pedido
+    };
+
+    await this.guardar(this.mesaSeleccionada);
   }
 
-  agregarAlCarrito(producto: any) {
-    if (!this.mesaSeleccionada) {
-      alert('Por favor, selecciona una mesa primero.');
-      return;
+  async modificarCantidad(item: ItemCarrito, cambio: number) {
+    if (!this.mesaSeleccionada) return;
+
+    const pedido = [...this.mesaSeleccionada.pedido];
+
+    const index = pedido.findIndex(i => i.producto.id === item.producto.id);
+
+    if (index !== -1) {
+      pedido[index].cantidad += cambio;
+
+      if (pedido[index].cantidad <= 0) pedido.splice(index, 1);
     }
-    const index = this.carrito.findIndex(item => item.producto.id === producto.id);
-    if (index > -1) {
-      this.carrito[index].cantidad++;
-    } else {
-      this.carrito.push({ producto: producto, cantidad: 1 });
-    }
-  }
 
-  aumentarCantidad(index: number) { this.carrito[index].cantidad++; }
-  
-  disminuirCantidad(index: number) {
-    if(this.carrito[index].cantidad > 1) { this.carrito[index].cantidad--; } 
-    else { this.eliminarDelCarrito(index); }
-  }
+    this.mesaSeleccionada.pedido = pedido;
 
-  eliminarDelCarrito(index: number) { this.carrito.splice(index, 1); }
+    await this.guardar(this.mesaSeleccionada);
+
+    if (pedido.length === 0) this.mesaSeleccionada = null;
+  }
 
   calcularTotal() {
-    return this.carrito.reduce((total, item) => total + (item.producto.precio * item.cantidad), 0);
+    if (!this.mesaSeleccionada) return 0;
+
+    return this.mesaSeleccionada.pedido.reduce(
+      (acc, i) => acc + i.producto.precio * i.cantidad,
+      0
+    );
   }
-  
-  async enviarCocina() {
-    if (this.carrito.length === 0) {
-      alert('No hay productos en el carrito para enviar.');
-      return;
-    }
-    try {
-      const mesaRef = doc(this.firestore, 'mesas', this.mesaSeleccionada.id);
-      await updateDoc(mesaRef, {
-        estado: 'activa',
-        pedido: this.carrito,
-        total: this.calcularTotal()
-      });
-      alert(`Pedido enviado a cocina correctamente.`);
-    } catch (error) {
-      console.error("Error al enviar a cocina:", error);
-    }
+
+  private async guardar(mesa: Mesa) {
+    const ref = doc(this.firestore, `mesas/${mesa.id}`);
+
+    await updateDoc(ref, {
+      estado: mesa.estado,
+      pedido: mesa.pedido ?? []
+    });
   }
 
   async pedirCuenta() {
-    if (!this.mesaSeleccionada || this.mesaSeleccionada.estado === 'libre') {
-      alert('La mesa debe tener un pedido activo para pedir la cuenta.');
-      return;
-    }
-    try {
-      const mesaRef = doc(this.firestore, 'mesas', this.mesaSeleccionada.id);
-      await updateDoc(mesaRef, {
-        estado: 'cuenta'
-      });
-      alert(`Notificando a Caja. En breve el cajero realizará el cobro.`);
-    } catch (error) {
-      console.error("Error al pedir cuenta:", error);
-    }
+    if (!this.mesaSeleccionada) return;
+
+    this.mesaSeleccionada.estado = 'cuenta';
+    await this.guardar(this.mesaSeleccionada);
   }
 
   async liberarMesa() {
     if (!this.mesaSeleccionada) return;
-    const confirmar = confirm(`¿Estás seguro de liberar la Mesa ${this.mesaSeleccionada.numero}? Si el cliente no ha pagado, usa el botón "Cuenta" en su lugar.`);
-    
-    if (confirmar) {
-      try {
-        const mesaRef = doc(this.firestore, 'mesas', this.mesaSeleccionada.id);
-        await updateDoc(mesaRef, {
-          estado: 'libre',
-          pedido: [],
-          total: 0
-        });
-      } catch (error) {
-        console.error("Error al liberar mesa:", error);
-      }
-    }
+
+    this.mesaSeleccionada.estado = 'libre';
+    this.mesaSeleccionada.pedido = [];
+
+    await this.guardar(this.mesaSeleccionada);
+
+    this.mesaSeleccionada = null;
   }
 
   salir() {
-    this.navCtrl.navigateBack('/select-role'); 
+    this.router.navigate(['/select-role']);
   }
 }

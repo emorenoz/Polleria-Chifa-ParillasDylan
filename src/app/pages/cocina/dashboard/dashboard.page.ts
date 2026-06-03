@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 
 import { CommonModule } from '@angular/common';
 
@@ -7,70 +7,72 @@ import {
   IonHeader,
   IonToolbar,
   IonTitle,
-
   IonCard,
   IonCardHeader,
   IonCardTitle,
   IonCardContent,
-
   IonButton
-
 } from '@ionic/angular/standalone';
+
+import {
+  Firestore,
+  collection,
+  collectionData
+} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-
   imports: [
-
     CommonModule,
-
     IonHeader,
     IonToolbar,
     IonTitle,
-
     IonContent,
-
     IonCard,
     IonCardHeader,
     IonCardTitle,
     IonCardContent,
-
     IonButton
-
   ]
-
 })
-export class DashboardPage {
+export class DashboardPage implements OnInit {
 
-  pedidosNuevos = 6;
+  pedidosNuevos = 0;
+  pedidosPreparando = 0;
+  pedidosListos = 0;
 
-  pedidosPreparando = 4;
+  pedidos: any[] = [];
 
-  pedidosListos = 3;
+  private firestore = inject(Firestore);
 
-  pedidos = [
+  ngOnInit() {
+    this.cargarPedidosFirebase();
+  }
 
-    {
-      mesa: 'Mesa 01',
-      detalle: '1 Pollo a la Brasa + Papas',
-      estado: 'Nuevo'
-    },
+  cargarPedidosFirebase() {
+    const pedidosRef = collection(this.firestore, 'pedidos');
 
-    {
-      mesa: 'Mesa 04',
-      detalle: '1 Chaufa Especial + Inka Cola',
-      estado: 'Preparando'
-    },
+    collectionData(pedidosRef, { idField: 'id' }).subscribe((data: any[]) => {
 
-    {
-      mesa: 'Mesa 08',
-      detalle: '1 Parrilla Familiar',
-      estado: 'Listo'
-    }
+      // 👉 mantenemos tu lógica de variables intacta
+      this.pedidos = data.map(p => ({
+        mesa: p.mesa,
+        detalle: (p.productos || []).map((x: any) => x.nombre).join(' + '),
+        estado:
+          p.estado === 'pendiente'
+            ? 'Nuevo'
+            : p.estado === 'cocina'
+            ? 'Preparando'
+            : 'Listo'
+      }));
 
-  ];
-
+      // 👉 métricas sin cambiar tus nombres
+      this.pedidosNuevos = data.filter(p => p.estado === 'pendiente').length;
+      this.pedidosPreparando = data.filter(p => p.estado === 'cocina').length;
+      this.pedidosListos = data.filter(p => p.estado === 'entregado').length;
+    });
+  }
 }

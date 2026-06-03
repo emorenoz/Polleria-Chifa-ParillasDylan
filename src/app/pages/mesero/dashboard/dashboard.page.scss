@@ -1,142 +1,252 @@
-:host {
-  --blue-primary: #4e1adb;
-  --blue-light: #eff6ff;
-  --blue-border: #bfdbfe;
-  --text-dark: #1e293b;
-  --text-muted: #64748b;
-  --bg-gray: #f8fafc;
-  --border-color: #e2e8f0;
-  --yellow-status: #f59e0b;
-}
+$blue-primary: #1976d2;
+$blue-light: #e3f2fd;
+$bg-body: #f5f7fa;
+$white: #ffffff;
+$text-dark: #333333;
+$text-muted: #757575;
 
-.pos-layout {
+$color-free: #e0e0e0;
+$color-active: #2196f3;
+$color-bill: #ffb300;
+
+.panel-container {
+  font-family: 'Segoe UI', Roboto, sans-serif;
+  background-color: $bg-body;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  width: 100vw;
-  background-color: var(--bg-gray);
-  overflow: hidden;
+  position: relative;
 }
 
-/* HEADER */
-.pos-header {
-  height: 64px;
-  background-color: var(--blue-primary);
-  color: white;
+// BARRA DE NAVEGACIÓN
+.navbar {
+  background-color: $blue-primary;
+  color: $white;
+  padding: 10px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 24px;
-}
-.header-left { display: flex; align-items: center; gap: 12px; }
-.icon-bg { background: rgba(255, 255, 255, 0.2); padding: 8px; border-radius: 8px; display: flex; font-size: 20px; }
-.user-info { display: flex; flex-direction: column; }
-.user-info .role { font-size: 12px; opacity: 0.8; }
-.user-info .name { font-size: 16px; font-weight: 600; }
-.header-right { display: flex; align-items: center; gap: 24px; font-size: 14px; }
-.stats { display: flex; gap: 16px; }
-.stat-item { display: flex; align-items: center; gap: 6px; }
-.dot { width: 8px; height: 8px; border-radius: 50%; }
-.dot.blue { background-color: #60a5fa; }
-.dot.yellow { background-color: #fbbf24; }
-.dot.gray { background-color: #cbd5e1; }
-.time { display: flex; align-items: center; gap: 6px; opacity: 0.9; }
-.btn-salir { background: transparent; color: white; border: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; cursor: pointer; }
 
-/* BODY */
-.pos-body { display: flex; flex: 1; overflow: hidden; }
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    .icon-user { font-size: 24px; background: rgba(255,255,255,0.2); padding: 5px; border-radius: 50%; }
+    .user-text {
+      display: flex; flex-direction: column;
+      .title { font-size: 12px; opacity: 0.8; }
+      .name { font-weight: bold; font-size: 15px; }
+    }
+  }
 
-/* ASIDE IZQUIERDO (MESAS) */
-.sidebar-mesas { width: 280px; background-color: white; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 20px; }
-.sidebar-header { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px; letter-spacing: 0.5px; }
-.mesas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; overflow-y: auto; padding-bottom: 10px; }
-.mesa-card { aspect-ratio: 1; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-gray); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; transition: all 0.2s; }
-.mesa-prefix { font-size: 12px; color: var(--text-muted); }
-.mesa-number { font-size: 20px; font-weight: 600; color: var(--text-dark); }
-.mesa-card.activa { border-color: var(--blue-border); color: var(--blue-primary); }
-.mesa-card.activa .mesa-number { color: var(--blue-primary); }
-.mesa-card.activa .status-dot { background-color: var(--blue-primary); }
-.mesa-card.cuenta { border-color: #fde68a; }
-.mesa-card.cuenta .mesa-number { color: var(--yellow-status); }
-.mesa-card.cuenta .status-dot { background-color: var(--yellow-status); }
-.mesa-card.seleccionada { background-color: var(--blue-light); border: 2px solid var(--blue-primary); }
-.status-dot { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; }
+  .stats-and-actions {
+    display: flex;
+    align-items: center;
+    gap: 30px;
 
-.leyenda { margin-top: auto; padding-top: 20px; }
-.leyenda-title { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 12px; }
-.leyenda-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); margin-bottom: 8px; }
-.circle { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid; }
-.circle.libre { border-color: #cbd5e1; }
-.circle.activa { border-color: var(--blue-primary); }
-.circle.cuenta { border-color: var(--yellow-status); }
+    .stats {
+      display: flex;
+      gap: 15px;
+      font-size: 14px;
 
-/* MAIN (MENU) */
-.main-menu { flex: 1; display: flex; flex-direction: column; background-color: white; }
-.alert-top { margin: 20px 24px 0 24px; padding: 14px 20px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
-.alert-info { background-color: var(--blue-light); color: var(--blue-primary); border: 1px solid var(--blue-border); justify-content: flex-start; gap: 10px; }
-.alert-active { background-color: var(--blue-primary); color: white; }
-.alert-left { display: flex; align-items: center; gap: 10px; }
-.badge { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-size: 11px; }
-.btn-cambiar-mesa { background: transparent; border: none; color: white; text-decoration: underline; cursor: pointer; }
-.categories-tabs { display: flex; padding: 20px 24px 0 24px; border-bottom: 1px solid var(--border-color); gap: 24px; overflow-x: auto; }
-.tab { padding-bottom: 12px; font-weight: 500; color: var(--text-muted); cursor: pointer; position: relative; white-space: nowrap; }
-.tab.active { color: var(--blue-primary); font-weight: 600; }
-.tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 2px; background-color: var(--blue-primary); }
-.productos-grid { padding: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; overflow-y: auto; }
-.producto-card { border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; cursor: pointer; transition: box-shadow 0.2s; }
-.producto-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-color: var(--blue-border); }
-.prod-img { font-size: 32px; margin-bottom: 12px; }
-.prod-title { font-weight: 600; color: var(--text-dark); margin-bottom: 4px; }
-.prod-desc { font-size: 13px; color: var(--text-muted); margin-bottom: 12px; }
-.prod-price { font-weight: 600; color: var(--blue-primary); }
+      .stat-item {
+        display: flex; align-items: center; gap: 6px;
+        .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        &.active .dot { background-color: $white; border: 2px solid $white; }
+        &.bill .dot { background-color: $color-bill; }
+        &.free .dot { background-color: rgba(255,255,255,0.6); }
+      }
+    }
 
-/* ASIDE DERECHO (CARRITO) */
-.sidebar-cart { width: 340px; background-color: white; border-left: 1px solid var(--border-color); display: flex; flex-direction: column; }
-.cart-header { padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
-.cart-title { display: flex; align-items: center; gap: 8px; font-weight: 600; color: var(--text-dark); }
-.cart-items-count { background-color: var(--blue-light); color: var(--blue-primary); padding: 4px 10px; border-radius: 16px; font-size: 12px; font-weight: 600; }
-.cart-empty { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; color: var(--text-muted); }
-.cart-empty ion-icon { font-size: 48px; opacity: 0.3; margin-bottom: 16px; }
-.empty-text { font-weight: 500; margin-bottom: 4px; }
-.empty-subtext { font-size: 13px; opacity: 0.7; }
-.cart-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-.cart-items { flex: 1; overflow-y: auto; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
-.cart-item { display: flex; align-items: center; gap: 12px; }
-.item-icon { font-size: 24px; background: var(--bg-gray); padding: 8px; border-radius: 8px; }
-.item-details { flex: 1; }
-.item-name { font-size: 14px; font-weight: 500; color: var(--text-dark); }
-.item-price { font-size: 13px; color: var(--blue-primary); margin-top: 2px; }
-.item-actions { display: flex; align-items: center; gap: 8px; }
-.btn-qty { background: var(--bg-gray); border: none; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-dark); }
-.btn-qty.btn-plus { background: var(--blue-light); color: var(--blue-primary); }
-.qty { font-size: 14px; font-weight: 500; width: 16px; text-align: center; }
-.btn-delete { background: transparent; border: none; color: #ef4444; font-size: 18px; cursor: pointer; padding-left: 8px; }
-.cart-footer { padding: 24px; border-top: 1px solid var(--border-color); background: white; }
-.cart-summary-list { margin-bottom: 16px; font-size: 13px; color: var(--text-muted); }
-.summary-line { display: flex; justify-content: space-between; margin-bottom: 8px; }
-.cart-total { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 20px; }
-.total-amount { font-size: 20px; color: var(--blue-primary); }
-.btn-enviar-cocina { width: 100%; background: var(--blue-primary); color: white; border: none; border-radius: 8px; padding: 14px; font-size: 15px; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer; }
-.cart-dual-buttons { display: flex; gap: 12px; }
-.cart-dual-buttons button { flex: 1; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 6px; cursor: pointer; background: white; }
-.btn-cuenta { border: 1px solid var(--yellow-status); color: var(--yellow-status); }
-.btn-liberar { border: 1px solid var(--text-muted); color: var(--text-muted); }
-
-/* =======================================================
-   DISEÑO RESPONSIVE (MÓVILES Y TABLETS EN VERTICAL)
-   ======================================================= */
-@media (max-width: 992px) {
-  .pos-body { flex-direction: column; overflow-y: auto; }
-  .pos-header { flex-wrap: wrap; height: auto; padding: 15px; gap: 15px; }
-  .header-right { width: 100%; justify-content: space-between; }
-  .sidebar-mesas { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); max-height: 250px; }
-  .mesas-grid { grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); }
-  .main-menu { width: 100%; overflow: visible; }
-  .sidebar-cart { width: 100%; border-left: none; border-top: 2px solid var(--blue-primary); min-height: 400px; }
+    .time-exit {
+      display: flex; align-items: center; gap: 20px;
+      .time { font-size: 14px; }
+      .btn-exit {
+        background: transparent; border: none; color: $white; font-weight: 500; cursor: pointer;
+        &:hover { opacity: 0.8; }
+      }
+    }
+  }
 }
 
-@media (max-width: 576px) {
-  .stats { display: none; }
-  .categories-tabs { flex-wrap: wrap; gap: 10px; }
-  .tab { font-size: 14px; padding-bottom: 5px; }
+// ARQUITECTURA DE TRES COLUMNAS
+.main-content {
+  display: grid;
+  grid-template-columns: 240px 1fr 300px;
+  flex-grow: 1;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+// PANEL DE MESAS
+.sidebar-mesas {
+  background-color: $white;
+  border-right: 1px solid #e0e0e0;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+
+  h3 { font-size: 13px; color: $text-muted; margin-bottom: 15px; letter-spacing: 0.5px; }
+
+  .grid-mesas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    flex-grow: 1;
+    align-content: flex-start;
+
+    .card-mesa {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      height: 65px;
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+
+      .num-mesa { font-weight: 600; color: #475569; font-size: 15px; }
+      .badge-dot { position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; }
+
+      &.libre .badge-dot { background: transparent; }
+      &.activa {
+        border-color: $color-active;
+        .num-mesa { color: $color-active; }
+        .badge-dot { background: $color-active; }
+      }
+      &.cuenta {
+        border-color: $color-bill; background-color: #fffbeb;
+        .num-mesa { color: $color-bill; }
+        .badge-dot { background: $color-bill; }
+      }
+
+      &.selected { box-shadow: 0 0 0 2px $blue-primary; }
+      &:hover { transform: translateY(-2px); }
+    }
+  }
+
+  .leyenda {
+    border-top: 1px solid #f0f0f0; padding-top: 15px;
+    h4 { font-size: 11px; color: $text-muted; margin-bottom: 8px; }
+    .leyenda-item {
+      display: flex; align-items: center; gap: 8px; font-size: 13px; color: $text-dark; margin-bottom: 5px;
+      .dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid #ccc;
+        &.free { background: $white; }
+        &.active { background: $color-active; border-color: $color-active; }
+        &.bill { background: $color-bill; border-color: $color-bill; }
+      }
+    }
+  }
+}
+
+// PANEL CENTRAL DE MENÚS
+.menu-section {
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  .info-helper {
+    background-color: $blue-light; color: #0d47a1;
+    padding: 12px; border-radius: 8px; font-size: 14px;
+    &.selected { background-color: #e8f5e9; color: #1b5e20; }
+  }
+
+  .categories-nav {
+    display: flex; gap: 10px; border-bottom: 1px solid #e0e0e0; padding-bottom: 5px;
+    button {
+      background: none; border: none; padding: 10px 15px; font-size: 14px; cursor: pointer; color: $text-muted;
+      border-bottom: 2px solid transparent;
+      &.active { color: $blue-primary; border-bottom-color: $blue-primary; font-weight: bold; }
+    }
+  }
+
+  .grid-productos {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 15px;
+
+    .card-producto {
+      background: $white; border: 1px solid #e0e0e0; border-radius: 12px; padding: 15px;
+      display: flex; gap: 15px; align-items: center; transition: box-shadow 0.2s;
+
+      &:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+      .prod-img { font-size: 32px; background: #f5f5f5; padding: 10px; border-radius: 50%; }
+
+      .prod-details {
+        flex-grow: 1;
+        h4 { margin: 0 0 4px; font-size: 15px; color: $text-dark; }
+        p { margin: 0 0 10px; font-size: 12px; color: $text-muted; }
+
+        .prod-footer {
+          display: flex; justify-content: space-between; align-items: center;
+          .price { font-weight: bold; color: $blue-primary; font-size: 15px; }
+          .btn-add {
+            background-color: #f1f5f9; border: none; padding: 4px 10px; border-radius: 20px;
+            color: $blue-primary; font-size: 12px; font-weight: 500; cursor: pointer;
+            &:disabled { opacity: 0.5; cursor: not-allowed; }
+            &:not(:disabled):hover { background-color: $blue-light; }
+          }
+        }
+      }
+    }
+  }
+}
+
+// PANEL DE FACTURACIÓN (DERECHA)
+.sidebar-pedido {
+  background-color: $white; border-left: 1px solid #e0e0e0; padding: 15px;
+  display: flex; flex-direction: column;
+
+  h3 { font-size: 15px; color: $text-dark; margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;}
+
+  .empty-cart {
+    flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: $text-muted;
+    .cart-icon { font-size: 48px; opacity: 0.3; margin-bottom: 10px; }
+    p { margin: 0; font-weight: 500; }
+    span { font-size: 12px; opacity: 0.7; text-align: center; margin-top: 5px;}
+  }
+
+  .cart-content {
+    display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between;
+
+    .cart-items-list {
+      overflow-y: auto; max-height: 60vh;
+      .cart-item {
+        display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f8fafc;
+        .item-info {
+          display: flex; flex-direction: column;
+          .item-name { font-size: 13px; font-weight: 500; }
+          .item-price { font-size: 12px; color: $text-muted; }
+        }
+        .item-controls {
+          display: flex; align-items: center; gap: 8px;
+          button { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #cbd5e1; background: $white; cursor: pointer; }
+          .qty { font-size: 13px; font-weight: bold; min-width: 15px; text-align: center; }
+        }
+      }
+    }
+
+    .cart-summary {
+      border-top: 2px dashed #e2e8f0; padding-top: 15px; margin-top: 15px;
+      .total-row {
+        display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 15px;
+        strong { color: $blue-primary; font-size: 18px; }
+      }
+      .cart-actions {
+        display: flex; flex-direction: column; gap: 10px;
+        button { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; }
+        .btn-bill { background-color: $color-bill; color: $text-dark; }
+        .btn-free { background-color: #10b981; color: $white; }
+      }
+    }
+  }
+}
+
+.btn-help {
+  position: absolute; bottom: 20px; right: 20px; width: 36px; height: 36px;
+  background-color: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 50%;
+  font-weight: bold; color: $text-muted; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  &:hover { background-color: #e2e8f0; }
 }

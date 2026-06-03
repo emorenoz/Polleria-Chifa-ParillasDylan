@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import {
   IonContent,
   IonHeader,
@@ -20,11 +21,19 @@ import {
   IonIcon,
   IonLabel,
   IonNote,
-  IonButtons,    
-  IonBackButton  
+  IonButtons,
+  IonBackButton
 } from '@ionic/angular/standalone';
+
 import { addIcons } from 'ionicons';
-import { cloudDone, save, arrowBack } from 'ionicons/icons'; // 👈 Se agregó arrowBack
+import { cloudDone, save, arrowBack } from 'ionicons/icons';
+
+import {
+  Firestore,
+  doc,
+  getDoc,
+  setDoc
+} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-configuracion',
@@ -52,13 +61,14 @@ import { cloudDone, save, arrowBack } from 'ionicons/icons'; // 👈 Se agregó 
     IonIcon,
     IonLabel,
     IonNote,
-    IonButtons,   // 👈 REGISTRADO EN IMPORTS
-    IonBackButton // 👈 REGISTRADO EN IMPORTS
+    IonButtons,
+    IonBackButton
   ]
 })
 export class ConfiguracionPage implements OnInit {
 
-  // Objeto estructurado en formato clave-valor listo para un documento de Firestore
+  private firestore = inject(Firestore);
+
   config = {
     ruc: '',
     nombreEmpresa: '',
@@ -67,11 +77,9 @@ export class ConfiguracionPage implements OnInit {
     moneda: 'PEN'
   };
 
-  // Estado para controlar la carga visual al guardar
   guardando: boolean = false;
 
   constructor() {
-    // Inyección de íconos requeridos para Standalone (incluido el de navegación)
     addIcons({ cloudDone, save, arrowBack });
   }
 
@@ -79,29 +87,54 @@ export class ConfiguracionPage implements OnInit {
     await this.cargarConfiguracionFirebase();
   }
 
-  // Simulación de lectura del documento único de configuración en Firestore
+  // 🔥 CARGAR CONFIGURACIÓN REAL DESDE FIREBASE
   async cargarConfiguracionFirebase() {
-    //los datos guardados previamente
-    this.config = {
-      ruc: '10436830560',
-      nombreEmpresa: 'Polleria Dylan',
-      telefono: '982061791',
-      direccion: 'Av. Los Angeles 320, Comas, Lima',
-      moneda: 'PEN'
-    };
+
+    try {
+
+      const ref = doc(this.firestore, 'configuracion', 'empresa');
+      const snap = await getDoc(ref);
+
+      if (snap.exists()) {
+
+        this.config = snap.data() as any;
+
+      } else {
+
+        console.log('⚠️ No existe configuración, usando valores por defecto');
+
+      }
+
+    } catch (error) {
+
+      console.error('❌ Error cargando configuración:', error);
+
+    }
+
   }
 
-  // Simulación de escritura: db.collection('config').doc('empresa').set(this.config)
+  // 🔥 GUARDAR CONFIGURACIÓN EN FIREBASE
   async guardarConfiguracion() {
+
     if (!this.config.nombreEmpresa.trim()) return;
 
     this.guardando = true;
 
-    // Respuesta de la Base De Datos Firebase
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
 
-    console.log('Datos guardados con éxito en Firebase Firestore:', this.config);
+      const ref = doc(this.firestore, 'configuracion', 'empresa');
+
+      await setDoc(ref, this.config);
+
+      console.log('✅ Configuración guardada en Firebase:', this.config);
+
+    } catch (error) {
+
+      console.error('❌ Error guardando configuración:', error);
+
+    }
 
     this.guardando = false;
+
   }
 }

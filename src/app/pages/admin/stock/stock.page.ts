@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -20,12 +20,24 @@ import {
   IonItemOption,
   IonIcon,
   IonLabel,
-  IonBadge,     // 👈 AGREGADO PARA LAS ALERTAS DE COLOR DEL STOCK
-  IonButtons,   // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
-  IonBackButton // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
+  IonBadge,
+  IonButtons,
+  IonBackButton
 } from '@ionic/angular/standalone';
+
 import { addIcons } from 'ionicons';
-import { create, trash, cube, arrowBack } from 'ionicons/icons'; // 👈 Íconos registrados
+import { create, trash, cube, arrowBack } from 'ionicons/icons';
+
+// 🔥 FIREBASE
+import {
+  Firestore,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc
+} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-stock',
@@ -53,33 +65,29 @@ import { create, trash, cube, arrowBack } from 'ionicons/icons'; // 👈 Íconos
     IonItemOption,
     IonIcon,
     IonLabel,
-    IonBadge,     // 👈 REGISTRADO EN IMPORTS
-    IonButtons,   // 👈 REGISTRADO EN IMPORTS
-    IonBackButton // 👈 REGISTRADO EN IMPORTS
+    IonBadge,
+    IonButtons,
+    IonBackButton
   ]
 })
 export class StockPage implements OnInit {
 
-  // Objeto enlazado al formulario con los tipos adecuados para inputs numéricos
+  private firestore = inject(Firestore);
+
   nuevoInsumo = {
     nombre: '',
     cantidad: null as number | null,
     stockMinimo: null as number | null
   };
 
-  editando: boolean = false;
+  editando = false;
   idInsumoEditando: string | null = null;
-  textoBuscar: string = '';
+  textoBuscar = '';
 
-  // Datos de prueba iniciales para Firebase
-  listaInsumos: any[] = [
-    { id: 'ins_1', nombre: 'Inca Kola 1.5L', cantidad: 25, stockMinimo: 10 },
-    { id: 'ins_2', nombre: 'Papas Yungay (kg)', cantidad: 5, stockMinimo: 12 }
-  ];
+  listaInsumos: any[] = [];
   insumosFiltrados: any[] = [];
 
   constructor() {
-    // Inyección de todos los íconos presentes en tu HTML (incluido el del botón volver)
     addIcons({ create, trash, cube, arrowBack });
   }
 
@@ -87,44 +95,86 @@ export class StockPage implements OnInit {
     await this.cargarInventarioFirebase();
   }
 
-  // Simulación de lectura de la colección de inventarios de Cloud Firestore
+  // 🔥 CARGAR DESDE FIREBASE
   async cargarInventarioFirebase() {
-    this.insumosFiltrados = [...this.listaInsumos];
+
+    try {
+
+      const snapshot = await getDocs(
+        collection(this.firestore, 'inventario')
+      );
+
+      this.listaInsumos = [];
+
+      snapshot.forEach(docSnap => {
+
+        const data: any = docSnap.data();
+
+        this.listaInsumos.push({
+          id: docSnap.id,
+          nombre: data.nombre || '',
+          cantidad: data.cantidad || 0,
+          stockMinimo: data.stockMinimo || 0
+        });
+
+      });
+
+      this.buscar();
+
+    } catch (error) {
+      console.error('Error cargando inventario:', error);
+    }
+
   }
 
-  // Simulación de guardado: db.collection('inventario').add() o .update()
+  // 🔥 GUARDAR (INSERT / UPDATE)
   async guardarInsumo() {
-    if (!this.nuevoInsumo.nombre.trim() || this.nuevoInsumo.cantidad === null || !this.nuevoInsumo.stockMinimo) return;
 
-    if (this.editando && this.idInsumoEditando !== null) {
-      const index = this.listaInsumos.findIndex(i => i.id === this.idInsumoEditando);
-      if (index !== -1) {
-        this.listaInsumos[index] = {
-          id: this.idInsumoEditando,
+    if (
+      !this.nuevoInsumo.nombre.trim() ||
+      this.nuevoInsumo.cantidad === null ||
+      !this.nuevoInsumo.stockMinimo
+    ) return;
+
+    try {
+
+      // UPDATE
+      if (this.editando && this.idInsumoEditando) {
+
+        const ref = doc(this.firestore, 'inventario', this.idInsumoEditando);
+
+        await updateDoc(ref, {
           nombre: this.nuevoInsumo.nombre.trim(),
           cantidad: Number(this.nuevoInsumo.cantidad),
           stockMinimo: Number(this.nuevoInsumo.stockMinimo)
-        };
+        });
+
+        this.cancelarEdicion();
+
+      } else {
+
+        // INSERT
+        await addDoc(collection(this.firestore, 'inventario'), {
+          nombre: this.nuevoInsumo.nombre.trim(),
+          cantidad: Number(this.nuevoInsumo.cantidad),
+          stockMinimo: Number(this.nuevoInsumo.stockMinimo)
+        });
+
       }
-      this.cancelarEdicion();
-    } else {
-      const mockFirebaseId = 'fs_' + Math.random().toString(36).substring(2, 11);
-      this.listaInsumos.push({
-        id: mockFirebaseId,
-        nombre: this.nuevoInsumo.nombre.trim(),
-        text: this.nuevoInsumo.nombre.trim(),
-        cantidad: Number(this.nuevoInsumo.cantidad),
-        stockMinimo: Number(this.nuevoInsumo.stockMinimo)
-      });
+
+      await this.cargarInventarioFirebase();
+      this.limpiarFormulario();
+
+    } catch (error) {
+      console.error('Error guardando insumo:', error);
     }
 
-    this.buscar();
-    this.limpiarFormulario();
   }
 
   seleccionarInsumo(insumo: any) {
     this.editando = true;
     this.idInsumoEditando = insumo.id;
+
     this.nuevoInsumo = {
       nombre: insumo.nombre,
       cantidad: insumo.cantidad,
@@ -138,13 +188,26 @@ export class StockPage implements OnInit {
     this.limpiarFormulario();
   }
 
+  // 🔥 DELETE FIREBASE
   async eliminarInsumo(id: string) {
-    this.listaInsumos = this.listaInsumos.filter(i => i.id !== id);
-    this.buscar();
+
+    try {
+
+      await deleteDoc(
+        doc(this.firestore, 'inventario', id)
+      );
+
+      await this.cargarInventarioFirebase();
+
+    } catch (error) {
+      console.error('Error eliminando insumo:', error);
+    }
+
   }
 
   buscar() {
     const q = this.textoBuscar.toLowerCase().trim();
+
     if (!q) {
       this.insumosFiltrados = [...this.listaInsumos];
     } else {
@@ -155,6 +218,10 @@ export class StockPage implements OnInit {
   }
 
   limpiarFormulario() {
-    this.nuevoInsumo = { nombre: '', cantidad: null, stockMinimo: null };
+    this.nuevoInsumo = {
+      nombre: '',
+      cantidad: null,
+      stockMinimo: null
+    };
   }
 }

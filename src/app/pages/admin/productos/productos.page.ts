@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import {
   IonContent,
   IonHeader,
@@ -23,11 +24,22 @@ import {
   IonItemSliding,
   IonItemOptions,
   IonItemOption,
-  IonButtons,    // 👈 Añadido para agrupar el botón de retroceso
-  IonBackButton  // 👈 Añadido para el componente de retroceso nativo
+  IonButtons,
+  IonBackButton
 } from '@ionic/angular/standalone';
+
 import { addIcons } from 'ionicons';
-import { fastFood, create, trash, arrowBack } from 'ionicons/icons'; // 👈 Añadido arrowBack
+import { fastFood, create, trash, arrowBack } from 'ionicons/icons';
+
+import {
+  Firestore,
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc
+} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-productos',
@@ -58,17 +70,18 @@ import { fastFood, create, trash, arrowBack } from 'ionicons/icons'; // 👈 Añ
     IonItemSliding,
     IonItemOptions,
     IonItemOption,
-    IonButtons,    // 👈 Declarado en la sección de imports
-    IonBackButton  // 👈 Declarado en la sección de imports
+    IonButtons,
+    IonBackButton
   ]
 })
 export class ProductosPage implements OnInit {
 
-  // Modelo reactivo para el formulario de la carta/inventario
+  private firestore = inject(Firestore);
+
   nuevoProducto = {
     nombre: '',
     precio: null as number | null,
-    stock: null as number | null, // null representa platos de cocina con disponibilidad ilimitada
+    stock: null as number | null,
     categoriaId: ''
   };
 
@@ -76,19 +89,10 @@ export class ProductosPage implements OnInit {
   idProductoEditando: string | null = null;
   textoBuscar: string = '';
 
-  // Datos semilla locales preparados para emular Firebase Firestore
-  listaProductos: any[] = [
-    { id: 'prod_1', nombre: '1/4 Pollo', precio: 22.90, stock: null, categoriaId: 'cat_pollos' },
-    { id: 'prod_2', nombre: '1/2 Pollo', precio: 39.90, stock: null, categoriaId: 'cat_pollos' },
-    { id: 'prod_3', nombre: 'Pollo Entero', precio: 69.90, stock: null, categoriaId: 'cat_pollos' },
-    { id: 'prod_4', nombre: 'Chaufa Especial', precio: 18.90, stock: null, categoriaId: 'cat_chifa' },
-    { id: 'prod_5', nombre: 'Inca Kola 1L', precio: 8.50, stock: 24, categoriaId: 'cat_bebidas' }
-  ];
-
+  listaProductos: any[] = [];
   productosFiltrados: any[] = [];
 
   constructor() {
-    // Inyección de íconos requeridos para el diseño standalone (añadido arrowBack)
     addIcons({ fastFood, create, trash, arrowBack });
   }
 
@@ -96,48 +100,109 @@ export class ProductosPage implements OnInit {
     await this.cargarProductosFirebase();
   }
 
-  // Simulación de escucha en tiempo real de la colección 'productos'
+  // 🔥 CARGAR PRODUCTOS FIREBASE
   async cargarProductosFirebase() {
-    this.buscar();
+
+    try {
+
+      const snapshot = await getDocs(
+        collection(this.firestore, 'productos')
+      );
+
+      this.listaProductos = [];
+
+      snapshot.forEach(docSnap => {
+        this.listaProductos.push({
+          id: docSnap.id,
+          ...docSnap.data()
+        });
+      });
+
+      this.buscar();
+
+    } catch (error) {
+      console.error('❌ Error cargando productos:', error);
+    }
+
   }
 
-  // Inserta o actualiza un producto de forma asíncrona
+  // 🔥 GUARDAR PRODUCTO (INSERT / UPDATE)
   async guardarProducto() {
-    if (!this.nuevoProducto.nombre.trim() || !this.nuevoProducto.precio || !this.nuevoProducto.categoriaId) return;
 
-    if (this.editando && this.idProductoEditando !== null) {
-      // Simula: db.collection('productos').doc(id).update(...)
-      const index = this.listaProductos.findIndex(p => p.id === this.idProductoEditando);
-      if (index !== -1) {
-        this.listaProductos[index] = {
-          id: this.idProductoEditando,
+    if (
+      !this.nuevoProducto.nombre.trim() ||
+      !this.nuevoProducto.precio ||
+      !this.nuevoProducto.categoriaId
+    ) return;
+
+    try {
+
+      if (this.editando && this.idProductoEditando) {
+
+        const ref = doc(
+          this.firestore,
+          'productos',
+          this.idProductoEditando
+        );
+
+        await updateDoc(ref, {
           nombre: this.nuevoProducto.nombre.trim(),
           precio: Number(this.nuevoProducto.precio),
           stock: this.nuevoProducto.stock !== null ? Number(this.nuevoProducto.stock) : null,
           categoriaId: this.nuevoProducto.categoriaId
-        };
+        });
+
+        const index = this.listaProductos.findIndex(
+          p => p.id === this.idProductoEditando
+        );
+
+        if (index !== -1) {
+          this.listaProductos[index] = {
+            id: this.idProductoEditando,
+            nombre: this.nuevoProducto.nombre.trim(),
+            precio: Number(this.nuevoProducto.precio),
+            stock: this.nuevoProducto.stock,
+            categoriaId: this.nuevoProducto.categoriaId
+          };
+        }
+
+        this.cancelarEdicion();
+
+      } else {
+
+        const docRef = await addDoc(
+          collection(this.firestore, 'productos'),
+          {
+            nombre: this.nuevoProducto.nombre.trim(),
+            precio: Number(this.nuevoProducto.precio),
+            stock: this.nuevoProducto.stock !== null ? Number(this.nuevoProducto.stock) : null,
+            categoriaId: this.nuevoProducto.categoriaId
+          }
+        );
+
+        this.listaProductos.push({
+          id: docRef.id,
+          nombre: this.nuevoProducto.nombre.trim(),
+          precio: Number(this.nuevoProducto.precio),
+          stock: this.nuevoProducto.stock,
+          categoriaId: this.nuevoProducto.categoriaId
+        });
+
       }
-      this.cancelarEdicion();
-    } else {
-      // Simula: db.collection('productos').add(...) con UID automático
-      const mockFirebaseId = 'fs_prod_' + Math.random().toString(36).substr(2, 9);
-      this.listaProductos.push({
-        id: mockFirebaseId,
-        nombre: this.nuevoProducto.nombre.trim(),
-        precio: Number(this.nuevoProducto.precio),
-        stock: this.nuevoProducto.stock !== null ? Number(this.nuevoProducto.stock) : null,
-        categoriaId: this.nuevoProducto.categoriaId
-      });
+
+      this.buscar();
+      this.limpiarFormulario();
+
+    } catch (error) {
+      console.error('❌ Error guardando producto:', error);
     }
 
-    this.buscar();
-    this.limpiarFormulario();
   }
 
-  // Carga los datos del producto seleccionado en el formulario para editarlo
   seleccionarProducto(producto: any) {
     this.editando = true;
     this.idProductoEditando = producto.id;
+
     this.nuevoProducto = {
       nombre: producto.nombre,
       precio: producto.precio,
@@ -152,15 +217,30 @@ export class ProductosPage implements OnInit {
     this.limpiarFormulario();
   }
 
-  // Simula: db.collection('productos').doc(id).delete()
+  // 🔥 ELIMINAR PRODUCTO FIREBASE
   async eliminarProducto(id: string) {
-    this.listaProductos = this.listaProductos.filter(p => p.id !== id);
-    this.buscar();
+
+    try {
+
+      await deleteDoc(
+        doc(this.firestore, 'productos', id)
+      );
+
+      this.listaProductos =
+        this.listaProductos.filter(p => p.id !== id);
+
+      this.buscar();
+
+    } catch (error) {
+      console.error('❌ Error eliminando producto:', error);
+    }
+
   }
 
-  // Buscador local síncrono que hereda la estructura del query
   buscar() {
+
     const q = this.textoBuscar.toLowerCase().trim();
+
     if (!q) {
       this.productosFiltrados = [...this.listaProductos];
     } else {
@@ -168,6 +248,7 @@ export class ProductosPage implements OnInit {
         p.nombre.toLowerCase().includes(q)
       );
     }
+
   }
 
   limpiarFormulario() {
@@ -178,4 +259,5 @@ export class ProductosPage implements OnInit {
       categoriaId: ''
     };
   }
+
 }

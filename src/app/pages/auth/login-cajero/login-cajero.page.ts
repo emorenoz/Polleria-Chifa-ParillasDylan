@@ -16,14 +16,22 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { 
-  personOutline, 
+import {
+  personOutline,
   lockClosedOutline,
-  arrowBackOutline, 
-  shieldCheckmarkOutline, 
-  eyeOutline, 
-  eyeOffOutline 
+  arrowBackOutline,
+  shieldCheckmarkOutline,
+  eyeOutline,
+  eyeOffOutline
 } from 'ionicons/icons';
+
+// 🔥 FIREBASE
+import { inject } from '@angular/core';
+import {
+  Firestore,
+  collection,
+  addDoc
+} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-login-cajero',
@@ -46,6 +54,8 @@ import {
 })
 export class LoginCajeroPage {
 
+  private firestore = inject(Firestore);
+
   usuario = '';
   password = '';
   mostrarPassword = false;
@@ -64,7 +74,6 @@ export class LoginCajeroPage {
     });
   }
 
-  // Métodos para la interfaz gráfica
   togglePassword() {
     this.mostrarPassword = !this.mostrarPassword;
   }
@@ -73,15 +82,37 @@ export class LoginCajeroPage {
     this.location.back();
   }
 
-  // Lógica original del login de Cajero
-  login() {
+  // 🔥 LOGIN + REGISTRO EN FIREBASE (SIN CAMBIAR TU LÓGICA)
+  async login() {
+
     if (
       this.usuario === 'cajero' &&
       this.password === '123456'
     ) {
+
+      try {
+
+        await addDoc(
+          collection(this.firestore, 'login_cajero'),
+          {
+            usuario: this.usuario,
+            rol: 'cajero',
+            mensaje: 'Login exitoso',
+            fecha: new Date()
+          }
+        );
+
+        console.log('🔥 Login cajero registrado en Firebase');
+
+      } catch (error) {
+        console.error('❌ Error Firebase login cajero:', error);
+      }
+
       this.router.navigate(['/cajero-dashboard']);
+
     } else {
       alert('Credenciales incorrectas');
     }
+
   }
 }

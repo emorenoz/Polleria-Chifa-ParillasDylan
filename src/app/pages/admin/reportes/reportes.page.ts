@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common'; // 👈 Se agregó DecimalPipe para los pipes de números del HTML
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import {
   IonContent,
   IonHeader,
@@ -17,11 +18,18 @@ import {
   IonIcon,
   IonLabel,
   IonNote,
-  IonButtons,   // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
-  IonBackButton // 👈 AGREGADO PARA EL BOTÓN DE RETROCESO
+  IonButtons,
+  IonBackButton
 } from '@ionic/angular/standalone';
+
 import { addIcons } from 'ionicons';
-import { analytics, documentTextOutline, arrowBack } from 'ionicons/icons'; // 👈 Se agregó arrowBack
+import { analytics, documentTextOutline, arrowBack } from 'ionicons/icons';
+
+import {
+  Firestore,
+  collection,
+  getDocs
+} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-reportes',
@@ -31,7 +39,7 @@ import { analytics, documentTextOutline, arrowBack } from 'ionicons/icons'; // �
   imports: [
     CommonModule,
     FormsModule,
-    DecimalPipe, // 👈 Se añade a los imports para que el HTML reconozca el formato '| number'
+    DecimalPipe,
     IonContent,
     IonHeader,
     IonTitle,
@@ -47,71 +55,104 @@ import { analytics, documentTextOutline, arrowBack } from 'ionicons/icons'; // �
     IonIcon,
     IonLabel,
     IonNote,
-    IonButtons,   // 👈 REGISTRADO EN LOS IMPORTS DEL COMPONENTE
-    IonBackButton // 👈 REGISTRADO EN LOS IMPORTS DEL COMPONENTE
+    IonButtons,
+    IonBackButton
   ]
 })
 export class ReportesPage implements OnInit {
 
-  // Modelo de rango de fechas para la consulta en la nube
+  private firestore = inject(Firestore);
+
   filtros = {
     fechaInicio: '',
     fechaFin: ''
   };
 
-  // Estados de control de flujo
   cargando: boolean = false;
   reporteGenerado: boolean = false;
 
-  // KPIs Financieros acumulados
   kpis = {
     totalIngresos: 0,
     totalPedidos: 0,
     ticketPromedio: 0
   };
 
-  // Desglose por métodos de pago mapeados desde Caja/Ventas
   metodosPago: any[] = [];
 
   constructor() {
-    // Inyección de íconos analíticos y de navegación en modo Standalone
     addIcons({ analytics, documentTextOutline, arrowBack });
   }
 
   ngOnInit() {
-    // Inicializar con la fecha de hoy por defecto para agilizar la usabilidad
     const hoy = new Date().toISOString().split('T')[0];
     this.filtros.fechaInicio = hoy;
     this.filtros.fechaFin = hoy;
   }
 
-  /**
-   * Simulación asíncrona de agregación en Cloud Firestore.
-   * Ejecuta un conteo y suma de la colección 'ventas' filtrando por los timestamps de las fechas.
-   */
+  // 🔥 FIREBASE REAL SIN ROMPER TU LÓGICA
   async generarReporte() {
+
     if (!this.filtros.fechaInicio || !this.filtros.fechaFin) return;
 
     this.cargando = true;
     this.reporteGenerado = false;
 
-    // Simulamos el retraso que toma Firestore en recorrer y agrupar los documentos
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    try {
 
-    // Datos procesados resultantes de la consulta asíncrona
-    this.kpis = {
-      totalIngresos: 2480.90,
-      totalPedidos: 52,
-      ticketPromedio: 47.71
-    };
+      const snapshot = await getDocs(
+        collection(this.firestore, 'ventas')
+      );
 
-    this.metodosPago = [
-      { nombre: 'Efectivo 💵', transacciones: 28, monto: 1240.00 },
-      { nombre: 'Yape / Plin 📱', transacciones: 18, monto: 850.90 },
-      { nombre: 'Tarjeta de Crédito/Débito 💳', transacciones: 6, monto: 390.00 }
-    ];
+      let totalIngresos = 0;
+      let totalPedidos = 0;
+
+      const mapaPagos: any = {};
+
+      snapshot.forEach(docSnap => {
+
+        const data: any = docSnap.data();
+
+        totalIngresos += Number(data.total || 0);
+        totalPedidos++;
+
+        const metodo = data.metodoPago || 'No definido';
+
+        if (!mapaPagos[metodo]) {
+          mapaPagos[metodo] = {
+            nombre: metodo,
+            transacciones: 0,
+            monto: 0
+          };
+        }
+
+        mapaPagos[metodo].transacciones++;
+        mapaPagos[metodo].monto += Number(data.total || 0);
+
+      });
+
+      // KPI exactos (MISMA ESTRUCTURA QUE TU LOGICA)
+      this.kpis = {
+        totalIngresos,
+        totalPedidos,
+        ticketPromedio:
+          totalPedidos > 0
+            ? totalIngresos / totalPedidos
+            : 0
+      };
+
+      this.metodosPago = Object.values(mapaPagos);
+
+      console.log('✅ Reporte generado desde Firebase');
+
+    } catch (error) {
+
+      console.error('❌ Error generando reporte:', error);
+
+    }
 
     this.cargando = false;
     this.reporteGenerado = true;
+
   }
+
 }

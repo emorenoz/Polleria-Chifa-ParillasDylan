@@ -1,20 +1,54 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import {
-  IonContent, IonHeader, IonTitle, IonToolbar, IonCard, IonCardHeader,
-  IonCardSubtitle, IonCardTitle, IonCardContent, IonGrid, IonRow, IonCol,
-  IonText, IonList, IonItem, IonSelect, IonSelectOption, IonInput,
-  IonButton, IonIcon, IonNote,
+  IonContent,
+  IonHeader,
+  IonTitle,
+  IonToolbar,
+  IonCard,
+  IonCardHeader,
+  IonCardSubtitle,
+  IonCardTitle,
+  IonCardContent,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonText,
+  IonList,
+  IonItem,
+  IonSelect,
+  IonSelectOption,
+  IonInput,
+  IonButton,
+  IonIcon,
+  IonNote,
   IonLabel,
   IonItemSliding,
   IonItemOptions,
   IonItemOption,
-  IonButtons,    // 👈 Añadido para el botón de retroceso
-  IonBackButton  // 👈 Añadido para el botón de retroceso
+  IonButtons,
+  IonBackButton
 } from '@ionic/angular/standalone';
+
 import { addIcons } from 'ionicons';
-import { arrowUpCircle, arrowDownCircle, create, trash, arrowBack } from 'ionicons/icons'; // 👈 Añadido arrowBack
+import {
+  arrowUpCircle,
+  arrowDownCircle,
+  create,
+  trash,
+  arrowBack
+} from 'ionicons/icons';
+
+import {
+  Firestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy
+} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-caja',
@@ -22,19 +56,40 @@ import { arrowUpCircle, arrowDownCircle, create, trash, arrowBack } from 'ionico
   styleUrls: ['./caja.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, FormsModule, IonContent, IonHeader, IonTitle, IonToolbar,
-    IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonCardContent,
-    IonGrid, IonRow, IonCol, IonText, IonList, IonItem, IonSelect,
-    IonSelectOption, IonInput, IonButton, IonIcon, IonNote,
+    CommonModule,
+    FormsModule,
+    IonContent,
+    IonHeader,
+    IonTitle,
+    IonToolbar,
+    IonCard,
+    IonCardHeader,
+    IonCardSubtitle,
+    IonCardTitle,
+    IonCardContent,
+    IonGrid,
+    IonRow,
+    IonCol,
+    IonText,
+    IonList,
+    IonItem,
+    IonSelect,
+    IonSelectOption,
+    IonInput,
+    IonButton,
+    IonIcon,
+    IonNote,
     IonLabel,
     IonItemSliding,
     IonItemOptions,
     IonItemOption,
-    IonButtons,    // 👈 Declarado para la UI
-    IonBackButton  // 👈 Declarado para la UI
+    IonButtons,
+    IonBackButton
   ]
 })
 export class CajaPage implements OnInit {
+
+  private firestore = inject(Firestore);
 
   totalCaja: number = 0;
   totalIngresos: number = 0;
@@ -49,49 +104,145 @@ export class CajaPage implements OnInit {
   historial: any[] = [];
 
   constructor() {
-    // Registro de recursos gráficos standalone (añadido arrowBack)
-    addIcons({ arrowUpCircle, arrowDownCircle, create, trash, arrowBack });
+    addIcons({
+      arrowUpCircle,
+      arrowDownCircle,
+      create,
+      trash,
+      arrowBack
+    });
   }
 
   async ngOnInit() {
     await this.cargarMovimientosFirebase();
   }
 
-  // Simulación de lectura desde Firestore en tiempo real
+  // Cargar movimientos desde Firebase
   async cargarMovimientosFirebase() {
-    // Aquí irá: this.firestore.collection('caja').snapshotChanges()...
-    this.historial = [];
-    this.calcularTotales();
+
+    try {
+
+      const movimientosRef = query(
+        collection(this.firestore, 'caja'),
+        orderBy('fecha', 'desc')
+      );
+
+      const querySnapshot =
+        await getDocs(movimientosRef);
+
+      this.historial = [];
+
+      querySnapshot.forEach((docSnap) => {
+
+        this.historial.push({
+          id: docSnap.id,
+          ...docSnap.data()
+        });
+
+      });
+
+      this.calcularTotales();
+
+      console.log(
+        '✅ Movimientos cargados:',
+        this.historial.length
+      );
+
+    } catch (error) {
+
+      console.error(
+        '❌ Error cargando movimientos:',
+        error
+      );
+
+    }
+
   }
 
-  // Preparado para: db.collection('caja').add(movimiento)
+  // Registrar movimiento en Firebase
   async registrarMovimiento() {
-    if (!this.nuevoMovimiento.monto || !this.nuevoMovimiento.tipo) return;
+
+    if (
+      !this.nuevoMovimiento.monto ||
+      !this.nuevoMovimiento.tipo
+    ) return;
 
     const movimiento = {
       tipo: this.nuevoMovimiento.tipo,
       monto: Number(this.nuevoMovimiento.monto),
-      descripcion: this.nuevoMovimiento.descripcion.trim() || (this.nuevoMovimiento.tipo === 'ingreso' ? 'Ingreso manual' : 'Egreso manual'),
-      fecha: new Date().toISOString() // Firebase prefiere strings ISO o Timestamps nativos
+      descripcion:
+        this.nuevoMovimiento.descripcion.trim()
+        ||
+        (
+          this.nuevoMovimiento.tipo === 'ingreso'
+            ? 'Ingreso manual'
+            : 'Egreso manual'
+        ),
+      fecha: new Date()
     };
 
-    // SIMULACIÓN FIREBASE: Agregamos localmente mientras tanto
-    this.historial.unshift(movimiento);
-    this.calcularTotales();
+    try {
 
-    // Resetear formulario
-    this.nuevoMovimiento = { tipo: '', monto: null, descripcion: '' };
+      const docRef = await addDoc(
+        collection(this.firestore, 'caja'),
+        movimiento
+      );
+
+      this.historial.unshift({
+        id: docRef.id,
+        ...movimiento
+      });
+
+      this.calcularTotales();
+
+      this.nuevoMovimiento = {
+        tipo: '',
+        monto: null,
+        descripcion: ''
+      };
+
+      console.log(
+        '✅ Movimiento registrado:',
+        docRef.id
+      );
+
+    } catch (error) {
+
+      console.error(
+        '❌ Error registrando movimiento:',
+        error
+      );
+
+    }
+
   }
 
   calcularTotales() {
-    this.totalIngresos = this.historial
-      .filter(mov => mov.tipo === 'ingreso')
-      .reduce((sum, mov) => sum + mov.monto, 0);
 
-    this.totalEgresos = this.historial
-      .filter(mov => mov.tipo === 'egreso')
-      .reduce((sum, mov) => sum + mov.monto, 0);
+    this.totalIngresos =
+      this.historial
+        .filter(
+          mov => mov.tipo === 'ingreso'
+        )
+        .reduce(
+          (sum, mov) => sum + mov.monto,
+          0
+        );
 
-    this.totalCaja = this.totalIngresos - this.totalEgresos;
+    this.totalEgresos =
+      this.historial
+        .filter(
+          mov => mov.tipo === 'egreso'
+        )
+        .reduce(
+          (sum, mov) => sum + mov.monto,
+          0
+        );
+
+    this.totalCaja =
+      this.totalIngresos -
+      this.totalEgresos;
+
   }
+
 }

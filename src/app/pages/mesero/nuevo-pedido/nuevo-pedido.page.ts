@@ -21,8 +21,13 @@ import {
   IonCardContent
 } from '@ionic/angular/standalone';
 
-// 🔥 Cambiamos la procedencia a '@angular/fire/firestore' para conectarlo nativamente con Angular 17
-import { Firestore, collection, addDoc } from '@angular/fire/firestore';
+// 🔥 Firebase (Angular 17+)
+import {
+  Firestore,
+  collection,
+  addDoc,
+  serverTimestamp
+} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-nuevo-pedido',
@@ -51,7 +56,7 @@ import { Firestore, collection, addDoc } from '@angular/fire/firestore';
 })
 export class NuevoPedidoPage implements OnInit {
 
-  // 🔥 Conectamos Firebase de forma segura con inject() sin alterar tus variables
+  // 🔥 Conexión Firebase (inyección moderna)
   private db: Firestore = inject(Firestore);
 
   cliente = { nombre: '', apellido: '' };
@@ -71,10 +76,10 @@ export class NuevoPedidoPage implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit() {
-    // Ya no necesitas inicializar getFirestore() aquí dentro, el inject() de arriba se encarga de todo de forma automática.
+    // No requiere inicialización adicional
   }
 
-  // 100% Tu lógica intacta
+  // ✅ TU LÓGICA ORIGINAL (INTACTA)
   agregar(producto: any) {
     const item = this.carrito.find(p => p.nombre === producto.nombre);
 
@@ -87,13 +92,13 @@ export class NuevoPedidoPage implements OnInit {
     this.calcularTotal();
   }
 
-  // 100% Tu lógica intacta
+  // ✅ TU LÓGICA ORIGINAL (INTACTA)
   eliminar(index: number) {
     this.carrito.splice(index, 1);
     this.calcularTotal();
   }
 
-  // 100% Tu lógica intacta
+  // ✅ TU LÓGICA ORIGINAL (INTACTA)
   calcularTotal() {
     this.total = this.carrito.reduce(
       (sum, item) => sum + item.precio * item.cantidad,
@@ -106,6 +111,7 @@ export class NuevoPedidoPage implements OnInit {
       alert('Por favor, selecciona una mesa antes de enviar.');
       return;
     }
+
     if (this.carrito.length === 0) {
       alert('El carrito está vacío. Agrega productos al pedido.');
       return;
@@ -119,26 +125,26 @@ export class NuevoPedidoPage implements OnInit {
         total: this.total,
         comentario: this.comentario,
         estado: 'pendiente',
-        fecha: new Date()
+        fecha: serverTimestamp() // 🔥 recomendado para Firestore
       };
 
-      // Guardamos en tu Firebase usando la conexión inyectada de arriba
+      // 🔥 GUARDAR EN FIREBASE
       await addDoc(collection(this.db, 'pedidos'), pedido);
 
       alert('¡Pedido enviado con éxito a la cocina!');
 
-      // Limpieza corregida respetando tus tipos de datos originales
+      // 🔄 LIMPIEZA (INTACTA TU LÓGICA)
       this.carrito = [];
       this.total = 0;
       this.mesa = '';
-      this.comentario = ''; // Corregido: Comentario vuelve a ser un texto vacío
-      this.cliente = { nombre: '', apellido: '' }; // Corregido: Cliente vuelve a su estado original
+      this.comentario = '';
+      this.cliente = { nombre: '', apellido: '' };
 
-      // Redirección de regreso al panel
+      // 🔙 REGRESO
       this.router.navigate(['/mesero-dashboard']);
 
     } catch (error) {
-      console.error("Error guardando el pedido:", error);
+      console.error('Error guardando el pedido:', error);
       alert('Hubo un error al procesar el pedido en Firebase.');
     }
   }

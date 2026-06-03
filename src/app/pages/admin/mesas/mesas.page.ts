@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import {
   IonContent,
   IonHeader,
@@ -22,11 +23,22 @@ import {
   IonItemSliding,
   IonItemOptions,
   IonItemOption,
-  IonButtons,    // 👈 Añadido para agrupar el botón de retroceso
-  IonBackButton  // 👈 Añadido para usar la flecha nativa de navegación
+  IonButtons,
+  IonBackButton
 } from '@ionic/angular/standalone';
+
 import { addIcons } from 'ionicons';
-import { create, trash, arrowBack } from 'ionicons/icons'; // 👈 Añadido arrowBack
+import { create, trash, arrowBack } from 'ionicons/icons';
+
+import {
+  Firestore,
+  collection,
+  addDoc,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc
+} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-mesas',
@@ -56,11 +68,13 @@ import { create, trash, arrowBack } from 'ionicons/icons'; // 👈 Añadido arro
     IonItemSliding,
     IonItemOptions,
     IonItemOption,
-    IonButtons,    // 👈 Declarado en imports
-    IonBackButton  // 👈 Declarado en imports
+    IonButtons,
+    IonBackButton
   ]
 })
 export class MesasPage implements OnInit {
+
+  private firestore = inject(Firestore);
 
   // Modelo del formulario conectado con el HTML
   nuevaMesa = {
@@ -71,87 +85,201 @@ export class MesasPage implements OnInit {
 
   // Estados de control para la edición
   editando: boolean = false;
-  idMesaEditando: string | null = null; // String para soportar los UIDs alfanuméricos de Firebase
+  idMesaEditando: string | null = null;
 
-  // Datos semilla locales de prueba
-  listaMesas: any[] = [
-    { id: 'm_1', numero: 'Mesa 01', capacidad: 4, estado: 'disponible' },
-    { id: 'm_2', numero: 'Mesa 02', capacidad: 6, estado: 'ocupada' },
-    { id: 'm_3', numero: 'Mesa 03', capacidad: 2, estado: 'reservada' }
-  ];
+  // Lista obtenida desde Firebase
+  listaMesas: any[] = [];
 
   constructor() {
-    // Registro obligatorio de los iconos (añadido arrowBack)
-    addIcons({ create, trash, arrowBack });
+    addIcons({
+      create,
+      trash,
+      arrowBack
+    });
   }
 
   async ngOnInit() {
     await this.cargarMesasFirebase();
   }
 
-  // Simulación de lectura de la colección 'mesas' en Firebase Firestore
+  // Cargar mesas desde Firestore
   async cargarMesasFirebase() {
-    // Cuando conectes Firebase: this.firestore.collection('mesas').valueChanges()...
+
+    try {
+
+      const querySnapshot = await getDocs(
+        collection(this.firestore, 'mesas')
+      );
+
+      this.listaMesas = [];
+
+      querySnapshot.forEach((documento) => {
+
+        this.listaMesas.push({
+          id: documento.id,
+          ...documento.data()
+        });
+
+      });
+
+      console.log('✅ Mesas cargadas:', this.listaMesas);
+
+    } catch (error) {
+
+      console.error('❌ Error cargando mesas:', error);
+
+    }
+
   }
 
-  // Agrega una mesa o actualiza una existente en la base de datos
+  // Agrega una mesa o actualiza una existente
   async guardarMesa() {
-    if (!this.nuevaMesa.numero.trim() || !this.nuevaMesa.capacidad) return;
 
-    if (this.editando && this.idMesaEditando !== null) {
-      // Simula: db.collection('mesas').doc(id).update(...)
-      const index = this.listaMesas.findIndex(m => m.id === this.idMesaEditando);
-      if (index !== -1) {
-        this.listaMesas[index] = {
-          id: this.idMesaEditando,
+    if (
+      !this.nuevaMesa.numero.trim() ||
+      !this.nuevaMesa.capacidad
+    ) {
+      return;
+    }
+
+    try {
+
+      if (
+        this.editando &&
+        this.idMesaEditando !== null
+      ) {
+
+        const mesaRef = doc(
+          this.firestore,
+          'mesas',
+          this.idMesaEditando
+        );
+
+        await updateDoc(mesaRef, {
           numero: this.nuevaMesa.numero.trim(),
           capacidad: Number(this.nuevaMesa.capacidad),
           estado: this.nuevaMesa.estado
-        };
+        });
+
+        const index =
+          this.listaMesas.findIndex(
+            mesa => mesa.id === this.idMesaEditando
+          );
+
+        if (index !== -1) {
+
+          this.listaMesas[index] = {
+            id: this.idMesaEditando,
+            numero: this.nuevaMesa.numero.trim(),
+            capacidad: Number(this.nuevaMesa.capacidad),
+            estado: this.nuevaMesa.estado
+          };
+
+        }
+
+        console.log('✅ Mesa actualizada');
+
+        this.cancelarEdicion();
+
+      } else {
+
+        const docRef = await addDoc(
+          collection(this.firestore, 'mesas'),
+          {
+            numero: this.nuevaMesa.numero.trim(),
+            capacidad: Number(this.nuevaMesa.capacidad),
+            estado: this.nuevaMesa.estado
+          }
+        );
+
+        this.listaMesas.push({
+          id: docRef.id,
+          numero: this.nuevaMesa.numero.trim(),
+          capacidad: Number(this.nuevaMesa.capacidad),
+          estado: this.nuevaMesa.estado
+        });
+
+        console.log(
+          '✅ Mesa registrada. ID:',
+          docRef.id
+        );
+
       }
-      this.cancelarEdicion();
-    } else {
-      // Simula: db.collection('mesas').add(...) generando un UID aleatorio tipo Firebase
-      const mockFirebaseId = 'fs_m_' + Math.random().toString(36).substr(2, 9);
-      this.listaMesas.push({
-        id: mockFirebaseId,
-        numero: this.nuevaMesa.numero.trim(),
-        capacidad: Number(this.nuevaMesa.capacidad),
-        estado: this.nuevaMesa.estado
-      });
+
+      this.limpiarFormulario();
+
+    } catch (error) {
+
+      console.error(
+        '❌ Error guardando mesa:',
+        error
+      );
+
     }
 
-    this.limpiarFormulario();
   }
 
-  // Pasa los datos de la mesa seleccionada al formulario de edición superior
+  // Pasa los datos de la mesa seleccionada al formulario
   seleccionarMesa(mesa: any) {
+
     this.editando = true;
+
     this.idMesaEditando = mesa.id;
+
     this.nuevaMesa = {
       numero: mesa.numero,
       capacidad: mesa.capacidad,
       estado: mesa.estado
     };
+
   }
 
-  // Resetea el flujo de edición
+  // Cancela la edición
   cancelarEdicion() {
+
     this.editando = false;
+
     this.idMesaEditando = null;
+
     this.limpiarFormulario();
+
   }
 
-  // Simula: db.collection('mesas').doc(id).delete()
+  // Eliminar mesa
   async eliminarMesa(id: string) {
-    this.listaMesas = this.listaMesas.filter(m => m.id !== id);
+
+    try {
+
+      await deleteDoc(
+        doc(this.firestore, 'mesas', id)
+      );
+
+      this.listaMesas =
+        this.listaMesas.filter(
+          mesa => mesa.id !== id
+        );
+
+      console.log('✅ Mesa eliminada');
+
+    } catch (error) {
+
+      console.error(
+        '❌ Error eliminando mesa:',
+        error
+      );
+
+    }
+
   }
 
   limpiarFormulario() {
+
     this.nuevaMesa = {
       numero: '',
       capacidad: null,
       estado: 'disponible'
     };
+
   }
+
 }
