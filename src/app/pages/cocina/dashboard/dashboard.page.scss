@@ -1,90 +1,16 @@
-.dashboard-content {
-  --background: #fff7e6;
-}
+.dashboard-content { --background: #f4f5f8; }
 
-/* HEADER */
-.welcome-banner {
-  text-align: center;
-  margin-bottom: 12px;
+.filter-bar { padding: 10px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 
-  h2 {
-    font-size: 20px;
-    font-weight: bold;
-  }
-
-  p {
-    font-size: 13px;
-    color: #666;
-  }
-}
-
-/* GRID RESPONSIVE */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-/* CARDS */
-.card {
-  border-radius: 14px;
-  text-align: center;
-  color: #fff;
-
-  h1 {
-    font-size: 24px;
-    margin: 0;
-  }
-
-  h3 {
-    font-size: 13px;
-    margin-bottom: 5px;
-  }
-}
-
-.nuevos { background: #ff9800; }
-.preparando { background: #f44336; }
-.listos { background: #4caf50; }
-.tiempo { background: #2196f3; }
-
-/* PEDIDOS */
-.pedidos-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* CARD PEDIDO */
 .pedido-card {
-  border-radius: 16px;
-  padding: 5px;
-}
+  border-top: 6px solid #ccc;
+  border-radius: 12px;
+  
+  &.nuevo { border-top-color: #ff9800; }
+  &.preparando { border-top-color: #f44336; }
+  &.listo { border-top-color: #4caf50; }
 
-.detalle {
-  font-size: 14px;
-  margin-bottom: 8px;
-}
-
-.estado {
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-
-/* BOTONES */
-.buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* 📱 RESPONSIVE PARA CELULAR PEQUEÑO */
-@media (max-width: 420px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  h1 {
-    font-size: 22px !important;
-  }
+  .card-header-flex { display: flex; justify-content: space-between; align-items: center; }
+  .productos-lista { margin: 10px 0; padding-top: 10px; border-top: 1px solid #eee; }
+  .item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9em; }
 }

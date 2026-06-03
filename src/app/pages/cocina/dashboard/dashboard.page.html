@@ -1,93 +1,49 @@
 <ion-header>
-  <ion-toolbar color="warning">
-    <ion-title>
-      👨‍🍳 Cocina Dylan
-    </ion-title>
+  <ion-toolbar style="--background: #ff5722; --color: white;">
+    <ion-title>👨‍🍳 Panel de Cocina - Polleria Dylan</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="salir()">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="dashboard-content">
-
-  <div class="welcome-banner">
-    <h2>Panel de Cocina</h2>
-    <p>Control de preparación de pedidos</p>
+  <div class="filter-bar">
+    <ion-segment [(ngModel)]="categoriaSeleccionada" (ionChange)="filtrarPedidos()">
+      <ion-segment-button value="Todos">Todos</ion-segment-button>
+      <ion-segment-button value="Nuevo">Nuevos</ion-segment-button>
+      <ion-segment-button value="Preparando">Preparando</ion-segment-button>
+      <ion-segment-button value="Listo">Listos</ion-segment-button>
+    </ion-segment>
   </div>
 
-  <div class="stats-grid">
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="6" size-lg="4" *ngFor="let p of pedidosFiltrados">
+        <ion-card class="pedido-card" [ngClass]="p.estado.toLowerCase()">
+          <ion-card-header>
+            <div class="card-header-flex">
+              <ion-card-title>Mesa {{ p.mesa }}</ion-card-title>
+              <ion-badge color="medium">{{ p.tiempo }} min</ion-badge>
+            </div>
+          </ion-card-header>
 
-    <ion-card class="card nuevos">
-      <ion-card-content>
-        <h3>📥 Nuevos</h3>
-        <h1>{{ pedidosNuevos }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="card preparando">
-      <ion-card-content>
-        <h3>🔥 Preparando</h3>
-        <h1>{{ pedidosPreparando }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="card listos">
-      <ion-card-content>
-        <h3>✅ Listos</h3>
-        <h1>{{ pedidosListos }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="card tiempo">
-      <ion-card-content>
-        <h3>⏱️ Promedio</h3>
-        <h1>18m</h1>
-      </ion-card-content>
-    </ion-card>
-
-  </div>
-
-  <ion-card *ngFor="let pedido of pedidos" class="pedido-card">
-
-    <ion-card-header>
-
-      <ion-card-title>
-        🍽️ {{ pedido.mesa }}
-      </ion-card-title>
-
-    </ion-card-header>
-
-    <ion-card-content>
-
-      <p class="detalle">
-        {{ pedido.detalle }}
-      </p>
-
-      <div class="estado">
-        Estado:
-        <strong>{{ pedido.estado }}</strong>
-      </div>
-
-      <div class="buttons">
-
-        <ion-button
-          color="warning"
-          size="small">
-
-          🔥 Preparando
-
-        </ion-button>
-
-        <ion-button
-          color="success"
-          size="small">
-
-          ✅ Listo
-
-        </ion-button>
-
-      </div>
-
-    </ion-card-content>
-
-  </ion-card>
-
+          <ion-card-content>
+            <p><strong>Cliente:</strong> {{ p.clienteNombre }}</p>
+            <div class="productos-lista">
+              <div class="item" *ngFor="let item of p.productos">
+                <span>{{ item.cantidad }}x {{ item.nombre }}</span>
+                <ion-note>{{ item.categoria }}</ion-note>
+              </div>
+            </div>
+            <ion-button expand="block" [color]="getColorBtn(p.estado)" (click)="cambiarEstado(p)">
+              {{ getLabelBtn(p.estado) }}
+            </ion-button>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
 </ion-content>
