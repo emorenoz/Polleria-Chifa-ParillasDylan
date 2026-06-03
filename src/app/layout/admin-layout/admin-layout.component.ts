@@ -8,9 +8,10 @@ import {
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
-  appsOutline, cartOutline, archiveOutline, gridOutline, cubeOutline,
-  clipboardOutline, settingsOutline, peopleOutline, personCircleOutline,
-  barChartOutline, logOutOutline, chevronBackOutline, chevronForwardOutline
+  appsOutline, cartOutline, walletOutline, gridOutline, cubeOutline,
+  pricetagOutline, archiveOutline, peopleOutline, personAddOutline,
+  barChartOutline, settingsOutline, logOutOutline, chevronBackOutline,
+  chevronForwardOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -24,7 +25,7 @@ import {
     IonApp, 
     IonSplitPane, 
     IonMenu, 
-    IonHeader,      // <--- IMPORTANTE: Agregado
+    IonHeader,
     IonContent, 
     IonList, 
     IonItem, 
@@ -33,27 +34,31 @@ import {
     IonBadge, 
     IonFooter, 
     IonRouterOutlet,
-    IonMenuButton,  // <--- IMPORTANTE: Agregado
-    IonButtons,     // <--- IMPORTANTE: Agregado
-    IonToolbar      // <--- IMPORTANTE: Agregado
+    IonMenuButton,
+    IonButtons,
+    IonToolbar
   ]
 })
 export class AdminLayoutComponent {
   isCollapsed: boolean = false;
 
   constructor(private router: Router, private menuCtrl: MenuController) {
+    // Registramos TODOS los iconos que usamos en el menú
     addIcons({
-      appsOutline, cartOutline, archiveOutline, gridOutline, cubeOutline,
-      clipboardOutline, settingsOutline, peopleOutline, personCircleOutline,
-      barChartOutline, logOutOutline, chevronBackOutline, chevronForwardOutline
+      appsOutline, cartOutline, walletOutline, gridOutline, cubeOutline,
+      pricetagOutline, archiveOutline, peopleOutline, personAddOutline,
+      barChartOutline, settingsOutline, logOutOutline, chevronBackOutline,
+      chevronForwardOutline
     });
   }
 
   async toggleSidebar() {
     const isMobile = window.innerWidth < 992;
     if (isMobile) {
+      // En celulares el menú se cierra por completo (overlay)
       await this.menuCtrl.close();
     } else {
+      // En escritorio se colapsa / expande
       this.isCollapsed = !this.isCollapsed;
     }
   }

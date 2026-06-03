@@ -1,7 +1,8 @@
 <ion-app>
-  <ion-split-pane contentId="main-content" class="custom-split-pane">
+  <ion-split-pane contentId="main-content" class="custom-split-pane" [class.collapsed]="isCollapsed">
 
-    <ion-menu contentId="main-content" type="overlay" class="dark-sidebar" [class.collapsed]="isCollapsed">
+    <ion-menu contentId="main-content" class="dark-sidebar" [class.collapsed]="isCollapsed">
+      
       <ion-header class="ion-no-border">
         <div class="sidebar-brand">
           <div class="logo-icon">
@@ -25,7 +26,12 @@
           <ion-item button routerLink="/admin/pedidos" routerLinkActive="active" class="menu-item">
             <ion-icon slot="start" name="cart-outline"></ion-icon>
             <ion-label>Pedidos / Ventas</ion-label>
-            <div class="nav-badge red" slot="end">4</div>
+            <div class="nav-badge" slot="end">4</div>
+          </ion-item>
+
+          <ion-item button routerLink="/admin/caja" routerLinkActive="active" class="menu-item">
+            <ion-icon slot="start" name="wallet-outline"></ion-icon>
+            <ion-label>Caja</ion-label>
           </ion-item>
 
           <ion-item button routerLink="/admin/mesas" routerLinkActive="active" class="menu-item">
@@ -33,7 +39,43 @@
             <ion-label>Mesas</ion-label>
           </ion-item>
 
-          </ion-list>
+          <ion-item button routerLink="/admin/productos" routerLinkActive="active" class="menu-item">
+            <ion-icon slot="start" name="cube-outline"></ion-icon>
+            <ion-label>Productos</ion-label>
+          </ion-item>
+
+          <ion-item button routerLink="/admin/categorias" routerLinkActive="active" class="menu-item">
+            <ion-icon slot="start" name="pricetag-outline"></ion-icon>
+            <ion-label>Categorías</ion-label>
+          </ion-item>
+
+          <ion-item button routerLink="/admin/stock" routerLinkActive="active" class="menu-item">
+            <ion-icon slot="start" name="archive-outline"></ion-icon>
+            <ion-label>Stock / Inventario</ion-label>
+            <div class="nav-badge" slot="end">3</div>
+          </ion-item>
+
+          <ion-item button routerLink="/admin/clientes" routerLinkActive="active" class="menu-item">
+            <ion-icon slot="start" name="people-outline"></ion-icon>
+            <ion-label>Clientes</ion-label>
+          </ion-item>
+
+          <ion-item button routerLink="/admin/usuarios" routerLinkActive="active" class="menu-item">
+            <ion-icon slot="start" name="person-add-outline"></ion-icon>
+            <ion-label>Usuarios</ion-label>
+          </ion-item>
+
+          <ion-item button routerLink="/admin/reportes" routerLinkActive="active" class="menu-item">
+            <ion-icon slot="start" name="bar-chart-outline"></ion-icon>
+            <ion-label>Reportes</ion-label>
+          </ion-item>
+
+          <ion-item button routerLink="/admin/configuracion" routerLinkActive="active" class="menu-item">
+            <ion-icon slot="start" name="settings-outline"></ion-icon>
+            <ion-label>Configuración</ion-label>
+          </ion-item>
+
+        </ion-list>
       </ion-content>
 
       <ion-footer class="ion-no-border sidebar-footer">
@@ -44,14 +86,18 @@
             <p>admin&#64;polleria.pe</p>
           </div>
         </div>
+
         <button class="logout-btn" (click)="cerrarSesion()">
-          <ion-icon name="log-out-outline"></ion-icon> <span>Cerrar Sesión</span>
+          <ion-icon name="log-out-outline"></ion-icon> 
+          <span class="fade-text">Cerrar Sesión</span>
         </button>
+
         <div class="collapse-btn" (click)="toggleSidebar()">
           <ion-icon [name]="isCollapsed ? 'chevron-forward-outline' : 'chevron-back-outline'"></ion-icon> 
-          <span>{{ isCollapsed ? '' : 'Contraer' }}</span>
+          <span class="fade-text">Contraer</span>
         </div>
       </ion-footer>
+
     </ion-menu>
 
     <div class="ion-page" id="main-content">
