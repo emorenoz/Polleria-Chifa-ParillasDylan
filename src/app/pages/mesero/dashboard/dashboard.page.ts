@@ -1,6 +1,9 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { Observable, Subscription } from 'rxjs';
 
+// Imports de Firebase
 import {
   Firestore,
   collection,
@@ -10,9 +13,17 @@ import {
   addDoc
 } from '@angular/fire/firestore';
 
-import { Observable, Subscription } from 'rxjs';
-import { Router } from '@angular/router';
+// 🔥 IMPORTANTE: Importamos los componentes nativos de Ionic para Standalone
+import {
+  IonContent,
+  IonHeader,
+  IonTitle,
+  IonToolbar,
+  IonButton,
+  IonIcon
+} from '@ionic/angular/standalone';
 
+// Interfaces de datos
 export interface Producto {
   id: number;
   nombre: string;
@@ -37,17 +48,26 @@ export interface Mesa {
 @Component({
   selector: 'app-dashboard-mesero',
   standalone: true,
-  imports: [CommonModule],
+  // 🔥 Agregamos CommonModule y los componentes de Ionic que usará tu HTML
+  imports: [
+    CommonModule,
+    IonContent,
+    IonHeader,
+    IonTitle,
+    IonToolbar,
+    IonButton,
+    IonIcon
+  ],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss']
 })
 export class DashboardPage implements OnInit, OnDestroy {
 
   private firestore: Firestore = inject(Firestore);
+  private router: Router = inject(Router);
 
   nombreMesero: string = 'Carlos Ramos';
   horaActual: string = new Date().toLocaleTimeString();
-
   private relojInterval: any;
 
   categorias: string[] = [
@@ -70,14 +90,12 @@ export class DashboardPage implements OnInit, OnDestroy {
   ];
 
   productosFiltrados: Producto[] = [];
-
   mesas$: Observable<Mesa[]> | undefined;
   mesas: Mesa[] = [];
   mesaSeleccionada: Mesa | null = null;
-
   private mesasSubscription?: Subscription;
 
-  constructor(private router: Router) {}
+  constructor() {}
 
   ngOnInit(): void {
     this.filtrarProductos();
@@ -96,17 +114,14 @@ export class DashboardPage implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  // ================= FIREBASE =================
+  // ================= FIREBASE REALTIME =================
   initFirebaseRealtime(): void {
     const mesasCollection = collection(this.firestore, 'mesas');
-
     this.mesas$ = collectionData(mesasCollection, { idField: 'id' }) as Observable<Mesa[]>;
 
     this.mesasSubscription = this.mesas$.subscribe(res => {
       this.mesas = res;
-
       const id = this.mesaSeleccionada?.id;
-
       if (id) {
         const encontrada = this.mesas.find(m => m.id === id);
         if (encontrada) {
@@ -119,48 +134,52 @@ export class DashboardPage implements OnInit, OnDestroy {
     });
   }
 
-  // ================= ENVIAR A COCINA =================
+  // ================= ENVIAR A COCINA (TIEMPO REAL NATIVO) =================
   async procesarPago(): Promise<void> {
-    if (!this.mesaSeleccionada) return;
+    if (!this.mesaSeleccionada || this.mesaSeleccionada.pedido.length === 0) return;
 
     const mesa = this.mesaSeleccionada;
-
-    const total = mesa.pedido.reduce(
-      (acc, i) => acc + i.producto.precio * i.cantidad,
-      0
-    );
+    const total = this.calcularTotal();
 
     const pedidoFinal = {
       mesa: mesa.numero,
-      items: mesa.pedido,
-      total,
+      idMesa: mesa.id,
+      items: mesa.pedido.map(i => ({
+        producto: i.producto.nombre,
+        cantidad: i.cantidad
+      })),
+      total: total,
       mesero: this.nombreMesero,
       estado: 'enviado_cocina',
-      fecha: new Date()
+      fecha: new Date().toISOString() // ISOString es más óptimo para persistencia en Firebase
     };
 
-    await addDoc(collection(this.firestore, 'pedidos_cocina'), pedidoFinal);
-    await addDoc(collection(this.firestore, 'ventas'), pedidoFinal);
+    try {
+      // 1. Insertamos en la colección que la cocina escucha en tiempo real
+      await addDoc(collection(this.firestore, 'pedidos_cocina'), pedidoFinal);
 
-    await this.guardar({
-      ...mesa,
-      estado: 'libre',
-      pedido: []
-    });
+      // 2. Mantenemos el estado de la mesa como 'activa' en Firestore para que el flujo sea correcto
+      await this.guardar({
+        ...mesa,
+        estado: 'activa'
+      });
 
-    this.mesaSeleccionada = null;
+      // 3. Limpiamos la selección actual en la pantalla del mesero
+      this.mesaSeleccionada = null;
 
-    this.router.navigate(['/cocina/dashboard'], {
-      state: { pedido: pedidoFinal }
-    });
+      alert('🚀 ¡Pedido enviado a la cocina en tiempo real!');
+
+    } catch (error) {
+      console.error("Error al enviar el pedido:", error);
+    }
   }
 
-  // ================= ALIAS PARA TU HTML =================
+  // Alias compatible con la acción de tu botón del HTML
   async enviarACocina(): Promise<void> {
     await this.procesarPago();
   }
 
-  // ================= TU LÓGICA ORIGINAL =================
+  // ================= MÉTODOS DE CONTROL DEL CARRITO Y MESAS =================
   get totalActivas() {
     return this.mesas.filter(m => m.estado === 'activa').length;
   }
@@ -195,11 +214,13 @@ export class DashboardPage implements OnInit, OnDestroy {
     if (estadoActualizado === 'libre') estadoActualizado = 'activa';
 
     const pedido = [...this.mesaSeleccionada.pedido];
-
     const item = pedido.find(i => i.producto.id === producto.id);
 
-    if (item) item.cantidad++;
-    else pedido.push({ producto, cantidad: 1 });
+    if (item) {
+      item.cantidad++;
+    } else {
+      pedido.push({ producto, cantidad: 1 });
+    }
 
     this.mesaSeleccionada = {
       ...this.mesaSeleccionada,
@@ -214,24 +235,29 @@ export class DashboardPage implements OnInit, OnDestroy {
     if (!this.mesaSeleccionada) return;
 
     const pedido = [...this.mesaSeleccionada.pedido];
-
     const index = pedido.findIndex(i => i.producto.id === item.producto.id);
 
     if (index !== -1) {
       pedido[index].cantidad += cambio;
-      if (pedido[index].cantidad <= 0) pedido.splice(index, 1);
+      if (pedido[index].cantidad <= 0) {
+        pedido.splice(index, 1);
+      }
     }
 
     this.mesaSeleccionada.pedido = pedido;
 
-    await this.guardar(this.mesaSeleccionada);
-
-    if (pedido.length === 0) this.mesaSeleccionada = null;
+    // Si el pedido se queda vacío por completo, regresamos la mesa a 'libre'
+    if (pedido.length === 0) {
+      this.mesaSeleccionada.estado = 'libre';
+      await this.guardar(this.mesaSeleccionada);
+      this.mesaSeleccionada = null;
+    } else {
+      await this.guardar(this.mesaSeleccionada);
+    }
   }
 
   calcularTotal() {
     if (!this.mesaSeleccionada) return 0;
-
     return this.mesaSeleccionada.pedido.reduce(
       (acc, i) => acc + i.producto.precio * i.cantidad,
       0
@@ -240,7 +266,6 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   private async guardar(mesa: Mesa) {
     const ref = doc(this.firestore, `mesas/${mesa.id}`);
-
     await updateDoc(ref, {
       estado: mesa.estado,
       pedido: mesa.pedido ?? []
@@ -249,7 +274,6 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   async pedirCuenta() {
     if (!this.mesaSeleccionada) return;
-
     this.mesaSeleccionada.estado = 'cuenta';
     await this.guardar(this.mesaSeleccionada);
   }
@@ -257,11 +281,21 @@ export class DashboardPage implements OnInit, OnDestroy {
   async liberarMesa() {
     if (!this.mesaSeleccionada) return;
 
+    // Al procesar el pago final guardamos en el histórico de ventas
+    const total = this.calcularTotal();
+    const registroVenta = {
+      mesa: this.mesaSeleccionada.numero,
+      items: this.mesaSeleccionada.pedido,
+      total,
+      fecha: new Date().toISOString(),
+      mesero: this.nombreMesero
+    };
+
+    await addDoc(collection(this.firestore, 'ventas'), registroVenta);
+
     this.mesaSeleccionada.estado = 'libre';
     this.mesaSeleccionada.pedido = [];
-
     await this.guardar(this.mesaSeleccionada);
-
     this.mesaSeleccionada = null;
   }
 

@@ -22,6 +22,7 @@
     "@capacitor/core": "^8.3.4",
     "@ionic/angular": "^8.0.0",
     "firebase": "^12.14.0",
+    "socket.io-client": "^4.8.3",
     "zone.js": "^0.14.10"
   },
   "devDependencies": {
@@ -29,6 +30,7 @@
     "@angular/cli": "^17.3.17",
     "@angular/compiler-cli": "^17.3.12",
     "@ionic/angular-toolkit": "^12.3.0",
+    "@types/socket.io-client": "^1.4.36",
     "typescript": "^5.4.5"
   }
 }

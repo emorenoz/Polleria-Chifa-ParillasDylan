@@ -1,117 +1,144 @@
-<ion-header>
-  <ion-toolbar color="success">
+<ion-content scroll-y="false" class="bg-cajero-root">
 
-    <ion-title>
-      💰 Caja Dylan
-    </ion-title>
+  <div class="panel-cajero-container">
 
-    <!-- BOTÓN CERRAR SESIÓN (SIN ion-buttons PARA EVITAR ERROR) -->
-    <ion-button slot="end" fill="clear" (click)="cerrarSesion()">
-      🚪 Salir
-    </ion-button>
-
-  </ion-toolbar>
-</ion-header>
-
-
-<ion-content class="dashboard-content">
-
-  <div class="welcome-banner">
-    <h2>Bienvenido Cajero</h2>
-    <p>Control de cobros y ventas del día</p>
-  </div>
-
-  <div class="stats-grid">
-
-    <ion-card class="card ventas">
-      <ion-card-content>
-        <h3>💰 Ventas Hoy</h3>
-        <h1>S/ {{ ventasHoy }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="card pendientes">
-      <ion-card-content>
-        <h3>🧾 Pendientes</h3>
-        <h1>{{ pedidosPendientes }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="card cobrados">
-      <ion-card-content>
-        <h3>✅ Cobrados</h3>
-        <h1>{{ pedidosCobrados }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-    <ion-card class="card caja">
-      <ion-card-content>
-        <h3>💵 Caja Actual</h3>
-        <h1>S/ {{ cajaActual }}</h1>
-      </ion-card-content>
-    </ion-card>
-
-  </div>
-
-  <ion-card class="action-card">
-
-    <ion-card-header>
-      <ion-card-title>
-        ⚡ Acciones Rápidas
-      </ion-card-title>
-    </ion-card-header>
-
-    <ion-card-content>
-
-      <div class="actions-grid">
-
-        <ion-button expand="block" color="success">
-          💰 Nuevo Cobro
-        </ion-button>
-
-        <ion-button expand="block" color="primary">
-          🖨️ Imprimir Ticket
-        </ion-button>
-
-        <ion-button expand="block" color="warning">
-          📋 Historial
-        </ion-button>
-
-        <ion-button expand="block" color="tertiary">
-          📊 Reporte
-        </ion-button>
-
+    <header class="navbar-cajero">
+      <div class="brand-info">
+        <span class="icon-cash">💰</span>
+        <div class="brand-text">
+          <span class="title">Módulo de Caja</span>
+          <span class="restaurant">Polleria Dylan</span>
+        </div>
       </div>
 
-    </ion-card-content>
+      <div class="stats-and-actions">
+        <div class="stats">
+          <span class="stat-item totals">
+            <span class="badge-count font-total">S/ {{ totalRecaudado.toFixed(2) }}</span> Recaudado hoy
+          </span>
+          <span class="stat-item pending">
+            <span class="badge-count font-pending">{{ mesasPorCobrar.length }}</span> por cobrar
+          </span>
+        </div>
+        <div class="time-exit">
+          <span class="time">🕒 {{ horaActual }}</span>
+          <button class="btn-exit" (click)="salir()">↩ Salir</button>
+        </div>
+      </div>
+    </header>
 
-  </ion-card>
+    <main class="main-content-cajero">
 
-  <ion-card>
+      <section class="left-panel">
 
-    <ion-card-header>
-      <ion-card-title>
-        📋 Pedidos del Día
-      </ion-card-title>
-    </ion-card-header>
+        <div class="sub-section-cobros">
+          <h2 class="section-title">📌 Mesas por Cobrar</h2>
 
-    <ion-list>
+          <div class="empty-state" *ngIf="mesasPorCobrar.length === 0">
+            <p>✨ No hay mesas solicitando cuenta en este momento.</p>
+          </div>
 
-      <ion-item *ngFor="let p of pedidos">
+          <div class="grid-mesas-cobro" *ngIf="mesasPorCobrar.length > 0">
+            <div *ngFor="let mesa of mesasPorCobrar"
+                 class="card-mesa-cobro"
+                 [class.selected]="mesaSeleccionada?.id === mesa.id"
+                 (click)="seleccionarMesa(mesa)">
+              <div class="mesa-badge">Mesa {{ mesa.numero }}</div>
+              <div class="mesa-info-pago">
+                <span class="total-pago">Total: S/ {{ calcularTotalMesa(mesa).toFixed(2) }}</span>
+                <span class="alert-blink">⚠️ Esperando pago</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-        <ion-label>
-          <h2>{{ p.mesa }}</h2>
-          <p>{{ p.detalle || 'Sin detalle' }}</p>
-        </ion-label>
+        <div class="sub-section-historial" style="margin-top: 30px; border-top: 2px dashed #cbd5e1; padding-top: 20px;">
+          <h2 class="section-title" style="color: #64748b;">✅ Estado de Operaciones Recientes</h2>
+          <div class="info-cierre-caja" style="background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 13px; color: #475569;">
+            <p style="margin: 0 0 6px 0;">💡 <b>Flujo en Vivo:</b> Cuando un cliente pide la cuenta, aparece arriba en rojo alertando al cajero. Al pulsar el botón verde, el sistema registra el ticket, limpia la mesa y la pasa automáticamente al registro diario.</p>
+          </div>
+        </div>
 
-        <ion-badge [color]="p.estado === 'cobrado' ? 'success' : 'warning'">
-          {{ p.estado }}
-        </ion-badge>
+      </section>
 
-      </ion-item>
+      <section class="right-panel">
+        <h2 class="section-title">🧾 Detalle de la Cuenta</h2>
 
-    </ion-list>
+        <div class="empty-state" *ngIf="!mesaSeleccionada">
+          <p>Selecciona una mesa de la izquierda para procesar su pago.</p>
+        </div>
 
-  </ion-card>
+        <div class="ticket-container" *ngIf="mesaSeleccionada">
+          <div class="ticket-header">
+            <h3>Mesa N° {{ mesaSeleccionada.numero }}</h3>
+            <p>Atendido por: 👤 {{ obtenerMeseroDeMesa(mesaSeleccionada) }}</p>
+            <hr class="divider">
+          </div>
+
+          <div class="ticket-body">
+            <div class="ticket-row header-row">
+              <span>Cant. / Producto</span>
+              <span>Subtotal</span>
+            </div>
+            <div class="ticket-row" *ngFor="let item of mesaSeleccionada.pedido">
+              <span>{{ item.cantidad }}x {{ item.nombre ?? item.producto?.nombre ?? 'Producto' }}</span>
+              <span>S/ {{ ((item.precio ?? item.producto?.precio ?? 0) * (item.cantidad ?? 0)).toFixed(2) }}</span>
+            </div>
+            <hr class="divider">
+          </div>
+
+          <div class="ticket-totals">
+            <div class="total-row">
+              <span>Subtotal:</span>
+              <span>S/ {{ subtotalSeleccionado.toFixed(2) }}</span>
+            </div>
+            <div class="total-row discount">
+              <span>Descuento (S/):</span>
+              <input type="number" [(ngModel)]="descuento" (input)="recubicarTotal()" min="0">
+            </div>
+            <div class="total-row net-total">
+              <span>TOTAL A PAGAR:</span>
+              <span>S/ {{ totalSeleccionado.toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <div class="payment-methods">
+            <p class="method-title">Seleccionar Método de Pago:</p>
+            <div class="methods-grid">
+              <button [class.active]="metodoPago === 'Efectivo'" (click)="cambiarMetodoPago('Efectivo')">💵 Efectivo</button>
+              <button [class.active]="metodoPago === 'Yape'" (click)="cambiarMetodoPago('Yape')">📱 Yape</button>
+              <button [class.active]="metodoPago === 'Plin'" (click)="cambiarMetodoPago('Plin')">💳 Plin</button>
+              <button [class.active]="metodoPago === 'Tarjeta'" (click)="cambiarMetodoPago('Tarjeta')">💳 Tarjeta</button>
+            </div>
+          </div>
+
+          <div class="ticket-footer">
+            <button class="btn-liquidar" (click)="cobrarYLiberarMesa()">
+              ✅ Confirmar Pago y Cerrar Mesa
+            </button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div class="modal-qr-overlay" *ngIf="mostrarQr">
+    <div class="modal-qr-card">
+      <h3>📱 ESCANEAR QR YAPE</h3>
+      <p class="monto-pagar">Total a cobrar: <strong>S/ {{ totalSeleccionado.toFixed(2) }}</strong></p>
+
+      <div class="qr-container">
+        <img [src]="rutaImagenQr" alt="Código QR Yape" class="img-qr">
+      </div>
+
+      <p class="txt-yapeo">✅ YAPEO REALIZADO?</p>
+
+      <div class="modal-actions">
+        <button class="btn-cancelar-modal" (click)="cerrarModalQr()">Volver</button>
+        <button class="btn-confirmar-modal" (click)="cobrarYLiberarMesa()">Sí, registrar pago</button>
+      </div>
+    </div>
+  </div>
 
 </ion-content>

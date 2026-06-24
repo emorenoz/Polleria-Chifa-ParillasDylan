@@ -1,49 +1,82 @@
-<ion-header>
-  <ion-toolbar style="--background: #ff5722; --color: white;">
-    <ion-title>👨‍🍳 Panel de Cocina - Polleria Dylan</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="salir()">
-        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<div class="panel-cocina-container">
 
-<ion-content class="dashboard-content">
+  <header class="navbar-cocina">
+    <div class="brand-info">
+      <span class="icon-chef">🍳</span>
+      <div class="brand-text">
+        <span class="title">Panel de Cocina</span>
+        <span class="restaurant">Polleria Dylan</span>
+      </div>
+    </div>
+
+    <div class="stats-and-actions">
+      <div class="stats">
+        <span class="stat-item new"><span class="badge-count">{{ totalNuevos }}</span> nuevos</span>
+        <span class="stat-item kitchen"><span class="badge-count">{{ totalEnCocina }}</span> en cocina</span>
+        <span class="stat-item ready"><span class="badge-count">{{ totalListos }}</span> listos</span>
+      </div>
+      <div class="time-exit">
+        <span class="time">🕒 {{ horaActual }}</span>
+        <button class="btn-exit" (click)="salir()">↩ Salir</button>
+      </div>
+    </div>
+  </header>
+
   <div class="filter-bar">
-    <ion-segment [(ngModel)]="categoriaSeleccionada" (ionChange)="filtrarPedidos()">
-      <ion-segment-button value="Todos">Todos</ion-segment-button>
-      <ion-segment-button value="Nuevo">Nuevos</ion-segment-button>
-      <ion-segment-button value="Preparando">Preparando</ion-segment-button>
-      <ion-segment-button value="Listo">Listos</ion-segment-button>
-    </ion-segment>
+    <span class="filter-label">Filtrar:</span>
+    <button [class.active]="categoriaSeleccionada === 'todos'" (click)="aplicarFiltro('todos')">
+      Todos ({{ pedidos.length }})
+    </button>
+    <button [class.active]="categoriaSeleccionada === 'enviado_cocina'" (click)="aplicarFiltro('enviado_cocina')">
+      Nuevo ({{ totalNuevos }})
+    </button>
+    <button [class.active]="categoriaSeleccionada === 'preparando'" (click)="aplicarFiltro('preparando')">
+      Preparando ({{ totalEnCocina }})
+    </button>
+    <button [class.active]="categoriaSeleccionada === 'listo'" (click)="aplicarFiltro('listo')">
+      Listo ({{ totalListos }})
+    </button>
   </div>
 
-  <ion-grid>
-    <ion-row>
-      <ion-col size="12" size-md="6" size-lg="4" *ngFor="let p of pedidosFiltrados">
-        <ion-card class="pedido-card" [ngClass]="p.estado.toLowerCase()">
-          <ion-card-header>
-            <div class="card-header-flex">
-              <ion-card-title>Mesa {{ p.mesa }}</ion-card-title>
-              <ion-badge color="medium">{{ p.tiempo }} min</ion-badge>
-            </div>
-          </ion-card-header>
+  <main class="main-content-cocina">
+    <div class="grid-comandas">
 
-          <ion-card-content>
-            <p><strong>Cliente:</strong> {{ p.clienteNombre }}</p>
-            <div class="productos-lista">
-              <div class="item" *ngFor="let item of p.productos">
-                <span>{{ item.cantidad }}x {{ item.nombre }}</span>
-                <ion-note>{{ item.categoria }}</ion-note>
-              </div>
-            </div>
-            <ion-button expand="block" [color]="getColorBtn(p.estado)" (click)="cambiarEstado(p)">
-              {{ getLabelBtn(p.estado) }}
-            </ion-button>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-</ion-content>
+      <div *ngFor="let pedido of pedidosFiltrados"
+           class="card-comanda"
+           [ngClass]="getCardClass(pedido.estado)">
+
+        <div class="card-header">
+          <div class="mesa-info">
+            <h3>Mesa {{ pedido.mesa }}</h3>
+            <span class="mesero-name">👤 {{ pedido.mesero }}</span>
+          </div>
+          <div class="status-time">
+            <span class="badge-status" [ngClass]="pedido.estado">
+              {{ getBadgeLabel(pedido.estado) }}
+            </span>
+            <span class="time-elapsed">⏱️ {{ obtenerMinutosTranscurridos(pedido.fecha) }}</span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="item-row" *ngFor="let item of pedido.items">
+            <span class="qty">{{ item.cantidad }}x</span>
+            <span class="product-name">{{ item.producto }}</span>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button class="btn-action"
+                  [ngClass]="getColorBtn(pedido.estado)"
+                  (click)="cambiarEstado(pedido)">
+            {{ getLabelBtn(pedido.estado) }}
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <button class="btn-help">?</button>
+</div>

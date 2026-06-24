@@ -24,7 +24,6 @@
 
   <div class="main-content">
 
-    <!-- MESAS -->
     <aside class="sidebar-mesas">
       <h3>MESAS DEL SALÓN</h3>
 
@@ -52,7 +51,6 @@
       </div>
     </aside>
 
-    <!-- MENU -->
     <section class="menu-section">
 
       <div class="info-helper" *ngIf="!mesaSeleccionada">
@@ -101,7 +99,6 @@
 
     </section>
 
-    <!-- CARRITO -->
     <aside class="sidebar-pedido">
 
       <h3>Pedido actual</h3>
@@ -144,23 +141,6 @@
 
           <div class="cart-actions">
 
-            <!-- CUENTA -->
-            <button
-              class="btn-bill"
-              *ngIf="mesaSeleccionada.estado === 'activa'"
-              (click)="pedirCuenta()">
-              🧾 Pedir Cuenta
-            </button>
-
-            <!-- PAGAR -->
-            <button
-              class="btn-free"
-              *ngIf="mesaSeleccionada.estado === 'cuenta'"
-              (click)="liberarMesa()">
-              💵 Procesar Pago y Liberar
-            </button>
-
-            <!-- 🔥 NUEVO: ENVIAR A COCINA -->
             <button
               class="btn-kitchen"
               [disabled]="!mesaSeleccionada || mesaSeleccionada.pedido.length === 0"
