@@ -1,39 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-import {
-  IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-  IonCard,
-  IonCardHeader,
-  IonCardSubtitle,
-  IonCardTitle,
-  IonCardContent,
-  IonList,
-  IonItem,
-  IonInput,
-  IonSelect,
-  IonSelectOption,
-  IonButton,
-  IonIcon,
-  IonLabel,
-  IonNote,
-  IonButtons,
-  IonBackButton
+import { 
+  IonContent, IonHeader, IonTitle, IonToolbar, IonButton, 
+  IonIcon, IonButtons, IonBackButton, IonSegment, 
+  IonSegmentButton, IonLabel 
 } from '@ionic/angular/standalone';
-
 import { addIcons } from 'ionicons';
-import { cloudDone, save, arrowBack } from 'ionicons/icons';
-
-import {
-  Firestore,
-  doc,
-  getDoc,
-  setDoc
-} from '@angular/fire/firestore';
+import { save, arrowBack } from 'ionicons/icons';
+import { Firestore, doc, getDoc, setDoc } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-configuracion',
@@ -41,100 +16,34 @@ import {
   styleUrls: ['./configuracion.page.scss'],
   standalone: true,
   imports: [
-    CommonModule,
-    FormsModule,
-    IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
-    IonCard,
-    IonCardHeader,
-    IonCardSubtitle,
-    IonCardTitle,
-    IonCardContent,
-    IonList,
-    IonItem,
-    IonInput,
-    IonSelect,
-    IonSelectOption,
-    IonButton,
-    IonIcon,
-    IonLabel,
-    IonNote,
-    IonButtons,
-    IonBackButton
+    CommonModule, FormsModule, IonContent, IonHeader, IonTitle, 
+    IonToolbar, IonButton, IonIcon, IonButtons, IonBackButton, 
+    IonSegment, IonSegmentButton, IonLabel
   ]
 })
 export class ConfiguracionPage implements OnInit {
-
   private firestore = inject(Firestore);
-
-  config = {
-    ruc: '',
-    nombreEmpresa: '',
-    telefono: '',
-    direccion: '',
-    moneda: 'PEN'
-  };
-
+  config = { ruc: '', nombreEmpresa: '', telefono: '', direccion: '', moneda: 'PEN' };
   guardando: boolean = false;
 
-  constructor() {
-    addIcons({ cloudDone, save, arrowBack });
-  }
+  constructor() { addIcons({ save, arrowBack }); }
 
-  async ngOnInit() {
-    await this.cargarConfiguracionFirebase();
-  }
+  async ngOnInit() { await this.cargarConfiguracionFirebase(); }
 
-  // 🔥 CARGAR CONFIGURACIÓN REAL DESDE FIREBASE
   async cargarConfiguracionFirebase() {
-
     try {
-
       const ref = doc(this.firestore, 'configuracion', 'empresa');
       const snap = await getDoc(ref);
-
-      if (snap.exists()) {
-
-        this.config = snap.data() as any;
-
-      } else {
-
-        console.log('⚠️ No existe configuración, usando valores por defecto');
-
-      }
-
-    } catch (error) {
-
-      console.error('❌ Error cargando configuración:', error);
-
-    }
-
+      if (snap.exists()) this.config = snap.data() as any;
+    } catch (error) { console.error('Error:', error); }
   }
 
-  // 🔥 GUARDAR CONFIGURACIÓN EN FIREBASE
   async guardarConfiguracion() {
-
     if (!this.config.nombreEmpresa.trim()) return;
-
     this.guardando = true;
-
     try {
-
-      const ref = doc(this.firestore, 'configuracion', 'empresa');
-
-      await setDoc(ref, this.config);
-
-      console.log('✅ Configuración guardada en Firebase:', this.config);
-
-    } catch (error) {
-
-      console.error('❌ Error guardando configuración:', error);
-
-    }
-
+      await setDoc(doc(this.firestore, 'configuracion', 'empresa'), this.config);
+    } catch (error) { console.error('Error:', error); }
     this.guardando = false;
-
   }
 }

@@ -29,7 +29,8 @@ import {
   IonItemOptions,
   IonItemOption,
   IonButtons,
-  IonBackButton
+  IonBackButton,
+  IonMenuButton // ✅ AÑADIDO PARA SOLUCIONAR EL ERROR
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -38,7 +39,15 @@ import {
   arrowDownCircle,
   create,
   trash,
-  arrowBack
+  arrowBack,
+  // ✅ NUEVOS ÍCONOS AÑADIDOS PARA EL REDISEÑO
+  walletOutline,
+  printOutline,
+  trendingUpOutline,
+  trendingDownOutline,
+  cashOutline,
+  addOutline,
+  removeOutline
 } from 'ionicons/icons';
 
 import {
@@ -84,12 +93,16 @@ import {
     IonItemOptions,
     IonItemOption,
     IonButtons,
-    IonBackButton
+    IonBackButton,
+    IonMenuButton // ✅ AÑADIDO EN LOS IMPORTS DEL COMPONENTE
   ]
 })
 export class CajaPage implements OnInit {
 
   private firestore = inject(Firestore);
+
+  // ✅ AÑADIDO: VARIABLE PARA EVITAR EL ERROR NG9 EN EL HTML
+  fechaActual: string = '';
 
   totalCaja: number = 0;
   totalIngresos: number = 0;
@@ -109,12 +122,27 @@ export class CajaPage implements OnInit {
       arrowDownCircle,
       create,
       trash,
-      arrowBack
+      arrowBack,
+      // ✅ REGISTRO DE LOS NUEVOS ÍCONOS
+      walletOutline,
+      printOutline,
+      trendingUpOutline,
+      trendingDownOutline,
+      cashOutline,
+      addOutline,
+      removeOutline
     });
   }
 
   async ngOnInit() {
+    this.configurarFecha();
     await this.cargarMovimientosFirebase();
+  }
+
+  // ✅ AÑADIDO: FUNCIÓN PARA MOSTRAR LA FECHA DINÁMICA
+  configurarFecha() {
+    const opciones: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    this.fechaActual = new Date().toLocaleDateString('es-PE', opciones);
   }
 
   // Cargar movimientos desde Firebase

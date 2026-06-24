@@ -1,147 +1,179 @@
-// Estilos del Módulo de Reportes Financieros - Pollería Dylan
-
-ion-content {
-  --background: #f4f5f8;
+/* =========================
+   VARIABLES GLOBALES
+========================= */
+:host {
+  --bg-page: #f5f6fa;
+  --card-bg: #ffffff;
+  --text-main: #2b2b36;
+  --text-muted: #8c8ea7;
+  --border-light: #eaedf3;
+  --primary: #9620F5;
+  --primary-light: #d8b4fe;
+  --success: #10b981;
+  --info: #3b82f6;
+  --orange: #f97316;
 }
 
-ion-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  margin-bottom: 16px;
+.page-bg { --background: var(--bg-page); }
+.main-container { padding: 24px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.text-muted { color: var(--text-muted); }
+.text-purple { color: var(--primary); }
+.text-green { color: var(--success); }
+.justify-center { justify-content: center; }
+.mt-10 { margin-top: 10px; }
 
-  ion-card-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--ion-color-dark);
-  }
+/* =========================
+   TOP BAR
+========================= */
+.top-header {
+  background: var(--card-bg); border-bottom: 1px solid var(--border-light);
+  ion-toolbar { --background: var(--card-bg); }
+  .header-content { display: flex; justify-content: space-between; align-items: center; padding: 0 16px; width: 100%; }
+  .breadcrumb { font-size: 14px; color: var(--text-main); }
+  .date-display { font-size: 13px; color: var(--text-muted); }
 }
 
-ion-list {
-  background: transparent;
-  
-  .form-item {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    --background: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    
-    ion-input {
-      font-size: 0.95rem;
-      --padding-start: 8px;
+/* =========================
+   BARRA DE ACCIONES
+========================= */
+.action-toolbar {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
+
+  .filter-chips {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    .chip {
+      background: transparent; border: 1px solid transparent; color: var(--text-muted);
+      padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s;
+      &:hover { color: var(--text-main); }
+      &.active { background: var(--primary); color: white; box-shadow: 0 2px 8px rgba(150, 32, 245, 0.3); }
     }
   }
 
-  .last-item {
-    margin-bottom: 0px;
+  .export-btn {
+    background: var(--card-bg); border: 1px solid var(--border-light); color: var(--text-main);
+    height: 42px; border-radius: 8px; padding: 0 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;
+    &:hover { background: #f8f9fa; }
   }
 }
 
-ion-button {
-  --border-radius: 8px;
-  font-weight: 600;
-  height: 48px;
-  margin-top: 4px;
-
-  ion-icon {
-    margin-right: 6px;
-    font-size: 20px;
-  }
+/* =========================
+   TARJETAS KPI
+========================= */
+.kpi-status-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px;
 }
 
-h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ion-color-step-700, #4d4d4d);
-  margin: 24px 0 12px 0;
-  padding-left: 4px;
-}
-
-// Grilla responsiva para los KPIs de balance
-.report-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  margin-bottom: -4px;
-}
-
-.kpi-card {
-  margin: 0 0 16px 0;
-  background: #ffffff;
+.status-card {
+  background: var(--card-bg); border-radius: 12px; padding: 24px; border: 1px solid var(--border-light);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.01); display: flex; flex-direction: column; gap: 8px;
   
-  ion-card-content {
-    padding: 16px 12px;
-  }
+  .kpi-title { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+  .kpi-amount { font-size: 1.8rem; font-weight: 700; }
+  .kpi-subtext { font-size: 13px; font-weight: 500; }
+}
 
-  p {
-    font-size: 0.85rem;
-    color: #6c757d;
-    margin: 0 0 4px 0;
-    font-weight: 500;
-  }
+/* =========================
+   GRID DE GRÁFICOS
+========================= */
+.charts-grid {
+  display: grid; grid-template-columns: 2fr 1fr; gap: 20px; align-items: start;
+}
 
-  h2 {
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin: 0;
-  }
+.chart-card {
+  background: var(--card-bg); border-radius: 16px; padding: 24px; border: 1px solid var(--border-light);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.01); min-height: 320px; display: flex; flex-direction: column;
 
-  // Identificadores semánticos de dinero y volumen
-  &.ingresos h2 {
-    color: #1b5e20; // Verde financiero
-  }
+  h4 { margin: 0 0 24px 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+}
+
+/* LEYENDAS COMUNES */
+.chart-legend {
+  display: flex; gap: 16px; align-items: center; margin-top: auto; padding-top: 20px;
   
-  &.ordenes h2 {
-    color: #0d47a1; // Azul flujo
-  }
+  &.vertical { flex-direction: column; align-items: stretch; gap: 12px; }
+  
+  .legend-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted); }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); text-transform: capitalize; }
+  .legend-value { font-weight: 600; color: var(--text-main); }
+  
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .circle { width: 12px; height: 12px; border-radius: 50%; border: 2px solid; background: transparent; }
+  
+  .dot.purple { background: var(--primary); }
+  .dot.purple-light { background: var(--primary-light); }
+  .dot.green { background: var(--success); }
+  .dot.blue { background: var(--info); }
+  .circle.border-purple { border-color: var(--primary); }
+  .circle.border-orange { border-color: var(--orange); }
+}
 
-  &.ticket-promedio {
-    margin: 0 0 16px 0;
-    h2 {
-      color: #e65100; // Naranja métrico
-    }
+/* 1. BARRAS (Ventas Mensuales) */
+.bar-chart-container {
+  display: flex; height: 200px; gap: 16px; flex-grow: 1;
+  .y-axis { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; font-size: 11px; color: var(--text-muted); width: 40px; }
+  .bar-area { flex: 1; display: flex; justify-content: space-around; align-items: flex-end; border-bottom: 1px solid var(--border-light); position: relative;
+    /* Grid lines */
+    background-image: linear-gradient(to bottom, var(--border-light) 1px, transparent 1px);
+    background-size: 100% 25%;
+  }
+  .bar-group { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; width: 40px; position: relative; }
+  .bar { width: 32px; border-radius: 4px 4px 0 0; background: var(--primary); }
+  .x-label { position: absolute; bottom: -24px; font-size: 12px; color: var(--text-muted); }
+}
+
+/* 2. DONUT (Método de Pago) */
+.donut-chart-container {
+  display: flex; justify-content: center; align-items: center; padding: 20px 0;
+  
+  .donut {
+    width: 160px; height: 160px; border-radius: 50%;
+    /* Efecto Donut con conic-gradient y mask */
+    background: conic-gradient(
+      var(--success) 0deg 210deg, transparent 210deg 215deg,
+      var(--info) 215deg 300deg, transparent 300deg 305deg,
+      var(--primary) 305deg 355deg, transparent 355deg 360deg
+    );
+    /* Hueco interior blanco */
+    -webkit-mask: radial-gradient(circle, transparent 40%, black 41%);
+    mask: radial-gradient(circle, transparent 40%, black 41%);
   }
 }
 
-// Contenedor de listas agrupadas
-.list-card {
-  margin: 0;
-  
-  ion-item {
-    --background: #ffffff;
-    
-    ion-label {
-      h2 {
-        font-size: 1rem;
-        color: var(--ion-color-dark);
-      }
-      p {
-        font-size: 0.85rem;
-        color: #737373;
-      }
-    }
-
-    .monto-note {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--ion-color-dark);
-    }
+/* 3. LÍNEAS (Ventas AM vs PM) */
+.line-chart-container {
+  display: flex; height: 200px; gap: 16px; flex-grow: 1;
+  .y-axis { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end; font-size: 11px; color: var(--text-muted); width: 40px; }
+  .line-area { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; position: relative;
+    background-image: linear-gradient(to bottom, var(--border-light) 1px, transparent 1px);
+    background-size: 100% 33.33%;
   }
+  .chart-svg { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+  .x-axis-lines { display: flex; justify-content: space-between; width: 100%; position: absolute; bottom: -24px; font-size: 12px; color: var(--text-muted); }
 }
 
-// Estado vacío/bienvenida del módulo
-.empty-state {
-  padding-top: 40px;
-  
-  ion-icon {
-    font-size: 64px;
-    margin-bottom: 8px;
-  }
-  
-  p {
-    font-size: 0.9rem;
-    color: #737373;
-    max-width: 260px;
-    margin: 0 auto;
-  }
+/* 4. BARRAS HORIZONTALES (Productos) */
+.progress-list {
+  display: flex; flex-direction: column; gap: 16px;
+  .progress-item { display: flex; flex-direction: column; gap: 6px; }
+  .progress-header { display: flex; justify-content: space-between; font-size: 13px; }
+  .prod-name { color: var(--text-muted); font-weight: 500; }
+  .prod-value { color: var(--text-main); font-weight: 600; }
+  .progress-track { width: 100%; height: 6px; background: var(--border-light); border-radius: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 10px; background: var(--primary); }
+}
+
+/* ========================================================
+   DISEÑO RESPONSIVE
+======================================================== */
+@media (max-width: 1200px) {
+  .charts-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+  .kpi-status-row { grid-template-columns: repeat(2, 1fr); }
+  .action-toolbar { flex-direction: column; align-items: flex-start; }
+  .filter-chips { overflow-x: auto; padding-bottom: 4px; width: 100%; flex-wrap: nowrap; &::-webkit-scrollbar { height: 0px; } }
+  .export-btn { width: 100%; justify-content: center; }
+  .chart-card { padding: 16px; }
+  .donut-chart-container .donut { width: 120px; height: 120px; }
 }

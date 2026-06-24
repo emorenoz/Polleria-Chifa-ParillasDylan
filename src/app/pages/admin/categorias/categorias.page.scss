@@ -1,109 +1,198 @@
-// Estilos personalizados para el módulo de Categorías (Coherente con Módulo Caja)
+/* =========================
+   VARIABLES GLOBALES
+========================= */
+:host {
+  --bg-page: #f5f6fa;
+  --card-bg: #ffffff;
+  --text-main: #2b2b36;
+  --text-muted: #8c8ea7;
+  --border-light: #eaedf3;
+  --primary: #9620F5;
+  --success: #10b981;
+  --danger: #ef4444;
 
-// Contenedor principal
-ion-content {
-  --background: #f4f5f8; // El mismo fondo gris claro sutil para dar relieve a las tarjetas
+  /* Colores de Iconos (Prototipo) */
+  --c-orange: #f97316;
+  --c-green: #10b981;
+  --c-blue: #3b82f6;
+  --c-red: #ef4444;
+  --c-yellow: #eab308;
+  --c-purple: #a855f7;
 }
 
-// Tarjeta del Formulario (Nueva / Editar Categoría)
-ion-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  margin-bottom: 16px;
+.page-bg { --background: var(--bg-page); }
+.main-container { padding: 24px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+.text-muted { color: var(--text-muted); }
+.text-center { text-align: center; }
 
-  ion-card-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--ion-color-dark);
-  }
+/* =========================
+   TOP BAR (Breadcrumb)
+========================= */
+.top-header {
+  background: var(--card-bg); border-bottom: 1px solid var(--border-light);
+  ion-toolbar { --background: var(--card-bg); }
+  .header-content { display: flex; justify-content: space-between; align-items: center; padding: 0 16px; width: 100%; }
+  .breadcrumb { font-size: 14px; color: var(--text-main); }
+  .date-display { font-size: 13px; color: var(--text-muted); }
 }
 
-// Estructura de los inputs dentro del formulario
-ion-list {
-  background: transparent;
-  
-  ion-item {
-    --background: var(--ion-color-white, #ffffff);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    
-    ion-input {
-      font-size: 0.95rem;
-      --padding-start: 8px;
-    }
-  }
-}
+/* =========================
+   SUBHEADER (Estadísticas y Botón)
+========================= */
+.action-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
 
-// Botones de acción (Agregar, Actualizar, Cancelar)
-ion-button {
-  --border-radius: 8px;
-  font-weight: 600;
-  height: 48px; // Altura optimizada para interacción táctil cómoda
-  margin-top: 4px;
-  
-  &.ion-margin-top {
-    margin-top: 12px;
-  }
-}
-
-// Buscador dinámico (Searchbar)
-ion-searchbar {
-  --border-radius: 10px;
-  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  padding-left: 8px;
-  padding-right: 8px;
-  margin-top: 8px;
-  margin-bottom: 8px;
-}
-
-// Título de la sección del listado
-h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ion-color-step-600, #666666);
-  margin: 24px 0 12px 0;
-}
-
-// Listado de categorías registradas (Soporta el deslizamiento lateral)
-ion-item-sliding {
-  margin-bottom: 6px;
-  background: transparent;
-  
-  ion-item {
-    --background: #ffffff;
-    --border-radius: 0; // Se mantiene limpio en bloques de lista enlazada
-    
-    ion-label {
-      h2 {
-        font-size: 1.05rem;
-        color: var(--ion-color-dark);
-        margin-bottom: 4px;
-      }
-      p {
-        font-size: 0.85rem;
-        color: var(--ion-color-step-500, #737373);
-      }
-    }
-
-    ion-note {
-      font-size: 0.8rem;
-      font-weight: 500;
-      align-self: center;
-      background: #f0f0f2;
-      padding: 4px 8px;
-      border-radius: 6px;
-    }
-  }
-}
-
-// Estilos para los botones ocultos que aparecen al deslizar (Slide options)
-ion-item-options {
-  ion-item-option {
+  .stats-text {
     font-size: 1.1rem;
-    padding-left: 16px;
-    padding-right: 16px;
-    
-    ion-icon {
-      font-size: 22px;
+    font-weight: 500;
+  }
+
+  .btn-primary {
+    background: var(--primary); color: white; border: none; height: 44px; border-radius: 8px; padding: 0 20px;
+    font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;
+    &:hover { background: #8112db; }
+  }
+}
+
+/* =========================
+   FORMULARIO INLINE
+========================= */
+.form-card {
+  background: var(--card-bg); border-radius: 16px; padding: 24px; border: 1px solid var(--border-light);
+  .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; h4 { margin: 0; font-size: 1.1rem; font-weight: 600; } }
+  .form-row { display: flex; flex-wrap: wrap; gap: 16px; }
+  .input-group { flex: 1; min-width: 150px; &.flex-grow { flex: 2; min-width: 250px; } label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; } }
+  .custom-input { width: 100%; height: 44px; border: 1px solid var(--border-light); border-radius: 8px; padding: 0 16px; font-size: 15px; outline: none; background: #fafafa; transition: 0.2s; &:focus { border-color: var(--primary); background: white; } }
+  .btn-icon { background: transparent; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; }
+  .mt-20 { margin-top: 20px; } .ml-10 { margin-left: 10px; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-outline { background: transparent; border: 1px solid var(--border-light); height: 44px; border-radius: 8px; padding: 0 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .form-actions { display: flex; align-items: center; }
+}
+
+/* =========================
+   GRID DE TARJETAS DE CATEGORÍA
+========================= */
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+.category-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.01);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 140px;
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+
+    .card-title-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .icon-box {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+
+      /* Variaciones de color automáticas */
+      &.color-0 { background-color: var(--c-orange); }
+      &.color-1 { background-color: var(--c-green); }
+      &.color-2 { background-color: var(--c-blue); }
+      &.color-3 { background-color: var(--c-red); }
+      &.color-4 { background-color: var(--c-yellow); }
+      &.color-5 { background-color: var(--c-purple); }
+    }
+
+    .cat-info {
+      h4 { margin: 0 0 4px 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+      p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+    }
+
+    .btn-dots {
+      background: transparent; border: none; font-size: 20px; color: var(--border-light); cursor: pointer; padding: 0; transition: color 0.2s;
+      &:hover { color: var(--text-muted); }
     }
   }
+
+  .card-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .badge {
+      padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      &.active { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+      &.inactive { background: rgba(140, 142, 167, 0.1); color: var(--text-muted); }
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+
+      .action-btn {
+        background: transparent; border: none; font-size: 18px; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 6px; transition: 0.2s; display: flex; align-items: center; justify-content: center;
+        &.edit:hover { color: var(--primary); background: rgba(150, 32, 245, 0.1); }
+        &.delete:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+      }
+    }
+  }
+}
+
+/* Estado vacío */
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; text-align: center; color: var(--text-muted);
+  ion-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+}
+
+/* ========================================================
+   DISEÑO RESPONSIVE (Móviles y Tablets)
+======================================================== */
+@media (max-width: 768px) {
+  .action-header {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .btn-primary { width: 100%; justify-content: center; }
+  }
+
+  .form-card .form-row {
+    flex-direction: column;
+    .input-group, .input-group.flex-grow { min-width: 100%; }
+  }
+  
+  .form-actions {
+    flex-direction: column; gap: 10px;
+    button { width: 100%; margin-left: 0 !important; }
+  }
+
+  .categories-grid { grid-template-columns: 1fr; }
 }

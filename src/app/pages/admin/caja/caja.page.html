@@ -1,88 +1,146 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
+<ion-header class="ion-no-border top-header">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
-
-    <ion-title>Control de Caja</ion-title>
+    <div class="header-content">
+      <div class="breadcrumb">
+        <span class="muted">Pollería Dylan</span> / <strong>Caja</strong>
+      </div>
+      <div class="date-display">{{ fechaActual || 'miércoles, 24 de junio de 2026' }}</div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content class="page-bg">
+  <div class="main-container">
 
-  <ion-card color="light">
-    <ion-card-header>
-      <ion-card-subtitle>Balance Actual</ion-card-subtitle>
-      <ion-card-title>S/. {{ totalCaja.toFixed(2) }}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-grid>
-        <ion-row>
-          <ion-col size="6">
-            <ion-text color="success">
-              <p style="margin: 0;"><strong>Ingresos:</strong> S/. {{ totalIngresos.toFixed(2) }}</p>
-            </ion-text>
-          </ion-col>
-          <ion-col size="6">
-            <ion-text color="danger">
-              <p style="margin: 0;"><strong>Egresos:</strong> S/. {{ totalEgresos.toFixed(2) }}</p>
-            </ion-text>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </ion-card-content>
-  </ion-card>
-
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Registrar Movimiento</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-list>
-        <ion-item>
-          <ion-select label="Tipo" placeholder="Seleccione" [(ngModel)]="nuevoMovimiento.tipo">
-            <ion-select-option value="ingreso">Ingreso (+)</ion-select-option>
-            <ion-select-option value="egreso">Egreso (-)</ion-select-option>
-          </ion-select>
-        </ion-item>
-
-        <ion-item>
-          <ion-input label="Monto (S/.)" type="number" placeholder="0.00" [(ngModel)]="nuevoMovimiento.monto"></ion-input>
-        </ion-item>
-
-        <ion-item>
-          <ion-input label="Descripción" type="text" placeholder="Ej. Venta de productos, pago..." [(ngModel)]="nuevoMovimiento.descripcion"></ion-input>
-        </ion-item>
-      </ion-list>
-
-      <div class="ion-padding-top">
-        <ion-button expand="block" (click)="registrarMovimiento()" [disabled]="!nuevoMovimiento.monto || !nuevoMovimiento.tipo">
-          Guardar Movimiento
-        </ion-button>
+    <div class="shift-banner">
+      <div class="banner-info">
+        <ion-icon name="wallet-outline"></ion-icon>
+        <div>
+          <h3>Caja actual</h3>
+          <p>Turno mañana – Admin · 08:00</p>
+        </div>
       </div>
-    </ion-card-content>
-  </ion-card>
+      <button class="btn-shift-close">
+        <ion-icon name="print-outline"></ion-icon> Cierre de turno
+      </button>
+    </div>
 
-  <h3 class="ion-padding-horizontal">Historial Reciente</h3>
+    <div class="kpi-status-row">
+      <div class="status-card">
+        <div class="kpi-header">
+          <span class="trend up"><ion-icon name="trending-up-outline"></ion-icon> Total Ingresos</span>
+        </div>
+        <div class="kpi-amount text-green">S/ {{ totalIngresos | number:'1.2-2' }}</div>
+        <div class="kpi-subtext">Movimientos calculados</div>
+      </div>
 
-  <ion-list lines="inset">
-    <ion-item *ngFor="let mov of historial">
-      <ion-icon slot="start"
-                [name]="mov.tipo === 'ingreso' ? 'arrow-up-circle' : 'arrow-down-circle'"
-                [color]="mov.tipo === 'ingreso' ? 'success' : 'danger'">
-      </ion-icon>
-      <ion-label>
-        <h2>{{ mov.descripcion }}</h2>
-        <p>{{ mov.fecha | date:'shortTime' }}</p>
-      </ion-label>
-      <ion-note slot="end" [color]="mov.tipo === 'ingreso' ? 'success' : 'danger'">
-        <strong>{{ mov.tipo === 'ingreso' ? '+' : '-' }} S/. {{ mov.monto.toFixed(2) }}</strong>
-      </ion-note>
-    </ion-item>
+      <div class="status-card">
+        <div class="kpi-header">
+          <span class="trend down"><ion-icon name="trending-down-outline"></ion-icon> Total Egresos</span>
+        </div>
+        <div class="kpi-amount text-red">S/ {{ totalEgresos | number:'1.2-2' }}</div>
+        <div class="kpi-subtext">Movimientos calculados</div>
+      </div>
 
-    <ion-item *ngIf="historial.length === 0" class="ion-text-center">
-      <ion-label color="medium">No hay movimientos registrados hoy.</ion-label>
-    </ion-item>
-  </ion-list>
+      <div class="status-card">
+        <div class="kpi-header">
+          <span class="trend neutral"><ion-icon name="cash-outline"></ion-icon> Efectivo en Caja</span>
+        </div>
+        <div class="kpi-amount text-purple">S/ {{ totalCaja | number:'1.2-2' }}</div>
+        <div class="kpi-subtext">Balance general actual</div>
+      </div>
+    </div>
 
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h4>Ingresos por hora</h4>
+        <div class="mock-chart">
+          <div class="bar-col"><div class="bar" style="height: 30%;"></div><span>10am</span></div>
+          <div class="bar-col"><div class="bar" style="height: 60%;"></div><span>11am</span></div>
+          <div class="bar-col"><div class="bar" style="height: 100%;"></div><span>12pm</span></div>
+          <div class="bar-col"><div class="bar" style="height: 75%;"></div><span>1pm</span></div>
+          <div class="bar-col"><div class="bar" style="height: 50%;"></div><span>2pm</span></div>
+          <div class="bar-col"><div class="bar" style="height: 35%;"></div><span>3pm</span></div>
+          <div class="bar-col"><div class="bar" style="height: 40%;"></div><span>4pm</span></div>
+        </div>
+      </div>
+
+      <div class="payment-methods-card">
+        <h4>Por método de pago</h4>
+        <div class="method-item">
+          <div class="method-header"><span class="badge green">Efectivo</span> <span>S/ 56.00</span></div>
+          <div class="progress-track"><div class="progress-fill green" style="width: 40%;"></div></div>
+        </div>
+        <div class="method-item">
+          <div class="method-header"><span class="badge blue">Tarjeta</span> <span>S/ 43.00</span></div>
+          <div class="progress-track"><div class="progress-fill blue" style="width: 30%;"></div></div>
+        </div>
+        <div class="method-item">
+          <div class="method-header"><span class="badge purple">Yape</span> <span>S/ 102.50</span></div>
+          <div class="progress-track"><div class="progress-fill purple" style="width: 70%;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <h4>Registrar Movimiento</h4>
+      <div class="form-row">
+        <div class="input-group">
+          <select [(ngModel)]="nuevoMovimiento.tipo" class="custom-input">
+            <option value="" disabled selected>Tipo de movimiento</option>
+            <option value="ingreso">Ingreso (+)</option>
+            <option value="egreso">Egreso (-)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <input type="number" class="custom-input" placeholder="Monto (S/.)" [(ngModel)]="nuevoMovimiento.monto">
+        </div>
+        <div class="input-group flex-grow">
+          <input type="text" class="custom-input" placeholder="Descripción (Ej. Venta, pago...)" [(ngModel)]="nuevoMovimiento.descripcion">
+        </div>
+        <button class="btn-save" (click)="registrarMovimiento()" [disabled]="!nuevoMovimiento.monto || !nuevoMovimiento.tipo">
+          Guardar
+        </button>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-card-header">
+        <div class="table-title">Movimientos del turno</div>
+        <div class="actions">
+          <button class="btn-outline green" (click)="nuevoMovimiento.tipo = 'ingreso'"><ion-icon name="add-outline"></ion-icon> Ingreso</button>
+          <button class="btn-outline red" (click)="nuevoMovimiento.tipo = 'egreso'"><ion-icon name="remove-outline"></ion-icon> Egreso</button>
+        </div>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr><th>Hora</th><th>Descripción</th><th>Método</th><th class="text-right">Monto</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let mov of historial">
+              <td class="time-cell">{{ mov.fecha?.seconds ? (mov.fecha.seconds * 1000 | date:'HH:mm') : (mov.fecha | date:'HH:mm') }}</td>
+              <td>{{ mov.descripcion }}</td>
+              <td>
+                <span class="badge" [ngClass]="mov.tipo === 'ingreso' ? 'green' : 'red'">
+                  {{ mov.tipo === 'ingreso' ? 'Efectivo' : 'Retiro' }}
+                </span>
+              </td>
+              <td class="text-right font-weight-bold" [ngClass]="mov.tipo === 'ingreso' ? 'text-green' : 'text-red'">
+                {{ mov.tipo === 'ingreso' ? '+' : '-' }} S/ {{ mov.monto | number:'1.2-2' }}
+              </td>
+            </tr>
+            <tr *ngIf="historial.length === 0">
+              <td colspan="4" class="text-center text-muted py-4">No hay movimientos registrados hoy.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
 </ion-content>

@@ -1,89 +1,227 @@
-ion-content {
-  --background: #f4f5f8;
+/* =========================
+   VARIABLES GLOBALES
+========================= */
+:host {
+  --bg-page: #f5f6fa;
+  --card-bg: #ffffff;
+  --text-main: #2b2b36;
+  --text-muted: #8c8ea7;
+  --border-light: #eaedf3;
+  --primary: #9620F5;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
 }
 
-ion-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  margin-bottom: 16px;
+.page-bg { --background: var(--bg-page); }
+.main-container { padding: 24px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.muted { color: var(--text-muted); }
+.text-dark { color: var(--text-main); }
+.text-green { color: var(--success); }
+.text-red { color: var(--danger); }
+.text-orange { color: var(--warning); }
+.font-weight-bold { font-weight: 600; }
+.text-center { text-align: center; }
+.py-4 { padding-top: 32px; padding-bottom: 32px; }
 
-  ion-card-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--ion-color-dark);
+/* =========================
+   TOP BAR (Breadcrumb)
+========================= */
+.top-header {
+  background: var(--card-bg); border-bottom: 1px solid var(--border-light);
+  ion-toolbar { --background: var(--card-bg); }
+  .header-content { display: flex; justify-content: space-between; align-items: center; padding: 0 16px; width: 100%; }
+  .breadcrumb { font-size: 14px; color: var(--text-main); }
+  .date-display { font-size: 13px; color: var(--text-muted); }
+}
+
+/* =========================
+   BARRA DE ACCIONES (Filtros)
+========================= */
+.action-toolbar {
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: space-between;
+
+  .search-box {
+    flex: 1; min-width: 200px; max-width: 300px; background: var(--card-bg); border: 1px solid var(--border-light);
+    border-radius: 8px; display: flex; align-items: center; padding: 0 16px; height: 42px;
+    ion-icon { color: var(--text-muted); font-size: 18px; margin-right: 12px; }
+    input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: var(--text-main); }
+  }
+
+  .filter-chips {
+    display: flex; gap: 8px; flex-wrap: wrap; flex: 2; justify-content: center;
+    .chip {
+      background: var(--card-bg); border: 1px solid var(--border-light); color: var(--text-muted);
+      padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: 0.2s; white-space: nowrap;
+      &:hover { background: #f8f9fa; }
+      &.active { background: var(--primary); color: white; border-color: var(--primary); }
+    }
+  }
+
+  .btn-primary {
+    background: var(--primary); color: white; border: none; height: 42px; border-radius: 8px; padding: 0 20px;
+    font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
+    &:hover { background: #8112db; }
   }
 }
 
-ion-list {
-  background: transparent;
+/* =========================
+   TARJETAS KPI
+========================= */
+.kpi-status-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px;
+}
+
+.status-card {
+  background: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border-light);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+  .kpi-amount { font-size: 1.8rem; font-weight: 700; margin-bottom: 4px; }
+  .kpi-subtext { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+}
+
+/* =========================
+   FORMULARIO
+========================= */
+.form-card {
+  background: var(--card-bg); border-radius: 16px; padding: 24px; border: 1px solid var(--border-light);
+  .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; h4 { margin: 0; font-size: 1.1rem; font-weight: 600; } }
+  .form-row { display: flex; flex-wrap: wrap; gap: 16px; }
+  .input-group { flex: 1; min-width: 150px; &.flex-grow { flex: 2; min-width: 250px; } label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; } }
+  .custom-input { width: 100%; height: 42px; border: 1px solid var(--border-light); border-radius: 8px; padding: 0 16px; font-size: 14px; outline: none; background: #fafafa; &:focus { border-color: var(--primary); background: white; } }
+  .btn-icon { background: transparent; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; }
+  .mt-20 { margin-top: 20px; } .ml-10 { margin-left: 10px; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-outline { background: transparent; border: 1px solid var(--border-light); height: 42px; border-radius: 8px; padding: 0 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   
-  .form-item {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    --background: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  .form-actions { display: flex; align-items: center; }
+}
+
+/* =========================
+   TABLA DE PRODUCTOS
+========================= */
+.table-card {
+  background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-light); overflow: hidden;
+  .table-card-header { padding: 20px 24px; border-bottom: 1px solid var(--border-light); .table-summary { font-size: 14px; color: var(--text-muted); font-weight: 500; } }
+  .table-responsive { overflow-x: auto; }
+  .custom-table {
+    width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap;
+    th { color: var(--text-muted); font-size: 13px; font-weight: 500; padding: 16px 24px; border-bottom: 1px solid var(--border-light); background: #fafafc; }
+    td { padding: 16px 24px; font-size: 14px; color: var(--text-main); border-bottom: 1px solid var(--border-light); vertical-align: middle; }
     
-    ion-input, ion-select {
-      font-size: 0.95rem;
-      --padding-start: 8px;
+    .product-cell { display: flex; align-items: center; gap: 12px; }
+    .product-icon { font-size: 20px; background: #f8f9fa; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+    .product-name { font-weight: 500; }
+
+    /* Badges de Categoría */
+    .badge {
+      padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      &.cat-pollos { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+      &.cat-acomp { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+      &.cat-bebidas { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+      &.cat-default { background: rgba(140, 142, 167, 0.1); color: var(--text-muted); }
     }
-  }
 
-  .last-item {
-    margin-bottom: 0px;
-  }
-}
-
-ion-button {
-  --border-radius: 8px;
-  font-weight: 600;
-  height: 48px;
-  margin-top: 4px;
-  
-  &.ion-margin-top {
-    margin-top: 12px;
-  }
-}
-
-ion-searchbar {
-  --border-radius: 10px;
-  padding: 8px 4px;
-}
-
-h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ion-color-step-600, #666666);
-  margin: 16px 0 12px 0;
-  padding-left: 4px;
-}
-
-ion-item-sliding {
-  margin-bottom: 6px;
-  
-  ion-item {
-    --background: #ffffff;
+    /* Botones de Acción */
+    .action-btn { background: transparent; border: none; font-size: 18px; padding: 6px; cursor: pointer; border-radius: 6px; transition: 0.2s; color: var(--text-muted); margin: 0 4px; }
+    .action-btn.edit:hover { color: var(--primary); background: rgba(150, 32, 245, 0.1); }
+    .action-btn.delete:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
     
-    ion-label {
-      h2 {
-        font-size: 1.05rem;
-        color: var(--ion-color-dark);
-        font-weight: 600;
-      }
-      p {
-        font-size: 0.85rem;
-        color: var(--ion-color-step-500, #737373);
-      }
+    tbody tr:hover { background: #fafbfe; }
+    tbody tr:last-child td { border-bottom: none; }
+  }
+}
+
+/* =========================
+   TOGGLE SWITCH (Disponible)
+========================= */
+.switch {
+  position: relative; display: inline-block; width: 34px; height: 20px;
+  input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: default; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
+  .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
+  input:checked + .slider { background-color: var(--success); }
+  input:checked + .slider:before { transform: translateX(14px); }
+  .slider.round { border-radius: 34px; }
+  .slider.round:before { border-radius: 50%; }
+}
+
+/* ========================================================
+   DISEÑO RESPONSIVE (Móviles y Tablets)
+======================================================== */
+
+@media (max-width: 992px) {
+  .main-container {
+    padding: 16px;
+  }
+  
+  .kpi-status-row {
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas de KPIs en tablet */
+  }
+}
+
+@media (max-width: 768px) {
+  /* Toolbar: Se apila todo en vertical */
+  .action-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+
+    .search-box {
+      max-width: 100%;
     }
 
-    .precio-note {
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: #b71c1c; // Tono rojo oscuro para destacar precios de la carta
-      background: #ffebee;
-      padding: 6px 10px;
-      border-radius: 6px;
+    /* Los chips se vuelven deslizables (Scroll Horizontal) para ahorrar espacio */
+    .filter-chips {
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      
+      &::-webkit-scrollbar { height: 0px; } /* Oculta la barra scroll visual en móviles */
     }
+
+    .btn-primary {
+      width: 100%;
+    }
+  }
+
+  /* Formulario: Inputs ocupan el 100% de la fila */
+  .form-card {
+    padding: 16px;
+    
+    .form-row {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .input-group, .input-group.flex-grow {
+      min-width: 100%;
+    }
+
+    .form-actions {
+      flex-direction: column;
+      gap: 10px;
+      
+      button {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  /* Cabecera superior */
+  .top-header .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 16px;
+    gap: 4px;
+  }
+  
+  /* KPIs: 1 columna en teléfonos pequeños */
+  .kpi-status-row {
+    grid-template-columns: 1fr;
   }
 }

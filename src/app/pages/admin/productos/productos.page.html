@@ -1,85 +1,158 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
+<ion-header class="ion-no-border top-header">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
-
-    <ion-title>Gestión de Productos</ion-title>
+    <div class="header-content">
+      <div class="breadcrumb">
+        <span class="muted">Pollería Dylan</span> / <strong>Productos</strong>
+      </div>
+      <div class="date-display">{{ fechaActual }}</div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content class="page-bg">
+  <div class="main-container">
 
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>{{ editando ? 'Modificar Producto' : 'Nuevo Producto' }}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-list lines="none">
-
-        <ion-item class="form-item">
-          <ion-input label="Nombre del Producto / Plato" labelPlacement="stacked" type="text" placeholder="Ej. 1/4 de Pollo a la Brasa" [(ngModel)]="nuevoProducto.nombre"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item">
-          <ion-input label="Precio de Venta (S/)" labelPlacement="stacked" type="number" placeholder="0.00" [(ngModel)]="nuevoProducto.precio"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item">
-          <ion-input label="Stock Actual (Unidades)" labelPlacement="stacked" type="number" placeholder="Ej. 50 (Dejar vacío si es ilimitado)" [(ngModel)]="nuevoProducto.stock"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item last-item">
-          <ion-select label="Categoría" labelPlacement="stacked" placeholder="Seleccione una categoría" [(ngModel)]="nuevoProducto.categoriaId">
-            <ion-select-option value="cat_pollos">Pollos a la Brasa 🍗</ion-select-option>
-            <ion-select-option value="cat_chifa">Chifa 🍜</ion-select-option>
-            <ion-select-option value="cat_bebidas">Bebidas 🥤</ion-select-option>
-          </ion-select>
-        </ion-item>
-      </ion-list>
-
-      <div class="ion-padding-top">
-        <ion-button expand="block" (click)="guardarProducto()" [disabled]="!nuevoProducto.nombre.trim() || !nuevoProducto.precio || !nuevoProducto.categoriaId">
-          <ion-icon slot="start" name="fast-food"></ion-icon>
-          {{ editando ? 'Actualizar Producto' : 'Registrar Producto' }}
-        </ion-button>
-        <ion-button *ngIf="editando" expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
-          Cancelar Edición
-        </ion-button>
+    <div class="action-toolbar">
+      <div class="search-box">
+        <ion-icon name="search-outline"></ion-icon>
+        <input type="text" placeholder="Buscar producto..." [(ngModel)]="textoBuscar" (input)="buscar()">
       </div>
-    </ion-card-content>
-  </ion-card>
 
-  <ion-searchbar placeholder="Buscar producto o plato..." [(ngModel)]="textoBuscar" (ionInput)="buscar()"></ion-searchbar>
+      <div class="filter-chips">
+        <button *ngFor="let cat of categoriasFiltro" 
+                class="chip" 
+                [ngClass]="{'active': filtroCategoria === cat}" 
+                (click)="seleccionarFiltro(cat)">
+          {{ cat }}
+        </button>
+      </div>
 
-  <h3>Carta e Inventario (Cloud)</h3>
+      <button class="btn-primary" (click)="abrirFormulario()">
+        <ion-icon name="add-outline"></ion-icon> Nuevo producto
+      </button>
+    </div>
 
-  <ion-list lines="inset">
-    <ion-item-sliding *ngFor="let producto of productosFiltrados">
-      <ion-item>
-        <ion-label>
-          <h2><strong>{{ producto.nombre }}</strong></h2>
-          <p> Stock: {{ producto.stock !== null ? producto.stock + ' und.' : 'Ilimitado (Cocina)' }}</p>
-        </ion-label>
+    <div class="kpi-status-row">
+      <div class="status-card">
+        <div class="kpi-amount text-dark">{{ totalProductos }}</div>
+        <div class="kpi-subtext">Total</div>
+      </div>
+      <div class="status-card">
+        <div class="kpi-amount text-green">{{ totalDisponibles }}</div>
+        <div class="kpi-subtext">Disponibles</div>
+      </div>
+      <div class="status-card">
+        <div class="kpi-amount text-red">{{ totalNoDisponibles }}</div>
+        <div class="kpi-subtext">No disp.</div>
+      </div>
+      <div class="status-card">
+        <div class="kpi-amount text-orange">{{ totalStockBajo }}</div>
+        <div class="kpi-subtext">Stock bajo</div>
+      </div>
+    </div>
 
-        <ion-note slot="end" class="precio-note">
-          S/ {{ producto.precio | number:'1.2-2' }}
-        </ion-note>
-      </ion-item>
+    <div class="form-card" *ngIf="mostrarFormulario">
+      <div class="form-header">
+        <h4>{{ editando ? 'Modificar Producto' : 'Nuevo Producto' }}</h4>
+        <button class="btn-icon" (click)="cerrarFormulario()"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      
+      <div class="form-row">
+        <div class="input-group flex-grow">
+          <label>Nombre del Producto</label>
+          <input type="text" class="custom-input" placeholder="Ej. 1/4 de Pollo a la Brasa" [(ngModel)]="nuevoProducto.nombre">
+        </div>
+        <div class="input-group">
+          <label>Precio (S/)</label>
+          <input type="number" class="custom-input" placeholder="0.00" [(ngModel)]="nuevoProducto.precio">
+        </div>
+        <div class="input-group">
+          <label>Stock</label>
+          <input type="number" class="custom-input" placeholder="Vacío = Ilimitado" [(ngModel)]="nuevoProducto.stock">
+        </div>
+        <div class="input-group">
+          <label>Categoría</label>
+          <select class="custom-input" [(ngModel)]="nuevoProducto.categoriaId">
+            <option value="cat_pollos">Pollos</option>
+            <option value="cat_chifa">Acompañamientos / Chifa</option>
+            <option value="cat_bebidas">Bebidas</option>
+            <option value="cat_postres">Postres</option>
+            <option value="cat_extras">Extras</option>
+          </select>
+        </div>
+      </div>
 
-      <ion-item-options side="end">
-        <ion-item-option color="warning" (click)="seleccionarProducto(producto)">
-          <ion-icon slot="icon-only" name="create"></ion-icon>
-        </ion-item-option>
-        <ion-item-option color="danger" (click)="eliminarProducto(producto.id)">
-          <ion-icon slot="icon-only" name="trash"></ion-icon>
-        </ion-item-option>
-      </ion-item-options>
-    </ion-item-sliding>
+      <div class="form-actions mt-20">
+        <button class="btn-primary" (click)="guardarProducto()" [disabled]="!nuevoProducto.nombre.trim() || !nuevoProducto.precio || !nuevoProducto.categoriaId">
+          {{ editando ? 'Actualizar Producto' : 'Registrar Producto' }}
+        </button>
+        <button class="btn-outline outline-dark ml-10" (click)="cerrarFormulario()">Cancelar</button>
+      </div>
+    </div>
 
-    <ion-item *ngIf="productosFiltrados.length === 0" class="ion-text-center">
-      <ion-label color="medium">No se encontraron productos en la base de datos.</ion-label>
-    </ion-item>
-  </ion-list>
+    <div class="table-card" *ngIf="!mostrarFormulario">
+      <div class="table-card-header">
+        <div class="table-summary">{{ productosFiltrados.length }} productos</div>
+      </div>
+      
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Precio</th>
+              <th>Stock</th>
+              <th>Disponible</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of productosFiltrados">
+              <td class="product-cell">
+                <span class="product-icon">{{ obtenerIcono(p.categoriaId) }}</span>
+                <span class="product-name">{{ p.nombre }}</span>
+              </td>
+              
+              <td>
+                <span class="badge" [ngClass]="obtenerClaseCategoria(p.categoriaId)">
+                  {{ obtenerNombreCategoria(p.categoriaId) }}
+                </span>
+              </td>
+              
+              <td class="font-weight-bold">S/ {{ p.precio | number:'1.2-2' }}</td>
+              
+              <td [ngClass]="{'text-red font-weight-bold': p.stock === 0}">
+                {{ p.stock !== null ? p.stock : '∞' }}
+              </td>
+              
+              <td>
+                <label class="switch">
+                  <input type="checkbox" [checked]="p.stock === null || p.stock > 0" disabled>
+                  <span class="slider round"></span>
+                </label>
+              </td>
+              
+              <td class="action-col text-center">
+                <button class="action-btn edit" (click)="seleccionarProducto(p)">
+                  <ion-icon name="pencil-outline"></ion-icon>
+                </button>
+                <button class="action-btn delete" (click)="eliminarProducto(p.id)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+              </td>
+            </tr>
 
-</ion-content>
+            <tr *ngIf="productosFiltrados.length === 0">
+              <td colspan="6" class="text-center py-4 text-muted">No se encontraron productos.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</ion-content>  

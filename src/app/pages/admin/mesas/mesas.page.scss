@@ -1,98 +1,230 @@
-// Estilos personalizados para la Gestión de Mesas - Pollería Dylan
+/* =========================
+   VARIABLES GLOBALES
+========================= */
+:host {
+  --bg-page: #f5f6fa;
+  --card-bg: #ffffff;
+  --text-main: #2b2b36;
+  --text-muted: #8c8ea7;
+  --border-light: #eaedf3;
+  
+  /* Colores de Estados */
+  --c-libre: #94a3b8;
+  --bg-libre: #f8fafc;
+  --border-libre: #e2e8f0;
 
-ion-content {
-  --background: #f4f5f8;
+  --c-activa: #3b82f6;
+  --bg-activa: #eff6ff;
+  --border-activa: #bfdbfe;
+
+  --c-cuenta: #f59e0b;
+  --bg-cuenta: #fffbeb;
+  --border-cuenta: #fde68a;
+
+  --c-reservada: #a855f7;
+  --bg-reservada: #faf5ff;
+  --border-reservada: #e9d5ff;
 }
 
-ion-card {
+.page-bg { --background: var(--bg-page); }
+.main-container { padding: 24px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.muted { color: var(--text-muted); }
+
+/* =========================
+   TOP BAR
+========================= */
+.top-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border-light);
+  ion-toolbar { --background: var(--card-bg); }
+  .header-content { display: flex; justify-content: space-between; align-items: center; padding: 0 16px; width: 100%; }
+  .breadcrumb { font-size: 14px; color: var(--text-main); }
+  .date-display { font-size: 13px; color: var(--text-muted); }
+}
+
+/* =========================
+   TARJETAS KPI
+========================= */
+.kpi-status-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.status-card {
+  background: var(--card-bg);
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  padding: 16px 20px;
+  border: 1px solid var(--border-light);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.01);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .kpi-header {
+    font-size: 13px; font-weight: 500; color: var(--text-muted); display: flex; align-items: center; gap: 8px;
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+  }
+  .kpi-amount { font-size: 1.5rem; font-weight: 600; color: var(--text-main); .muted { font-size: 1rem; } }
+
+  &.libre { border-color: var(--border-libre); .dot { background: var(--c-libre); } .kpi-amount { color: var(--c-libre); } }
+  &.activa { border-color: var(--border-activa); background: var(--bg-activa); .dot { background: var(--c-activa); } .kpi-amount { color: var(--c-activa); } }
+  &.cuenta { border-color: var(--border-cuenta); background: var(--bg-cuenta); .dot { background: var(--c-cuenta); } .kpi-amount { color: var(--c-cuenta); } }
+  &.reservada { border-color: var(--border-reservada); background: var(--bg-reservada); .dot { background: var(--c-reservada); } .kpi-amount { color: var(--c-reservada); } }
+}
+
+/* =========================
+   LAYOUT PRINCIPAL (GRID)
+========================= */
+.layout-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px; /* Panel izquierdo fluido, derecho fijo */
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 992px) {
+  .layout-grid { grid-template-columns: 1fr; } /* Se apila en móviles */
+}
+
+/* =========================
+   PLANO DEL SALÓN (MESAS)
+========================= */
+.salon-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border-light);
+  min-height: 500px;
+}
+
+.salon-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  h4 { margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+}
+
+.mesas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 16px;
+}
+
+.mesa-item {
+  height: 100px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+
+  .mesa-nombre { font-weight: 600; font-size: 1.1rem; color: var(--text-main); }
+  .mesa-estado { font-size: 0.8rem; font-weight: 500; }
+
+  &.estado-libre {
+    border-color: var(--border-libre); background: var(--card-bg);
+    .mesa-nombre { color: var(--text-muted); } .mesa-estado { color: var(--c-libre); opacity: 0; }
+    &:hover { border-color: var(--c-libre); }
+  }
+
+  &.estado-activa {
+    border-color: var(--c-activa); background: var(--bg-activa);
+    .mesa-nombre { color: var(--c-activa); } .mesa-estado { color: var(--c-activa); }
+  }
+
+  &.estado-reservada {
+    border-color: var(--c-reservada); background: var(--bg-reservada);
+    .mesa-nombre { color: var(--c-reservada); } .mesa-estado { color: var(--c-reservada); }
+  }
+
+  /* Estado Seleccionado (Aura Exterior) */
+  &.seleccionada {
+    &::after {
+      content: ''; position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px;
+      border: 2px solid; border-radius: 16px; pointer-events: none;
+    }
+    &.estado-libre::after { border-color: var(--c-libre); }
+    &.estado-activa::after { border-color: var(--c-activa); }
+    &.estado-reservada::after { border-color: var(--c-reservada); }
+  }
+}
+
+/* =========================
+   PANEL LATERAL (DERECHO)
+========================= */
+.side-card {
+  background: var(--card-bg);
+  border-radius: 16px;
+  padding: 24px;
+  border: 1px solid var(--border-light);
+  min-height: 300px;
+
+  .side-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
+    h4 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+  }
+
+  /* Badges */
+  .badge {
+    padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    &.libre { background: var(--bg-libre); border: 1px solid var(--border-libre); color: var(--c-libre); }
+    &.activa { background: var(--bg-activa); border: 1px solid var(--border-activa); color: var(--c-activa); }
+    &.reservada { background: var(--bg-reservada); border: 1px solid var(--border-reservada); color: var(--c-reservada); }
+  }
+
+  /* Vista Vacía */
+  &.empty-view {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted);
+    ion-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+  }
+}
+
+/* Info del Detalle */
+.info-list {
+  display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;
+  .info-item { display: flex; align-items: center; gap: 10px; color: var(--text-muted); font-size: 0.95rem; ion-icon { font-size: 1.2rem; } }
+}
+
+/* Caja de Consumo */
+.consumo-box {
+  background: #fdfaab; /* Amarillo suave para cuenta */
+  background: rgba(168, 85, 247, 0.05); /* Morado suave prototipo */
+  border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 4px; margin-bottom: 24px; border: 1px solid var(--border-reservada);
+  .label { font-size: 0.85rem; color: var(--text-muted); }
+  .amount { font-size: 1.5rem; font-weight: 600; color: var(--c-reservada); }
+}
+
+.empty-mesa { font-size: 1.1rem; color: var(--text-muted); margin: 40px 0 10px 0; }
+.text-center { text-align: center; } .muted-text { color: var(--text-muted); font-size: 0.9rem; }
+
+/* =========================
+   FORMULARIO INLINE
+========================= */
+.form-group {
   margin-bottom: 16px;
-
-  ion-card-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--ion-color-dark);
-  }
+  label { display: block; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 8px; }
+  .custom-input { width: 100%; height: 44px; border: 1px solid var(--border-light); border-radius: 8px; padding: 0 16px; background: #fafafa; outline: none; transition: 0.2s; &:focus { border-color: var(--c-activa); background: white; } }
 }
 
-ion-list {
-  background: transparent;
-  
-  .form-item {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    --background: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    
-    ion-input, ion-select {
-      font-size: 0.95rem;
-      --padding-start: 8px;
-    }
-  }
+/* =========================
+   BOTONES
+========================= */
+.full-width { width: 100%; } .mt-10 { margin-top: 10px; } .mb-10 { margin-bottom: 10px; } .mt-20 { margin-top: 20px; }
+.btn-icon { background: transparent; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; }
 
-  .last-item {
-    margin-bottom: 0px;
-  }
-}
+.btn-primary { background: #9620F5; color: white; border: none; height: 44px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; &:disabled { background: var(--border-light); color: var(--text-muted); cursor: not-allowed; } }
+.btn-danger-outline { background: transparent; color: #ef4444; border: 1px solid #ef4444; height: 44px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-ion-button {
-  --border-radius: 8px;
-  font-weight: 600;
-  height: 48px;
-  margin-top: 4px;
-  
-  &.ion-margin-top {
-    margin-top: 12px;
-  }
-}
-
-h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ion-color-step-600, #666666);
-  margin: 24px 0 12px 0;
-  padding-left: 8px;
-}
-
-ion-item-sliding {
-  margin-bottom: 6px;
-  background: transparent;
-  
-  ion-item {
-    --background: #ffffff;
-    
-    ion-label {
-      h2 {
-        font-size: 1.05rem;
-        color: var(--ion-color-dark);
-        margin-bottom: 4px;
-      }
-      p {
-        font-size: 0.85rem;
-        color: var(--ion-color-step-500, #737373);
-      }
-    }
-
-    ion-badge {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      padding: 6px 10px;
-      border-radius: 6px;
-    }
-  }
-}
-
-ion-item-options {
-  ion-item-option {
-    font-size: 1.1rem;
-    padding-left: 16px;
-    padding-right: 16px;
-    
-    ion-icon {
-      font-size: 22px;
-    }
-  }
+.btn-outline {
+  background: transparent; border: 1px solid; border-radius: 8px; height: 40px; padding: 0 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.2s;
+  &.outline-dark { color: var(--text-main); border-color: var(--border-light); &:hover { background: #f8f9fa; } }
+  &.outline-yellow { color: var(--c-cuenta); border-color: var(--border-cuenta); &:hover { background: var(--bg-cuenta); } }
+  &.outline-red { color: #ef4444; border-color: #fca5a5; &:hover { background: #fef2f2; } }
 }

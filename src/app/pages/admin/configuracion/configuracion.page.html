@@ -3,68 +3,39 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/dashboard"></ion-back-button>
     </ion-buttons>
-
     <ion-title>Configuración</ion-title>
+  </ion-toolbar>
+
+  <ion-toolbar class="tabs-toolbar">
+    <ion-segment value="general">
+      <ion-segment-button value="general"><ion-label>General</ion-label></ion-segment-button>
+      <ion-segment-button value="horarios"><ion-label>Horarios</ion-label></ion-segment-button>
+      <ion-segment-button value="impresion"><ion-label>Impresión</ion-label></ion-segment-button>
+      <ion-segment-button value="pagos"><ion-label>Pagos</ion-label></ion-segment-button>
+    </ion-segment>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content>
+  <div class="settings-container">
+    <div class="section-title">Datos del restaurante</div>
+    <div class="input-group">
+      <div class="input-wrapper"><label>Nombre del negocio</label><input type="text" [(ngModel)]="config.nombreEmpresa"></div>
+      <div class="input-wrapper"><label>RUC</label><input type="text" [(ngModel)]="config.ruc"></div>
+      <div class="input-wrapper"><label>Dirección</label><input type="text" [(ngModel)]="config.direccion"></div>
+      <div class="input-wrapper"><label>Teléfono</label><input type="text" [(ngModel)]="config.telefono"></div>
+    </div>
 
-  <ion-card color="light">
-    <ion-card-header>
-      <ion-card-subtitle>Estado del Sistema</ion-card-subtitle>
-      <ion-card-title>Sincronización Cloud</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-item lines="none" class="estado-conexion">
-        <ion-icon slot="start" name="cloud-done" color="success"></ion-icon>
-        <ion-label>
-          <h2>Conectado</h2>
-          <p>Base de datos en la nube activa</p>
-        </ion-label>
-        <ion-note slot="end" color="success">ONLINE</ion-note>
-      </ion-item>
-    </ion-card-content>
-  </ion-card>
+    <div class="section-title">Configuración fiscal</div>
+    <div class="input-group">
+      <div class="input-wrapper"><label>Moneda</label><input type="text" [(ngModel)]="config.moneda"></div>
+    </div>
 
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>Datos del Establecimiento</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-list lines="none">
-
-        <ion-item class="form-item">
-          <ion-input label="RUC / Identificación" labelPlacement="stacked" type="text" placeholder="Ej. 20123456789" [(ngModel)]="config.ruc"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item">
-          <ion-input label="Nombre Comercial / Razón Social" labelPlacement="stacked" type="text" placeholder="Ej. Mi Negocio S.A.C." [(ngModel)]="config.nombreEmpresa"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item">
-          <ion-input label="Teléfono de Contacto" labelPlacement="stacked" type="tel" placeholder="Ej. 987654321" [(ngModel)]="config.telefono"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item">
-          <ion-input label="Dirección Fiscal" labelPlacement="stacked" type="text" placeholder="Dirección del local" [(ngModel)]="config.direccion"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item last-item">
-          <ion-select label="Moneda Principal" labelPlacement="stacked" [(ngModel)]="config.moneda">
-            <ion-select-option value="PEN">Soles (S/.)</ion-select-option>
-            <ion-select-option value="USD">Dólares ($)</ion-select-option>
-          </ion-select>
-        </ion-item>
-      </ion-list>
-
-      <div class="ion-padding-top">
-        <ion-button expand="block" (click)="guardarConfiguracion()" [disabled]="guardando || !config.nombreEmpresa.trim()">
-          <ion-icon slot="start" name="save"></ion-icon>
-          {{ guardando ? 'Guardando en Cloud...' : 'Guardar Configuración' }}
-        </ion-button>
-      </div>
-    </ion-card-content>
-  </ion-card>
-
+    <div class="footer-actions">
+      <ion-button (click)="guardarConfiguracion()" [disabled]="guardando">
+        <ion-icon slot="start" name="save"></ion-icon>
+        {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+      </ion-button>
+    </div>
+  </div>
 </ion-content>

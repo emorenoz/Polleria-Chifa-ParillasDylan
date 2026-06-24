@@ -1,94 +1,184 @@
-// Estilos para el Control de Stock de Pollería Dylan
-
-ion-content {
-  --background: #f4f5f8;
+/* =========================
+   VARIABLES GLOBALES
+========================= */
+:host {
+  --bg-page: #f5f6fa;
+  --card-bg: #ffffff;
+  --text-main: #2b2b36;
+  --text-muted: #8c8ea7;
+  --border-light: #eaedf3;
+  --primary: #9620F5;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
 }
 
-ion-card {
+.page-bg { --background: var(--bg-page); }
+.main-container { padding: 24px; max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.text-muted { color: var(--text-muted); }
+.text-dark { color: var(--text-main); }
+.text-green { color: var(--success); }
+.text-red { color: var(--danger); }
+.text-yellow { color: var(--warning); }
+.text-center { text-align: center; }
+.py-4 { padding-top: 32px; padding-bottom: 32px; }
+
+/* =========================
+   TOP BAR
+========================= */
+.top-header {
+  background: var(--card-bg); border-bottom: 1px solid var(--border-light);
+  ion-toolbar { --background: var(--card-bg); }
+  .header-content { display: flex; justify-content: space-between; align-items: center; padding: 0 16px; width: 100%; }
+  .breadcrumb { font-size: 14px; color: var(--text-main); }
+  .date-display { font-size: 13px; color: var(--text-muted); }
+}
+
+/* =========================
+   BANNER DE ALERTA
+========================= */
+.alert-banner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  margin-bottom: 16px;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--warning);
 
-  ion-card-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: var(--ion-color-dark);
+  .alert-info {
+    display: flex; align-items: center; gap: 12px; font-size: 15px;
+    ion-icon { font-size: 24px; }
+    strong { font-weight: 600; }
+  }
+  
+  .btn-warning-solid {
+    background: var(--warning); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+    &:hover { background: #d97706; }
   }
 }
 
-ion-list {
-  background: transparent;
+/* =========================
+   TARJETAS KPI
+========================= */
+.kpi-status-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+
+.status-card {
+  background: var(--card-bg); border-radius: 12px; padding: 24px 20px; border: 1px solid var(--border-light);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.01); border-top-width: 4px;
   
-  .form-item {
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    --background: #ffffff;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  &.border-gray { border-top-color: var(--border-light); }
+  &.border-green { border-top-color: rgba(16, 185, 129, 0.5); }
+  &.border-yellow { border-top-color: rgba(245, 158, 11, 0.5); }
+  &.border-red { border-top-color: rgba(239, 68, 68, 0.5); }
+
+  .kpi-amount { font-size: 2rem; font-weight: 700; margin-bottom: 4px; }
+  .kpi-subtext { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+}
+
+/* =========================
+   BARRA DE ACCIONES
+========================= */
+.action-toolbar {
+  display: flex; gap: 16px; align-items: center; flex-wrap: wrap; justify-content: space-between;
+
+  .search-box {
+    flex: 1; min-width: 250px; max-width: 350px; background: var(--card-bg); border: 1px solid var(--border-light);
+    border-radius: 8px; display: flex; align-items: center; padding: 0 16px; height: 42px;
+    ion-icon { color: var(--text-muted); font-size: 18px; margin-right: 12px; }
+    input { border: none; background: transparent; outline: none; width: 100%; font-size: 14px; color: var(--text-main); }
+  }
+
+  .actions {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    .btn-outline { background: var(--card-bg); border: 1px solid var(--border-light); color: var(--text-muted); height: 42px; border-radius: 8px; padding: 0 16px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s;
+      &.outline-dark { color: var(--text-main); }
+      &.active { border-color: var(--warning); color: var(--warning); background: #fffbeb; }
+      &:hover:not(.active) { background: #f8f9fa; }
+    }
+    .btn-primary { background: var(--primary); color: white; border: none; height: 42px; border-radius: 8px; padding: 0 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; &:hover { background: #8112db; } }
+  }
+}
+
+/* =========================
+   FORMULARIO INLINE
+========================= */
+.form-card {
+  background: var(--card-bg); border-radius: 16px; padding: 24px; border: 1px solid var(--border-light);
+  .form-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; h4 { margin: 0; font-size: 1.1rem; font-weight: 600; } }
+  .form-row { display: flex; flex-wrap: wrap; gap: 16px; }
+  .input-group { flex: 1; min-width: 150px; &.flex-grow { flex: 2; min-width: 250px; } &.short { flex: 0.5; min-width: 100px; } label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; } }
+  .custom-input { width: 100%; height: 42px; border: 1px solid var(--border-light); border-radius: 8px; padding: 0 16px; font-size: 14px; outline: none; background: #fafafa; &:focus { border-color: var(--primary); background: white; } }
+  .btn-icon { background: transparent; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; }
+  .mt-20 { margin-top: 20px; } .ml-10 { margin-left: 10px; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-outline.outline-red { color: var(--danger); border-color: #fca5a5; &:hover { background: #fef2f2; } }
+  .form-actions { display: flex; align-items: center; }
+}
+
+/* =========================
+   TABLA DE INVENTARIO
+========================= */
+.table-card {
+  background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-light); overflow: hidden;
+  .table-responsive { overflow-x: auto; }
+  .custom-table {
+    width: 100%; border-collapse: collapse; text-align: left; white-space: nowrap;
+    th { color: var(--text-muted); font-size: 13px; font-weight: 500; padding: 16px 24px; border-bottom: 1px solid var(--border-light); background: #fafafc; }
+    td { padding: 16px 24px; font-size: 14px; color: var(--text-main); border-bottom: 1px solid var(--border-light); vertical-align: middle; }
     
-    ion-input {
-      font-size: 0.95rem;
-      --padding-start: 8px;
+    .insumo-cell { display: flex; align-items: center; gap: 12px; }
+    .icon-emoji { font-size: 20px; }
+    .insumo-name { font-weight: 500; }
+
+    /* Barra de stock visual */
+    .stock-display { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; margin: 0 auto; }
+    .stock-num { font-weight: 600; font-size: 15px; }
+    .stock-bar-bg { width: 100%; height: 4px; background: #f1f5f9; border-radius: 4px; overflow: hidden; }
+    .stock-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+    .bg-green { background: var(--success); } .bg-yellow { background: var(--warning); } .bg-red { background: var(--danger); }
+
+    /* Badges de Estado */
+    .badge {
+      padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase;
+      &.text-green { background: rgba(16, 185, 129, 0.1); }
+      &.text-yellow { background: rgba(245, 158, 11, 0.1); }
+      &.text-red { background: rgba(239, 68, 68, 0.1); }
     }
-  }
 
-  .last-item {
-    margin-bottom: 0px;
-  }
-}
+    /* Control de Ajuste Rápido (+/-) */
+    .adjust-control { display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .btn-adjust { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border-light); background: var(--card-bg); color: var(--text-main); font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; &:hover { background: #f1f5f9; } }
 
-ion-button {
-  --border-radius: 8px;
-  font-weight: 600;
-  height: 48px;
-  margin-top: 4px;
-
-  ion-icon {
-    margin-right: 6px;
-    font-size: 18px;
-  }
-  
-  &.ion-margin-top {
-    margin-top: 12px;
-  }
-}
-
-ion-searchbar {
-  --border-radius: 10px;
-  padding: 8px 4px;
-}
-
-h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--ion-color-step-600, #666666);
-  margin: 16px 0 12px 0;
-  padding-left: 4px;
-}
-
-ion-item-sliding {
-  margin-bottom: 6px;
-  
-  ion-item {
-    --background: #ffffff;
+    /* Acción Edit */
+    .action-btn { background: transparent; border: none; font-size: 18px; padding: 6px; cursor: pointer; border-radius: 6px; transition: 0.2s; color: var(--text-muted); }
+    .action-btn.edit:hover { color: var(--primary); background: rgba(150, 32, 245, 0.1); }
     
-    ion-label {
-      h2 {
-        font-size: 1.05rem;
-        color: var(--ion-color-dark);
-        font-weight: 600;
-      }
-      p {
-        font-size: 0.85rem;
-        color: var(--ion-color-step-500, #737373);
-      }
-    }
+    tbody tr:hover { background: #fafbfe; }
+    tbody tr:last-child td { border-bottom: none; }
+  }
+}
 
-    ion-badge {
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 6px 12px;
-      border-radius: 6px;
-    }
+/* ========================================================
+   DISEÑO RESPONSIVE
+======================================================== */
+@media (max-width: 992px) {
+  .kpi-status-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .action-toolbar {
+    flex-direction: column; align-items: stretch;
+    .search-box { max-width: 100%; }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; button { justify-content: center; width: 100%; } .btn-primary { grid-column: 1 / -1; } }
+  }
+  .form-card .form-row { flex-direction: column; .input-group, .input-group.flex-grow, .input-group.short { min-width: 100%; } }
+  .form-actions { flex-direction: column; gap: 10px; button { width: 100%; margin-left: 0 !important; } }
+  
+  .alert-banner {
+    flex-direction: column; gap: 16px; text-align: center;
+    .btn-warning-solid { width: 100%; }
   }
 }

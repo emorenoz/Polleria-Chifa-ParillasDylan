@@ -1,84 +1,178 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
+<ion-header class="ion-no-border top-header">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
-
-    <ion-title>Control de Usuarios</ion-title>
+    <div class="header-content">
+      <div class="breadcrumb">
+        <span class="muted">Pollería Dylan</span> / <strong>Usuarios</strong>
+      </div>
+      <div class="date-display">{{ fechaActual }}</div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content class="page-bg">
+  <div class="main-container">
 
-  <ion-card>
-    <ion-card-header>
-      <ion-card-title>{{ editando ? 'Modificar Personal' : 'Nuevo Usuario / Colaborador' }}</ion-card-title>
-    </ion-card-header>
-    <ion-card-content>
-      <ion-list lines="none">
-
-        <ion-item class="form-item">
-          <ion-input label="Nombre Completo" labelPlacement="stacked" type="text" placeholder="Ej. Juan Pérez" [(ngModel)]="nuevoUsuario.nombre"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item">
-          <ion-input label="Correo Electrónico" labelPlacement="stacked" type="email" placeholder="ejemplo@dylan.com" [(ngModel)]="nuevoUsuario.email" [disabled]="editando"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item" *ngIf="!editando">
-          <ion-input label="Contraseña de Acceso" labelPlacement="stacked" type="password" placeholder="Mínimo 6 caracteres" [(ngModel)]="nuevoUsuario.password"></ion-input>
-        </ion-item>
-
-        <ion-item class="form-item last-item">
-          <ion-select label="Rol del Sistema" labelPlacement="stacked" placeholder="Selecciona un rol" [(ngModel)]="nuevoUsuario.rol">
-            <ion-select-option value="admin">Administrador 👑</ion-select-option>
-            <ion-select-option value="cajero">Cajero 💰</ion-select-option>
-            <ion-select-option value="mesero">Mesero / Mozo 🍽️</ion-select-option>
-          </ion-select>
-        </ion-item>
-
-      </ion-list>
-
-      <div class="ion-padding-top">
-        <ion-button expand="block" (click)="guardarUsuario()" [disabled]="!nuevoUsuario.nombre.trim() || !nuevoUsuario.email.trim() || (!editando && !nuevoUsuario.password) || !nuevoUsuario.rol">
-          <ion-icon slot="start" name="people"></ion-icon>
-          {{ editando ? 'Actualizar Permisos' : 'Dar de Alta Personal' }}
-        </ion-button>
-        <ion-button *ngIf="editando" expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
-          Cancelar Edición
-        </ion-button>
+    <div class="kpi-status-row">
+      <div class="status-card bg-purple-light border-purple">
+        <div class="kpi-icon text-purple"><ion-icon name="shield-checkmark-outline"></ion-icon></div>
+        <div class="kpi-info">
+          <div class="kpi-amount text-purple">{{ totalAdmins }}</div>
+          <div class="kpi-subtext">Admins</div>
+        </div>
       </div>
-    </ion-card-content>
-  </ion-card>
+      
+      <div class="status-card bg-blue-light border-blue">
+        <div class="kpi-icon text-blue"><ion-icon name="people-outline"></ion-icon></div>
+        <div class="kpi-info">
+          <div class="kpi-amount text-blue">{{ totalMeseros }}</div>
+          <div class="kpi-subtext">Meseros</div>
+        </div>
+      </div>
 
-  <h3>Personal del Establecimiento</h3>
+      <div class="status-card bg-orange-light border-orange">
+        <div class="kpi-icon text-orange"><ion-icon name="restaurant-outline"></ion-icon></div>
+        <div class="kpi-info">
+          <div class="kpi-amount text-orange">{{ totalCocinas }}</div>
+          <div class="kpi-subtext">Cocinas</div>
+        </div>
+      </div>
 
-  <ion-list lines="inset">
-    <ion-item-sliding *ngFor="let usuario of listaUsuarios">
-      <ion-item>
-        <ion-label>
-          <h2><strong>{{ usuario.nombre }}</strong></h2>
-          <p>{{ usuario.email }}</p>
-        </ion-label>
+      <div class="status-card bg-green-light border-green">
+        <div class="kpi-icon text-green"><ion-icon name="cash-outline"></ion-icon></div>
+        <div class="kpi-info">
+          <div class="kpi-amount text-green">{{ totalCajas }}</div>
+          <div class="kpi-subtext">Cajas</div>
+        </div>
+      </div>
+    </div>
 
-        <ion-badge slot="end" [color]="usuario.rol === 'admin' ? 'danger' : (usuario.rol === 'cajero' ? 'success' : 'primary')">
-          {{ usuario.rol | uppercase }}
-        </ion-badge>
-      </ion-item>
+    <div class="action-toolbar">
+      <div class="search-box">
+        <ion-icon name="search-outline"></ion-icon>
+        <input type="text" placeholder="Buscar usuario..." [(ngModel)]="textoBuscar" (input)="buscar()">
+      </div>
 
-      <ion-item-options side="end">
-        <ion-item-option color="warning" (click)="seleccionarUsuario(usuario)">
-          <ion-icon slot="icon-only" name="create"></ion-icon>
-        </ion-item-option>
-        <ion-item-option color="danger" (click)="eliminarUsuario(usuario.id)">
-          <ion-icon slot="icon-only" name="trash"></ion-icon>
-        </ion-item-option>
-      </ion-item-options>
-    </ion-item-sliding>
+      <div class="filter-chips">
+        <button *ngFor="let rol of opcionesFiltro" 
+                class="chip" 
+                [ngClass]="{'active': filtroRol === rol}" 
+                (click)="seleccionarFiltro(rol)">
+          {{ rol }}
+        </button>
+      </div>
 
-    <ion-item *ngIf="listaUsuarios.length === 0" class="ion-text-center">
-      <ion-label color="medium">No hay usuarios configurados en la plantilla.</ion-label>
-    </ion-item>
-  </ion-list>
+      <button class="btn-primary" (click)="abrirFormulario()">
+        <ion-icon name="add-outline"></ion-icon> Nuevo usuario
+      </button>
+    </div>
 
+    <div class="form-card" *ngIf="mostrarFormulario">
+      <div class="form-header">
+        <h4>{{ editando ? 'Modificar Usuario' : 'Nuevo Usuario' }}</h4>
+        <button class="btn-icon" (click)="cerrarFormulario()"><ion-icon name="close-outline"></ion-icon></button>
+      </div>
+      
+      <div class="form-row">
+        <div class="input-group flex-grow">
+          <label>Nombre Completo</label>
+          <input type="text" class="custom-input" placeholder="Ej. Juan Pérez" [(ngModel)]="nuevoUsuario.nombre">
+        </div>
+        <div class="input-group">
+          <label>Usuario / Correo</label>
+          <input type="email" class="custom-input" placeholder="@usuario o correo" [(ngModel)]="nuevoUsuario.email" [disabled]="editando">
+        </div>
+        
+        <div class="input-group" *ngIf="!editando">
+          <label>Contraseña</label>
+          <input type="password" class="custom-input" placeholder="Mínimo 6 caracteres" [(ngModel)]="nuevoUsuario.password">
+        </div>
+        
+        <div class="input-group">
+          <label>Rol del Sistema</label>
+          <select class="custom-input" [(ngModel)]="nuevoUsuario.rol">
+            <option value="admin">Admin</option>
+            <option value="mesero">Mesero</option>
+            <option value="cocina">Cocina</option>
+            <option value="caja">Caja</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions mt-20">
+        <button class="btn-primary" (click)="guardarUsuario()" [disabled]="!nuevoUsuario.nombre.trim() || !nuevoUsuario.email.trim() || (!editando && !nuevoUsuario.password) || !nuevoUsuario.rol">
+          {{ editando ? 'Actualizar Permisos' : 'Dar de Alta Personal' }}
+        </button>
+        <button class="btn-outline outline-dark ml-10" (click)="cerrarFormulario()">Cancelar</button>
+      </div>
+    </div>
+
+    <div class="table-card" *ngIf="!mostrarFormulario">
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th class="text-center">Rol</th>
+              <th class="text-center">Turno</th>
+              <th class="text-center">Último acceso</th>
+              <th class="text-center">Estado</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of usuariosFiltrados" [ngClass]="{'disabled-row': !u.estadoActivo}">
+              
+              <td class="user-cell">
+                <div class="avatar" [ngClass]="obtenerColorAvatar(u.nombre)">
+                  {{ obtenerInicial(u.nombre) }}
+                </div>
+                <span class="username">{{ formatUsername(u.email) }}</span>
+              </td>
+              
+              <td class="user-name-col">{{ u.nombre }}</td>
+              
+              <td class="text-center">
+                <span class="badge" [ngClass]="obtenerClaseRol(u.rol)">
+                  <ion-icon [name]="obtenerIconoRol(u.rol)"></ion-icon> {{ obtenerNombreRol(u.rol) }}
+                </span>
+              </td>
+              
+              <td class="text-center text-muted">
+                {{ u.rol === 'admin' ? 'Completo' : (u.rol === 'caja' ? 'Noche' : 'Mañana') }}
+              </td>
+              
+              <td class="text-center text-muted">
+                {{ u.estadoActivo ? 'Hoy 08:00' : 'Hace 1 semana' }}
+              </td>
+              
+              <td class="text-center">
+                <label class="switch">
+                  <input type="checkbox" [checked]="u.estadoActivo" (change)="toggleEstadoUsuario(u)">
+                  <span class="slider round"></span>
+                </label>
+              </td>
+              
+              <td class="action-col text-center">
+                <button class="action-btn edit" (click)="seleccionarUsuario(u)">
+                  <ion-icon name="pencil-outline"></ion-icon>
+                </button>
+                <button class="action-btn delete" (click)="eliminarUsuario(u.id)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+              </td>
+            </tr>
+
+            <tr *ngIf="usuariosFiltrados.length === 0">
+              <td colspan="7" class="text-center py-4 text-muted">No se encontraron usuarios registrados.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
 </ion-content>
