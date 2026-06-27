@@ -26,10 +26,14 @@ import {
 import { addIcons } from 'ionicons';
 import { analytics, documentTextOutline, arrowBack, downloadOutline } from 'ionicons/icons';
 
+// Módulos funcionales de Firebase optimizados para consultas (Queries)
 import {
   Firestore,
   collection,
-  getDocs
+  getDocs,
+  query,
+  where,
+  orderBy
 } from '@angular/fire/firestore';
 
 @Component({
@@ -65,11 +69,11 @@ export class ReportesPage implements OnInit {
 
   private firestore = inject(Firestore);
 
-  // --- VARIABLES DE INTERFAZ NUEVAS ---
+  // --- VARIABLES DE INTERFAZ ---
   fechaActual: string = '';
   rangosTiempo = ['Esta semana', 'Este mes', 'Últimos 3 meses', 'Este año'];
   rangoSeleccionado: string = 'Este mes';
-  coloresMetodo = ['green', 'blue', 'purple']; // Para el gráfico de donut
+  coloresMetodo = ['green', 'blue', 'purple', 'amber']; // Expandido para soportar más métodos
 
   filtros = {
     fechaInicio: '',
@@ -93,7 +97,7 @@ export class ReportesPage implements OnInit {
     { nombre: '#2 1/4 Pollo', cantidad: 287, porcentaje: 92 },
     { nombre: '#3 Pollo Entero', cantidad: 198, porcentaje: 63 },
     { nombre: '#4 Alitas x6', cantidad: 174, porcentaje: 55 },
-    { nombre: '#5 Papas Fritas', cantidad: 421, porcentaje: 85 }, // El valor es mayor, pero en el mock el pollo es #1
+    { nombre: '#5 Papas Fritas', cantidad: 421, porcentaje: 85 },
     { nombre: '#6 Gaseosa 1.5L', cantidad: 389, porcentaje: 78 }
   ];
 
@@ -103,7 +107,7 @@ export class ReportesPage implements OnInit {
 
   ngOnInit() {
     this.configurarFecha();
-    this.seleccionarRango('Este mes'); // Auto-carga al entrar
+    this.seleccionarRango('Este mes'); // Auto-carga controlada al iniciar
   }
 
   configurarFecha() {
@@ -111,22 +115,50 @@ export class ReportesPage implements OnInit {
     this.fechaActual = new Date().toLocaleDateString('es-PE', opciones);
   }
 
-  // --- CONTROL DE FILTROS ---
+  // ==========================================================================
+  // LÓGICA DE CONTROL DE RANGOS CRÍTICA PARA FILTRADO REAL
+  // ==========================================================================
   seleccionarRango(rango: string) {
     this.rangoSeleccionado = rango;
-    
-    // Aquí podrías agregar lógica real de Date() para calcular fechaInicio y fechaFin
-    // Por ahora, simulamos y cargamos la BD de Firebase general para ver los datos
-    const hoy = new Date().toISOString().split('T')[0];
-    this.filtros.fechaInicio = hoy; // En prod, restar días según el rango
-    this.filtros.fechaFin = hoy;
-    
-    this.generarReporte();
-  }
 
-  exportarPDF() {
-    console.log("Generando PDF del reporte actual...");
-    // Lógica futura de exportación PDF
+    const hoy = new Date();
+    let fechaInicioDate = new Date();
+
+    // Resetear horas para abarcar los días completos de forma exacta
+    hoy.setHours(23, 59, 59, 999);
+    fechaInicioDate.setHours(0, 0, 0, 0);
+
+    switch (rango) {
+      case 'Esta semana':
+        // Calcular el inicio de la semana (Lunes)
+        const diaSemana = fechaInicioDate.getDay();
+        const distanciaALunes = diaSemana === 0 ? 6 : diaSemana - 1;
+        fechaInicioDate.setDate(fechaInicioDate.getDate() - distanciaALunes);
+        break;
+
+      case 'Este mes':
+        // Primer día del mes actual
+        fechaInicioDate.setDate(1);
+        break;
+
+      case 'Últimos 3 meses':
+        // Restar 3 meses atrás desde el día 1
+        fechaInicioDate.setMonth(fechaInicioDate.getMonth() - 3);
+        fechaInicioDate.setDate(1);
+        break;
+
+      case 'Este año':
+        // Primero de Enero del año en curso
+        fechaInicioDate.setMonth(0);
+        fechaInicioDate.setDate(1);
+        break;
+    }
+
+    // Guardar en formato string YYYY-MM-DD para controles <ion-input type="date"> en tu HTML
+    this.filtros.fechaInicio = fechaInicioDate.toISOString().split('T')[0];
+    this.filtros.fechaFin = hoy.toISOString().split('T')[0];
+
+    this.generarReporte();
   }
 
   calcularPorcentajePago(monto: number): number {
@@ -134,14 +166,36 @@ export class ReportesPage implements OnInit {
     return Math.round((monto / this.kpis.totalIngresos) * 100);
   }
 
+  exportarPDF() {
+    console.log("Generando PDF del reporte actual...", this.filtros);
+  }
 
-  // --- FIREBASE REAL SIN ROMPER TU LÓGICA ---
+  // ==========================================================================
+  // PROCESAMIENTO Y QUERY FILTRADA A TU BASE DE DATOS FIRESTORE
+  // ==========================================================================
   async generarReporte() {
+    // Evitar llamadas duplicadas o inputs vacíos
+    if (!this.filtros.fechaInicio || !this.filtros.fechaFin) return;
+
     this.cargando = true;
     this.reporteGenerado = false;
 
     try {
-      const snapshot = await getDocs(collection(this.firestore, 'ventas'));
+      // Ajustamos los strings de los inputs para cubrir todo el espectro de tiempo ISO de Firestore
+      const isoInicio = new Date(this.filtros.fechaInicio + 'T00:00:00').toISOString();
+      const isoFin = new Date(this.filtros.fechaFin + 'T23:59:59.999').toISOString();
+
+      const ventasRef = collection(this.firestore, 'ventas');
+
+      // Creamos una consulta compuesta estructurada (Query) para optimizar el consumo de Firebase
+      const q = query(
+        ventasRef,
+        where('fecha', '>=', isoInicio),
+        where('fecha', '<=', isoFin),
+        orderBy('fecha', 'desc')
+      );
+
+      const snapshot = await getDocs(q);
 
       let totalIngresos = 0;
       let totalPedidos = 0;
@@ -150,10 +204,11 @@ export class ReportesPage implements OnInit {
       snapshot.forEach(docSnap => {
         const data: any = docSnap.data();
 
+        // Procesamiento financiero del registro
         totalIngresos += Number(data.total || 0);
         totalPedidos++;
 
-        const metodo = data.metodoPago || 'Efectivo'; // Fallback a Efectivo para que se vea en el gráfico
+        const metodo = data.metodoPago || 'Efectivo';
 
         if (!mapaPagos[metodo]) {
           mapaPagos[metodo] = {
@@ -167,23 +222,23 @@ export class ReportesPage implements OnInit {
         mapaPagos[metodo].monto += Number(data.total || 0);
       });
 
+      // Actualizamos los KPIs en base a los datos estrictamente filtrados
       this.kpis = {
         totalIngresos,
         totalPedidos,
         ticketPromedio: totalPedidos > 0 ? totalIngresos / totalPedidos : 0
       };
 
-      // Transformar para la vista
+      // Transformar el mapa estructurado en un array procesable para el bucle *ngFor de tu vista
       this.metodosPagoDisplay = Object.values(mapaPagos);
 
-      console.log('✅ Reporte generado desde Firebase');
+      console.log(`✅ Reporte procesado con éxito. Ventas encontradas: ${totalPedidos}`);
 
     } catch (error) {
-      console.error('❌ Error generando reporte:', error);
+      console.error('❌ Error generando reporte estructurado:', error);
+    } finally {
+      this.cargando = false;
+      this.reporteGenerado = true;
     }
-
-    this.cargando = false;
-    this.reporteGenerado = true;
   }
-
 }

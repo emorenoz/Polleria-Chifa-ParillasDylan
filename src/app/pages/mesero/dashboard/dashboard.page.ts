@@ -1,9 +1,8 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
 
-// Imports de Firebase
 import {
   Firestore,
   collection,
@@ -13,24 +12,36 @@ import {
   addDoc
 } from '@angular/fire/firestore';
 
-// 🔥 IMPORTANTE: Importamos los componentes nativos de Ionic para Standalone
 import {
   IonContent,
   IonHeader,
   IonTitle,
   IonToolbar,
   IonButton,
-  IonIcon
+  IonIcon,
+  IonButtons,
+  IonMenuButton,
+  IonList,
+  IonItem,
+  IonLabel
 } from '@ionic/angular/standalone';
 
-// Interfaces de datos
+import { addIcons } from 'ionicons';
+import {
+  searchOutline,
+  addOutline,
+  closeOutline,
+  pencilOutline,
+  trashOutline
+} from 'ionicons/icons';
+
 export interface Producto {
-  id: number;
+  id: string;
   nombre: string;
-  descripcion: string;
   precio: number;
-  categoria: string;
-  imagen: string;
+  categoriaId: string;
+  categoria?: string;
+  stock: number | null;
 }
 
 export interface ItemCarrito {
@@ -48,15 +59,20 @@ export interface Mesa {
 @Component({
   selector: 'app-dashboard-mesero',
   standalone: true,
-  // 🔥 Agregamos CommonModule y los componentes de Ionic que usará tu HTML
   imports: [
     CommonModule,
+    DecimalPipe,
     IonContent,
     IonHeader,
     IonTitle,
     IonToolbar,
     IonButton,
-    IonIcon
+    IonIcon,
+    IonButtons,
+    IonMenuButton,
+    IonList,
+    IonItem,
+    IonLabel
   ],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss']
@@ -71,40 +87,45 @@ export class DashboardPage implements OnInit, OnDestroy {
   private relojInterval: any;
 
   categorias: string[] = [
-    'Bebidas Frias','Bebidas Calientes','Criollos','Caldo de Gallina',
-    'Guarniciones','Chifa a la Carta','Sopas y Entradas',
-    'Ofertas de la Casa','Parrillas','Ofertas Parrillas','Salchipapas'
+    'Todos',
+    'Pollos',
+    'Chifa',
+    'Parrillas',
+    'Criollos',
+    'Bebidas',
+    'Guarniciones'
   ];
 
-  categoriaSeleccionada: string = 'Bebidas Frias';
+  categoriaSeleccionada: string = 'Todos';
 
-  productos: Producto[] = [
-    { id: 1, nombre: 'Inca Kola / Coca Cola 3L', descripcion: '', precio: 14, categoria: 'Bebidas Frias', imagen: '🥤' },
-    { id: 2, nombre: 'Inca Kola / Coca Cola 1.5L', descripcion: '', precio: 10, categoria: 'Bebidas Frias', imagen: '🥤' },
-    { id: 3, nombre: 'Té', descripcion: '', precio: 2, categoria: 'Bebidas Calientes', imagen: '🍵' },
-    { id: 4, nombre: 'Lomo Saltado', descripcion: '', precio: 14, categoria: 'Criollos', imagen: '🍛' },
-    { id: 5, nombre: 'Caldo de Gallina', descripcion: '', precio: 12, categoria: 'Caldo de Gallina', imagen: '🍲' },
-    { id: 6, nombre: 'Papas Fritas', descripcion: '', precio: 7, categoria: 'Guarniciones', imagen: '🍟' },
-    { id: 7, nombre: 'Mostrito', descripcion: '', precio: 12, categoria: 'Ofertas de la Casa', imagen: '🍗' },
-    { id: 8, nombre: 'Salchipapa Clásica', descripcion: '', precio: 8, categoria: 'Salchipapas', imagen: '🌭' }
-  ];
-
+  productos: Producto[] = [];
   productosFiltrados: Producto[] = [];
+
   mesas$: Observable<Mesa[]> | undefined;
   mesas: Mesa[] = [];
   mesaSeleccionada: Mesa | null = null;
-  private mesasSubscription?: Subscription;
 
-  constructor() {}
+  private mesasSubscription?: Subscription;
+  private productosSubscription?: Subscription;
+
+  constructor() {
+    addIcons({
+      searchOutline,
+      addOutline,
+      closeOutline,
+      pencilOutline,
+      trashOutline
+    });
+  }
 
   ngOnInit(): void {
-    this.filtrarProductos();
     this.initFirebaseRealtime();
     this.iniciarReloj();
   }
 
   ngOnDestroy(): void {
     if (this.mesasSubscription) this.mesasSubscription.unsubscribe();
+    if (this.productosSubscription) this.productosSubscription.unsubscribe();
     if (this.relojInterval) clearInterval(this.relojInterval);
   }
 
@@ -114,16 +135,18 @@ export class DashboardPage implements OnInit, OnDestroy {
     }, 1000);
   }
 
-  // ================= FIREBASE REALTIME =================
   initFirebaseRealtime(): void {
     const mesasCollection = collection(this.firestore, 'mesas');
     this.mesas$ = collectionData(mesasCollection, { idField: 'id' }) as Observable<Mesa[]>;
 
     this.mesasSubscription = this.mesas$.subscribe(res => {
       this.mesas = res;
+
       const id = this.mesaSeleccionada?.id;
+
       if (id) {
         const encontrada = this.mesas.find(m => m.id === id);
+
         if (encontrada) {
           this.mesaSeleccionada = {
             ...encontrada,
@@ -132,54 +155,193 @@ export class DashboardPage implements OnInit, OnDestroy {
         }
       }
     });
+
+    /*
+      IMPORTANTE:
+      Ahora el mesero carga productos desde INVENTARIO.
+      Así usa los mismos IDs que el stock del admin.
+    */
+    const inventarioCollection = collection(this.firestore, 'inventario');
+    const inventario$ = collectionData(inventarioCollection, { idField: 'id' }) as Observable<any[]>;
+
+    this.productosSubscription = inventario$.subscribe(res => {
+      this.productos = res.map(item => ({
+        id: item.id,
+        nombre: item.nombre || '',
+        precio: Number(item.precio || 0),
+        categoria: item.categoria || 'General',
+        categoriaId: this.convertirCategoriaAId(item.categoria || ''),
+        stock: item.cantidad ?? 0
+      }));
+
+      this.filtrarProductos();
+    });
   }
 
-  // ================= ENVIAR A COCINA (TIEMPO REAL NATIVO) =================
+  convertirCategoriaAId(categoria: string): string {
+    const c = categoria.toLowerCase();
+
+    if (c.includes('pollo') || c.includes('brasa')) return 'cat_pollos';
+    if (c.includes('chifa') || c.includes('sopa')) return 'cat_chifa';
+    if (c.includes('bebida') || c.includes('vino')) return 'cat_bebidas';
+    if (c.includes('parrilla')) return 'cat_parrillas';
+    if (c.includes('criollo')) return 'cat_criollos';
+    if (c.includes('guarnicion') || c.includes('guarniciones')) return 'cat_guarniciones';
+
+    return 'cat_extras';
+  }
+
+  obtenerIcono(categoriaId: string): string {
+    switch (categoriaId) {
+      case 'cat_pollos': return '🍗';
+      case 'cat_chifa': return '🥡';
+      case 'cat_bebidas': return '🥤';
+      case 'cat_parrillas': return '🥩';
+      case 'cat_criollos': return '🍽️';
+      case 'cat_guarniciones': return '🍟';
+      default: return '🍽️';
+    }
+  }
+
+  obtenerNombreCategoria(categoriaId: string): string {
+    switch (categoriaId) {
+      case 'cat_pollos': return 'Pollos a la Brasa';
+      case 'cat_chifa': return 'Chifa';
+      case 'cat_bebidas': return 'Bebidas';
+      case 'cat_parrillas': return 'Parrillas';
+      case 'cat_criollos': return 'Criollos';
+      case 'cat_guarniciones': return 'Guarniciones';
+      default: return 'Especialidades / Extras';
+    }
+  }
+
+  obtenerClaseCategoria(categoriaId: string): string {
+    switch (categoriaId) {
+      case 'cat_pollos': return 'badge-pollos';
+      case 'cat_chifa': return 'badge-chifa';
+      case 'cat_bebidas': return 'badge-bebidas';
+      case 'cat_parrillas': return 'badge-parrillas';
+      case 'cat_criollos': return 'badge-criollos';
+      case 'cat_guarniciones': return 'badge-guarniciones';
+      default: return 'badge-extras';
+    }
+  }
+
+  seleccionarCategoria(cat: string) {
+    this.categoriaSeleccionada = cat;
+    this.filtrarProductos();
+  }
+
+  filtrarProductos() {
+    this.productosFiltrados = this.productos.filter(p => {
+      const nombreBajo = p.nombre.toLowerCase();
+      const categoriaBaja = (p.categoria || '').toLowerCase();
+
+      if (this.categoriaSeleccionada === 'Todos') return true;
+
+      if (this.categoriaSeleccionada === 'Pollos') {
+        return p.categoriaId === 'cat_pollos';
+      }
+
+      if (this.categoriaSeleccionada === 'Chifa') {
+        return p.categoriaId === 'cat_chifa';
+      }
+
+      if (this.categoriaSeleccionada === 'Bebidas') {
+        return p.categoriaId === 'cat_bebidas';
+      }
+
+      if (this.categoriaSeleccionada === 'Guarniciones') {
+        return p.categoriaId === 'cat_guarniciones' ||
+               categoriaBaja.includes('guarnicion') ||
+               categoriaBaja.includes('guarniciones') ||
+               nombreBajo.includes('papas') ||
+               nombreBajo.includes('ensalada') ||
+               nombreBajo.includes('arroz') ||
+               nombreBajo.includes('wantan');
+      }
+
+      if (this.categoriaSeleccionada === 'Parrillas') {
+        return p.categoriaId === 'cat_parrillas' ||
+               nombreBajo.includes('parrilla') ||
+               nombreBajo.includes('anticucho') ||
+               nombreBajo.includes('churrasco') ||
+               nombreBajo.includes('chuleta') ||
+               nombreBajo.includes('bistec');
+      }
+
+      if (this.categoriaSeleccionada === 'Criollos') {
+        return p.categoriaId === 'cat_criollos' ||
+               categoriaBaja.includes('criollo') ||
+               nombreBajo.includes('lomo') ||
+               nombreBajo.includes('saltado') ||
+               nombreBajo.includes('tallarín verde') ||
+               nombreBajo.includes('chicharrón');
+      }
+
+      return true;
+    });
+  }
+
   async procesarPago(): Promise<void> {
     if (!this.mesaSeleccionada || this.mesaSeleccionada.pedido.length === 0) return;
 
     const mesa = this.mesaSeleccionada;
     const total = this.calcularTotal();
 
-    const pedidoFinal = {
+    const pedidoCocinaOriginal = {
       mesa: mesa.numero,
       idMesa: mesa.id,
       items: mesa.pedido.map(i => ({
+        id: i.producto.id,
         producto: i.producto.nombre,
-        cantidad: i.cantidad
+        cantidad: i.cantidad,
+        precio: i.producto.precio
       })),
       total: total,
       mesero: this.nombreMesero,
       estado: 'enviado_cocina',
-      fecha: new Date().toISOString() // ISOString es más óptimo para persistencia en Firebase
+      fecha: new Date().toISOString()
+    };
+
+    const pedidoAdminCompatible = {
+      mesa: mesa.numero,
+      idMesa: mesa.id,
+      mesero: this.nombreMesero,
+      total: total,
+      estado: 'cocina',
+      fecha: new Date(),
+      productos: mesa.pedido.map(i => ({
+        id: i.producto.id,
+        nombre: i.producto.nombre,
+        cantidad: i.cantidad,
+        precio: i.producto.precio
+      })),
+      cajero: ''
     };
 
     try {
-      // 1. Insertamos en la colección que la cocina escucha en tiempo real
-      await addDoc(collection(this.firestore, 'pedidos_cocina'), pedidoFinal);
+      await addDoc(collection(this.firestore, 'pedidos_cocina'), pedidoCocinaOriginal);
+      await addDoc(collection(this.firestore, 'pedidos'), pedidoAdminCompatible);
 
-      // 2. Mantenemos el estado de la mesa como 'activa' en Firestore para que el flujo sea correcto
-      await this.guardar({
-        ...mesa,
-        estado: 'activa'
+      const refMesa = doc(this.firestore, `mesas/${mesa.id}`);
+      await updateDoc(refMesa, {
+        estado: 'activa',
+        pedido: []
       });
 
-      // 3. Limpiamos la selección actual en la pantalla del mesero
       this.mesaSeleccionada = null;
-
-      alert('🚀 ¡Pedido enviado a la cocina en tiempo real!');
+      console.log('✅ Pedido enviado usando productos del inventario');
 
     } catch (error) {
-      console.error("Error al enviar el pedido:", error);
+      console.error('Error al procesar y distribuir el pedido:', error);
     }
   }
 
-  // Alias compatible con la acción de tu botón del HTML
   async enviarACocina(): Promise<void> {
     await this.procesarPago();
   }
 
-  // ================= MÉTODOS DE CONTROL DEL CARRITO Y MESAS =================
   get totalActivas() {
     return this.mesas.filter(m => m.estado === 'activa').length;
   }
@@ -193,33 +355,41 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   seleccionarMesa(mesa: Mesa) {
-    this.mesaSeleccionada = { ...mesa, pedido: mesa.pedido ?? [] };
-  }
-
-  seleccionarCategoria(cat: string) {
-    this.categoriaSeleccionada = cat;
-    this.filtrarProductos();
-  }
-
-  filtrarProductos() {
-    this.productosFiltrados = this.productos.filter(
-      p => p.categoria === this.categoriaSeleccionada
-    );
+    this.mesaSeleccionada = {
+      ...mesa,
+      pedido: mesa.pedido ?? []
+    };
   }
 
   async agregarProducto(producto: Producto) {
     if (!this.mesaSeleccionada) return;
 
+    if (producto.stock !== null && producto.stock <= 0) {
+      console.warn('Producto sin stock:', producto.nombre);
+      return;
+    }
+
     let estadoActualizado = this.mesaSeleccionada.estado;
-    if (estadoActualizado === 'libre') estadoActualizado = 'activa';
+
+    if (estadoActualizado === 'libre') {
+      estadoActualizado = 'activa';
+    }
 
     const pedido = [...this.mesaSeleccionada.pedido];
     const item = pedido.find(i => i.producto.id === producto.id);
 
     if (item) {
+      if (producto.stock !== null && item.cantidad + 1 > producto.stock) {
+        console.warn('No hay suficiente stock para:', producto.nombre);
+        return;
+      }
+
       item.cantidad++;
     } else {
-      pedido.push({ producto, cantidad: 1 });
+      pedido.push({
+        producto,
+        cantidad: 1
+      });
     }
 
     this.mesaSeleccionada = {
@@ -238,7 +408,23 @@ export class DashboardPage implements OnInit, OnDestroy {
     const index = pedido.findIndex(i => i.producto.id === item.producto.id);
 
     if (index !== -1) {
-      pedido[index].cantidad += cambio;
+      const nuevaCantidad = pedido[index].cantidad + cambio;
+
+      if (cambio > 0) {
+        const productoActualizado = this.productos.find(
+          p => p.id === item.producto.id
+        );
+
+        const stockDisponible = productoActualizado?.stock ?? item.producto.stock;
+
+        if (stockDisponible !== null && nuevaCantidad > stockDisponible) {
+          console.warn('No hay suficiente stock para:', item.producto.nombre);
+          return;
+        }
+      }
+
+      pedido[index].cantidad = nuevaCantidad;
+
       if (pedido[index].cantidad <= 0) {
         pedido.splice(index, 1);
       }
@@ -246,7 +432,6 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     this.mesaSeleccionada.pedido = pedido;
 
-    // Si el pedido se queda vacío por completo, regresamos la mesa a 'libre'
     if (pedido.length === 0) {
       this.mesaSeleccionada.estado = 'libre';
       await this.guardar(this.mesaSeleccionada);
@@ -258,6 +443,7 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   calcularTotal() {
     if (!this.mesaSeleccionada) return 0;
+
     return this.mesaSeleccionada.pedido.reduce(
       (acc, i) => acc + i.producto.precio * i.cantidad,
       0
@@ -266,6 +452,7 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   private async guardar(mesa: Mesa) {
     const ref = doc(this.firestore, `mesas/${mesa.id}`);
+
     await updateDoc(ref, {
       estado: mesa.estado,
       pedido: mesa.pedido ?? []
@@ -274,6 +461,7 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   async pedirCuenta() {
     if (!this.mesaSeleccionada) return;
+
     this.mesaSeleccionada.estado = 'cuenta';
     await this.guardar(this.mesaSeleccionada);
   }
@@ -281,11 +469,16 @@ export class DashboardPage implements OnInit, OnDestroy {
   async liberarMesa() {
     if (!this.mesaSeleccionada) return;
 
-    // Al procesar el pago final guardamos en el histórico de ventas
     const total = this.calcularTotal();
+
     const registroVenta = {
       mesa: this.mesaSeleccionada.numero,
-      items: this.mesaSeleccionada.pedido,
+      items: this.mesaSeleccionada.pedido.map(i => ({
+        id: i.producto.id,
+        producto: i.producto.nombre,
+        cantidad: i.cantidad,
+        precioUnitario: i.producto.precio
+      })),
       total,
       fecha: new Date().toISOString(),
       mesero: this.nombreMesero
@@ -295,7 +488,9 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     this.mesaSeleccionada.estado = 'libre';
     this.mesaSeleccionada.pedido = [];
+
     await this.guardar(this.mesaSeleccionada);
+
     this.mesaSeleccionada = null;
   }
 

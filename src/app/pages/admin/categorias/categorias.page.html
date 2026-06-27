@@ -3,89 +3,212 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
+
     <div class="header-content">
       <div class="breadcrumb">
-        <span class="muted">Pollería Dylan</span> / <strong>Categorías</strong>
+        <span class="muted">Pollería Dylan</span>
+        <span>/</span>
+        <strong>Categorías</strong>
       </div>
-      <div class="date-display">{{ fechaActual }}</div>
+
+      <div class="date-display">
+        {{ fechaActual }}
+      </div>
     </div>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="page-bg">
+
   <div class="main-container">
 
+    <!-- ENCABEZADO -->
     <div class="action-header">
+
       <div class="stats-text text-muted">
-        {{ categoriasFiltradas.length }} activas • {{ listaCategorias.length }} total
+        {{ categoriasFiltradas.length }} activas •
+        {{ listaCategorias.length }} total
       </div>
-      <button class="btn-primary" (click)="abrirFormulario()">
-        <ion-icon name="add-outline"></ion-icon> Nueva categoría
+
+      <button
+        class="btn-primary"
+        (click)="abrirFormulario()">
+
+        <ion-icon name="add-outline"></ion-icon>
+        Nueva categoría
       </button>
+
     </div>
 
-    <div class="form-card" *ngIf="mostrarFormulario">
+    <!-- FORMULARIO -->
+    <div
+      class="form-card"
+      *ngIf="mostrarFormulario">
+
       <div class="form-header">
-        <h4>{{ editando ? 'Modificar Categoría' : 'Nueva Categoría' }}</h4>
-        <button class="btn-icon" (click)="cerrarFormulario()"><ion-icon name="close-outline"></ion-icon></button>
+        <h4>
+          {{ editando ? 'Modificar Categoría' : 'Nueva Categoría' }}
+        </h4>
+
+        <button
+          class="btn-icon"
+          (click)="cerrarFormulario()">
+
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
       </div>
-      
+
       <div class="form-row">
+
         <div class="input-group flex-grow">
           <label>Nombre de la Categoría</label>
-          <input type="text" class="custom-input" placeholder="Ej. Pollos a la Brasa, Bebidas..." [(ngModel)]="nuevaCategoria.nombre">
+
+          <input
+            type="text"
+            class="custom-input"
+            placeholder="Ej. Pollos a la Brasa, Bebidas..."
+            [(ngModel)]="nuevaCategoria.nombre">
         </div>
+
         <div class="input-group">
           <label>Icono / Emoji</label>
-          <input type="text" class="custom-input text-center" placeholder="Ej. 🍗, 🥤, 🍜" [(ngModel)]="nuevaCategoria.emoji">
+
+          <input
+            type="text"
+            class="custom-input text-center"
+            placeholder="Ej. 🍗, 🥤, 🍜"
+            [(ngModel)]="nuevaCategoria.emoji">
         </div>
+
       </div>
 
-      <div class="form-actions mt-20">
-        <button class="btn-primary" (click)="guardarCategoria()" [disabled]="!nuevaCategoria.nombre.trim() || !nuevaCategoria.emoji.trim()">
-          {{ editando ? 'Actualizar Categoría' : 'Registrar Categoría' }}
+      <div class="form-actions">
+
+        <button
+          class="btn-primary"
+          (click)="guardarCategoria()"
+          [disabled]="
+            !nuevaCategoria.nombre.trim() ||
+            !nuevaCategoria.emoji.trim()
+          ">
+
+          {{
+            editando
+              ? 'Actualizar Categoría'
+              : 'Registrar Categoría'
+          }}
         </button>
-        <button class="btn-outline outline-dark ml-10" (click)="cerrarFormulario()">Cancelar</button>
+
+        <button
+          class="btn-outline outline-dark"
+          (click)="cerrarFormulario()">
+
+          Cancelar
+        </button>
+
       </div>
+
     </div>
 
-    <div class="categories-grid" *ngIf="!mostrarFormulario">
-      
-      <div class="category-card" *ngFor="let cat of categoriasFiltradas; let i = index">
-        
+    <!-- GRID DE CATEGORÍAS -->
+    <div
+      class="categories-grid"
+      *ngIf="!mostrarFormulario">
+
+      <div
+        class="category-card"
+        *ngFor="let cat of categoriasFiltradas; let i = index">
+
+        <!-- CABECERA -->
         <div class="card-top">
+
           <div class="card-title-group">
-            <div class="icon-box" [ngClass]="'color-' + (i % 6)">
-              <span class="emoji-text">{{ cat.emoji || '🏷️' }}</span>
+
+            <div
+              class="icon-box"
+              [ngClass]="'color-' + (i % 6)">
+
+              <span class="emoji-text">
+                {{ cat.emoji || '🏷️' }}
+              </span>
             </div>
+
             <div class="cat-info">
               <h4>{{ cat.nombre }}</h4>
-              <p>Productos calculados</p> </div>
+
+              <p>
+                {{ cat.cantidadProductos || 0 }}
+                productos
+              </p>
+            </div>
+
           </div>
-          <button class="btn-dots"><ion-icon name="ellipsis-vertical"></ion-icon></button>
+
+          <button class="btn-dots">
+            <ion-icon
+              name="ellipsis-vertical">
+            </ion-icon>
+          </button>
+
         </div>
 
+        <!-- DIVISOR -->
+        <div class="divider"></div>
+
+        <!-- PIE -->
         <div class="card-bottom">
-          <span class="badge active">Activa</span>
-          
+
+          <span class="badge active">
+            Activa
+          </span>
+
           <div class="actions">
-            <button class="action-btn edit" (click)="seleccionarCategoria(cat)">
-              <ion-icon name="pencil-outline"></ion-icon>
+
+            <button
+              class="action-btn edit"
+              (click)="seleccionarCategoria(cat)">
+
+              <ion-icon
+                name="pencil-outline">
+              </ion-icon>
             </button>
-            <button class="action-btn delete" (click)="eliminarCategoria(cat.id)">
-              <ion-icon name="trash-outline"></ion-icon>
+
+            <button
+              class="action-btn delete"
+              (click)="eliminarCategoria(cat.id)">
+
+              <ion-icon
+                name="trash-outline">
+              </ion-icon>
             </button>
+
           </div>
+
         </div>
 
       </div>
 
-      <div class="empty-state" *ngIf="listaCategorias.length === 0">
-        <ion-icon name="folder-open-outline"></ion-icon>
-        <p>No hay categorías registradas en el sistema.</p>
+      <!-- VACÍO -->
+      <div
+        class="empty-state"
+        *ngIf="listaCategorias.length === 0">
+
+        <ion-icon
+          name="folder-open-outline">
+        </ion-icon>
+
+        <h3>
+          No hay categorías registradas
+        </h3>
+
+        <p>
+          Presiona "Nueva categoría" para comenzar.
+        </p>
+
       </div>
 
     </div>
 
   </div>
+
 </ion-content>

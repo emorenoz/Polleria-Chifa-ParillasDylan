@@ -35,7 +35,7 @@
     </div>
 
     <div class="layout-grid">
-      
+
       <div class="salon-card">
         <div class="salon-header">
           <h4>Plano del Salón</h4>
@@ -45,8 +45,8 @@
         </div>
 
         <div class="mesas-grid">
-          <div class="mesa-item" 
-               *ngFor="let mesa of listaMesas" 
+          <div class="mesa-item"
+               *ngFor="let mesa of listaMesas"
                [ngClass]="{
                  'estado-libre': mesa.estado === 'disponible',
                  'estado-activa': mesa.estado === 'ocupada',
@@ -67,13 +67,13 @@
       </div>
 
       <div class="side-panel">
-        
+
         <div class="side-card form-view" *ngIf="mostrarFormulario">
           <div class="side-header">
             <h4>{{ editando ? 'Modificar Mesa' : 'Nueva Mesa' }}</h4>
             <button class="btn-icon" (click)="cerrarPanel()"><ion-icon name="close-outline"></ion-icon></button>
           </div>
-          
+
           <div class="form-body">
             <div class="form-group">
               <label>Nombre / Número de Mesa</label>
@@ -97,7 +97,8 @@
             <button class="btn-primary full-width" (click)="guardarMesa()" [disabled]="!nuevaMesa.numero.trim() || !nuevaMesa.capacidad">
               {{ editando ? 'Actualizar Mesa' : 'Guardar Mesa' }}
             </button>
-            <button *ngIf="editando" class="btn-danger-outline full-width mt-10" (click)="eliminarMesa(idMesaEditando!)">
+
+            <button *ngIf="editando" class="btn-danger-outline full-width mt-10" (click)="confirmarEliminacion(idMesaEditando!)">
               <ion-icon name="trash-outline"></ion-icon> Eliminar Mesa
             </button>
           </div>
@@ -106,7 +107,7 @@
         <div class="side-card detail-view" *ngIf="!mostrarFormulario && mesaSeleccionada">
           <div class="side-header">
             <h4>{{ mesaSeleccionada.numero }}</h4>
-            <span class="badge" 
+            <span class="badge"
                   [ngClass]="{
                     'libre': mesaSeleccionada.estado === 'disponible',
                     'activa': mesaSeleccionada.estado === 'ocupada',
@@ -119,7 +120,14 @@
           <div class="detail-body text-center" *ngIf="mesaSeleccionada.estado === 'disponible'">
             <div class="empty-mesa">Mesa disponible</div>
             <p class="muted-text">Capacidad: {{ mesaSeleccionada.capacidad }} personas</p>
-            <button class="btn-outline outline-dark mt-20" (click)="iniciarEdicion()">Editar Configuración</button>
+
+            <div class="action-buttons mt-20" style="display: flex; flex-direction: column; gap: 10px;">
+              <button class="btn-outline outline-dark full-width" (click)="iniciarEdicion()">Editar Configuración</button>
+
+              <button class="btn-danger-outline full-width" (click)="confirmarEliminacion(mesaSeleccionada.id)">
+                <ion-icon name="trash-outline"></ion-icon> Eliminar Mesa
+              </button>
+            </div>
           </div>
 
           <div class="detail-body" *ngIf="mesaSeleccionada.estado === 'ocupada'">

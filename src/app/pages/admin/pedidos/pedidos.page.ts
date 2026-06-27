@@ -23,7 +23,9 @@ import {
 import {
   Firestore,
   collection,
-  collectionData
+  collectionData,
+  doc,
+  updateDoc
 } from '@angular/fire/firestore';
 import { Subscription } from 'rxjs';
 
@@ -104,7 +106,7 @@ export class PedidosPage implements OnInit, OnDestroy {
     const hoyString = new Date().toDateString(); // Formato estándar: "Wed Jun 24 2026"
     const pedidosRef = collection(this.firestore, 'pedidos');
 
-    // Escucha activa reactiva
+    // Escucha activa reactiva en vivo
     this.pedidosSub = collectionData(pedidosRef, { idField: 'id' }).subscribe({
       next: (pedidos: any[]) => {
 
@@ -134,7 +136,7 @@ export class PedidosPage implements OnInit, OnDestroy {
         // 4. Calcular métricas globales de las tarjetas
         this.calcularMetricas();
 
-        // 5. Aplicar filtros iniciales
+        // 5. Aplicar filtros iniciales/actuales
         this.filtrarPedidos();
 
         console.log(`✅ ${this.listaPedidos.length} Pedidos de hoy procesados en vivo.`);
@@ -197,6 +199,21 @@ export class PedidosPage implements OnInit, OnDestroy {
     this.filtrarPedidos();
   }
 
+  // 🔥 ACTUALIZAR ESTADO DEL PEDIDO DIRECTO EN FIREBASE
+  // Este método te sirve para avanzar el flujo de manera manual desde el admin si fuese necesario
+  async cambiarEstadoPedido(idPedido: string, nuevoEstado: 'pendiente' | 'cocina' | 'entregado' | 'anulado') {
+    try {
+      const pedidoDocRef = doc(this.firestore, 'pedidos', idPedido);
+      await updateDoc(pedidoDocRef, {
+        estado: nuevoEstado
+      });
+      console.log(`Estado del pedido ${idPedido} actualizado a: ${nuevoEstado}`);
+      // Nota: No necesitas volver a cargar los datos manualmente ya que collectionData se encarga de refrescar la UI en tiempo real.
+    } catch (error) {
+      console.error(`Error al actualizar el estado del pedido ${idPedido}:`, error);
+    }
+  }
+
   // Botón manual de sincronización (fuerza la reinicialización si fuese necesario)
   actualizarDatos() {
     if (this.pedidosSub) this.pedidosSub.unsubscribe();
@@ -205,6 +222,7 @@ export class PedidosPage implements OnInit, OnDestroy {
 
   exportarReporte() {
     console.log('Exportando listado de pedidos del día a CSV/PDF...');
+    // Aquí puedes implementar una conversión rápida de `this.pedidosFiltrados` a formato CSV
   }
 
   verDetallePedido(id: string) {

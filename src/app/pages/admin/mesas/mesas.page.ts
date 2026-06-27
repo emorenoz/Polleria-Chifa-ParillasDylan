@@ -29,10 +29,10 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { 
-  create, trash, arrowBack, 
-  addOutline, closeOutline, peopleOutline, timeOutline, 
-  personOutline, documentTextOutline, restaurantOutline 
+import {
+  create, trash, arrowBack,
+  addOutline, closeOutline, peopleOutline, timeOutline,
+  personOutline, documentTextOutline, restaurantOutline
 } from 'ionicons/icons';
 
 import {
@@ -42,7 +42,9 @@ import {
   getDocs,
   updateDoc,
   deleteDoc,
-  doc
+  doc,
+  query,
+  where
 } from '@angular/fire/firestore';
 
 @Component({
@@ -82,11 +84,11 @@ export class MesasPage implements OnInit {
 
   private firestore = inject(Firestore);
 
-  // --- VARIABLES DE INTERFAZ NUEVAS ---
+  // --- VARIABLES DE INTERFAZ ---
   fechaActual: string = '';
   mesaSeleccionada: any = null;
   mostrarFormulario: boolean = false;
-  
+
   // Métricas para las tarjetas
   totalLibres: number = 0;
   totalActivas: number = 0;
@@ -96,7 +98,7 @@ export class MesasPage implements OnInit {
   nuevaMesa = {
     numero: '',
     capacidad: null as number | null,
-    estado: 'disponible'
+    estado: 'disponible' // 'disponible', 'ocupada', 'reservada'
   };
 
   // Estados de control para la edición
@@ -124,7 +126,7 @@ export class MesasPage implements OnInit {
     this.fechaActual = new Date().toLocaleDateString('es-PE', opciones);
   }
 
-  // --- LÓGICA VISUAL DEL NUEVO DISEÑO ---
+  // --- LÓGICA VISUAL ---
 
   seleccionarMesaVisual(mesa: any) {
     this.mesaSeleccionada = mesa;
@@ -164,20 +166,41 @@ export class MesasPage implements OnInit {
     this.totalReservadas = this.listaMesas.filter(m => m.estado === 'reservada').length;
   }
 
-  // Función rápida para el botón "Liberar mesa"
+  // ¡FLUJO CORREGIDO!: Al liberar una mesa manualmente, desactiva sus pedidos activos para que no confundan a la caja
   async liberarMesaRapida(mesa: any) {
+    if (!mesa || !mesa.id) return;
     try {
+      // 1. Cambiar estado de la mesa a disponible
       const mesaRef = doc(this.firestore, 'mesas', mesa.id);
       await updateDoc(mesaRef, { estado: 'disponible' });
+
+      // 2. Buscar si hay pedidos pendientes de esta mesa y cancelarlos/archivarlos para no alterar la caja
+      const q = query(
+        collection(this.firestore, 'pedidos'),
+        where('idMesa', '==', mesa.id),
+        where('estado', 'in', ['Cocina', 'Entregado'])
+      );
+      const querySnapshot = await getDocs(q);
+
+      for (const documento of querySnapshot.docs) {
+        const pedidoRef = doc(this.firestore, 'pedidos', documento.id);
+        await updateDoc(pedidoRef, { estado: 'Liberado Sin Pagar' });
+      }
+
+      // Actualizamos la interfaz reactivamente
       mesa.estado = 'disponible';
+      if (this.mesaSeleccionada && this.mesaSeleccionada.id === mesa.id) {
+        this.mesaSeleccionada.estado = 'disponible';
+      }
+
       this.calcularMetricas();
+      console.log('✅ Mesa liberada y pedidos limpiados para la caja.');
     } catch (error) {
-      console.error('Error liberando mesa:', error);
+      console.error('Error en flujo de liberación rápida:', error);
     }
   }
 
-
-  // --- TU LÓGICA DE FIREBASE INTACTA ---
+  // --- LÓGICA DE FIREBASE ---
 
   async cargarMesasFirebase() {
     try {
@@ -189,7 +212,7 @@ export class MesasPage implements OnInit {
           ...documento.data()
         });
       });
-      this.calcularMetricas(); // Actualiza KPI
+      this.calcularMetricas();
       console.log('✅ Mesas cargadas:', this.listaMesas);
     } catch (error) {
       console.error('❌ Error cargando mesas:', error);
@@ -216,7 +239,7 @@ export class MesasPage implements OnInit {
             capacidad: Number(this.nuevaMesa.capacidad),
             estado: this.nuevaMesa.estado
           };
-          this.mesaSeleccionada = this.listaMesas[index]; // Actualiza vista
+          this.mesaSeleccionada = this.listaMesas[index];
         }
         console.log('✅ Mesa actualizada');
       } else {
@@ -234,12 +257,12 @@ export class MesasPage implements OnInit {
         };
 
         this.listaMesas.push(nuevaMesaGuardada);
-        this.mesaSeleccionada = nuevaMesaGuardada; // La selecciona automáticamente
+        this.mesaSeleccionada = nuevaMesaGuardada;
         console.log('✅ Mesa registrada. ID:', docRef.id);
       }
 
       this.calcularMetricas();
-      this.mostrarFormulario = false; // Cierra form y vuelve a detalle
+      this.mostrarFormulario = false;
       this.editando = false;
       this.limpiarFormulario();
 
@@ -248,16 +271,31 @@ export class MesasPage implements OnInit {
     }
   }
 
+  // --- SECCIÓN DE ELIMINACIÓN SEGURA ---
+  confirmarEliminacion(id: string) {
+    const idFinal = id || this.mesaSeleccionada?.id;
+
+    if (!idFinal) {
+      alert('Error: No se pudo capturar el identificador único de esta mesa.');
+      return;
+    }
+
+    const confirmar = confirm('¿Estás seguro de que deseas eliminar esta mesa permanentemente? Esta acción quitará la mesa del plano del salón.');
+    if (confirmar) {
+      this.eliminarMesa(idFinal);
+    }
+  }
+
   async eliminarMesa(id: string) {
     try {
       await deleteDoc(doc(this.firestore, 'mesas', id));
       this.listaMesas = this.listaMesas.filter(mesa => mesa.id !== id);
       this.calcularMetricas();
-      this.cerrarPanel(); // Cierra el form/detalle
+      this.cerrarPanel();
       this.mesaSeleccionada = null;
-      console.log('✅ Mesa eliminada');
+      console.log('✅ Mesa eliminada con éxito de Firebase');
     } catch (error) {
-      console.error('❌ Error eliminando mesa:', error);
+      console.error('❌ Error eliminando mesa desde Firestore:', error);
     }
   }
 
@@ -268,5 +306,4 @@ export class MesasPage implements OnInit {
       estado: 'disponible'
     };
   }
-
 }

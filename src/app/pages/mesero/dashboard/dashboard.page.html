@@ -38,7 +38,7 @@
             'selected': mesaSeleccionada?.id === mesa.id
           }"
           (click)="seleccionarMesa(mesa)">
-          <span class="badge-dot"></span>
+          <span class="num-prefix">M</span>
           <span class="num-mesa">{{ mesa.numero }}</span>
         </button>
       </div>
@@ -53,14 +53,12 @@
 
     <section class="menu-section">
 
-      <div class="info-helper" *ngIf="!mesaSeleccionada">
-        🛒 Selecciona una mesa para tomar el pedido
-      </div>
-
-      <div class="info-helper selected" *ngIf="mesaSeleccionada">
-        📍 Editando Pedido:
-        <strong>{{ mesaSeleccionada.numero }}</strong>
-        ({{ mesaSeleccionada.estado | uppercase }})
+      <div class="info-helper-bar" [ngClass]="{'has-selected': mesaSeleccionada}">
+        <span *ngIf="!mesaSeleccionada">🛒 Selecciona una mesa para tomar el pedido</span>
+        <div class="selected-meta" *ngIf="mesaSeleccionada">
+          <span class="table-tag">📍 Mesa {{ mesaSeleccionada.numero }}</span>
+          <span class="status-badge" [ngClass]="mesaSeleccionada.estado">{{ mesaSeleccionada.estado | uppercase }}</span>
+        </div>
       </div>
 
       <nav class="categories-nav">
@@ -73,24 +71,34 @@
       </nav>
 
       <div class="grid-productos">
-        <div class="card-producto" *ngFor="let prod of productosFiltrados">
+        <div class="empty-products-notice" *ngIf="productosFiltrados.length === 0">
+          🍽️ No hay platos disponibles en esta categoría.
+        </div>
 
-          <div class="prod-img">{{ prod.imagen }}</div>
+        <div class="card-producto" *ngFor="let prod of productosFiltrados" [class.out-of-stock]="prod.stock === 0">
+
+          <div class="prod-img-box">
+            <span class="prod-emoji">{{ obtenerIcono(prod.categoriaId) }}</span>
+          </div>
 
           <div class="prod-details">
             <h4>{{ prod.nombre }}</h4>
-            <p>{{ prod.descripcion }}</p>
+
+            <p class="stock-status">
+              <span class="badge-inline" [ngClass]="prod.stock === 0 ? 'text-red' : 'text-muted'">
+                {{ prod.stock === 0 ? '🚫 Agotado' : (prod.stock !== null ? '📦 Stock: ' + prod.stock : '🔥 Disponible') }}
+              </span>
+            </p>
 
             <div class="prod-footer">
-              <span class="price">S/ {{ prod.precio.toFixed(2) }}</span>
+              <span class="price">S/ {{ prod.precio | number:'1.2-2' }}</span>
 
               <button
-                class="btn-add"
-                [disabled]="!mesaSeleccionada"
+                class="btn-add-item"
+                [disabled]="!mesaSeleccionada || prod.stock === 0"
                 (click)="agregarProducto(prod)">
                 + agregar
               </button>
-
             </div>
           </div>
 
@@ -100,60 +108,81 @@
     </section>
 
     <aside class="sidebar-pedido">
-
-      <h3>Pedido actual</h3>
+      <div class="sidebar-pedido-header">
+        <h3>Pedido actual</h3>
+        <span class="items-count-badge" *ngIf="mesaSeleccionada && mesaSeleccionada.pedido.length > 0">
+          {{ mesaSeleccionada.pedido.length }} ítems
+        </span>
+      </div>
 
       <div class="empty-cart" *ngIf="!mesaSeleccionada || mesaSeleccionada.pedido.length === 0">
         <div class="cart-icon">🛒</div>
         <p>Sin items aún</p>
-        <span>Selecciona una mesa</span>
+        <span>Selecciona una mesa en el salón</span>
       </div>
 
       <div class="cart-content" *ngIf="mesaSeleccionada && mesaSeleccionada.pedido.length > 0">
 
         <div class="cart-items-list">
-
           <div class="cart-item" *ngFor="let item of mesaSeleccionada.pedido">
 
-            <div class="item-info">
-              <span class="item-name">{{ item.producto.nombre }}</span>
-              <span class="item-price">
-                S/ {{ (item.producto.precio * item.cantidad).toFixed(2) }}
+            <div class="item-main-row">
+              <span class="item-emoji-prefix">🍗</span>
+              <div class="item-info">
+                <span class="item-name">{{ item.producto.nombre }}</span>
+                <span class="item-price-unit">S/ {{ item.producto.precio | number:'1.2-2' }} c/u</span>
+              </div>
+              <span class="item-price-total">
+                S/ {{ (item.producto.precio * item.cantidad) | number:'1.2-2' }}
               </span>
             </div>
 
-            <div class="item-controls">
-              <button (click)="modificarCantidad(item, -1)">-</button>
-              <span class="qty">{{ item.cantidad }}</span>
-              <button (click)="modificarCantidad(item, 1)">+</button>
+            <div class="item-controls-row">
+              <div class="counter-box">
+                <button class="btn-qty decrease" (click)="modificarCantidad(item, -1)">-</button>
+                <span class="qty-number">{{ item.cantidad }}</span>
+                <button class="btn-qty increase" (click)="modificarCantidad(item, 1)">+</button>
+              </div>
+              <button class="btn-trash-item" (click)="modificarCantidad(item, -item.cantidad)">
+                🗑️
+              </button>
             </div>
 
           </div>
-
         </div>
 
         <div class="cart-summary">
-
           <div class="total-row">
             <span>Total:</span>
-            <strong>S/ {{ calcularTotal().toFixed(2) }}</strong>
+            <strong class="total-amount">S/ {{ calcularTotal() | number:'1.2-2' }}</strong>
           </div>
 
-          <div class="cart-actions">
-
+          <div class="cart-actions-layout">
             <button
-              class="btn-kitchen"
+              class="btn-action-submit kitchen"
               [disabled]="!mesaSeleccionada || mesaSeleccionada.pedido.length === 0"
               (click)="procesarPago()">
-              📤 Procesar pedido / Enviar a cocina
+              🚀 Enviar a Cocina
             </button>
 
+            <div class="secondary-actions-grid">
+              <button
+                class="btn-action-secondary bill"
+                [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'activa'"
+                (click)="pedirCuenta()">
+                💵 Pedir Cuenta
+              </button>
+              <button
+                class="btn-action-secondary clear"
+                [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'cuenta'"
+                (click)="liberarMesa()">
+                ✔️ Liberar Mesa
+              </button>
+            </div>
           </div>
-
         </div>
 
       </div>
-
     </aside>
 
   </div>

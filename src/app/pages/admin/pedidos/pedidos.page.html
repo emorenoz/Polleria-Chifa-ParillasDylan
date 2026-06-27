@@ -59,8 +59,8 @@
             <tr><th>Pedido</th><th>Mesa</th><th>Mesero</th><th>Items</th><th>Total</th><th>Estado</th><th>Hora</th><th class="action-col">Acción</th></tr>
           </thead>
           <tbody>
-            <tr *ngFor="let p of listaPedidos">
-              <td class="id-cell">{{ p.id }}</td>
+            <tr *ngFor="let p of listaPedidos; let i = index">
+              <td class="id-cell">#{{ i + 1 }}</td>
               <td>{{ p.mesa }}</td>
               <td>{{ p.mesero }}</td>
               <td>{{ p.items }}</td>

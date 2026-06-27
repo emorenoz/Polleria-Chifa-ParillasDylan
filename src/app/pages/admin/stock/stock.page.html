@@ -3,11 +3,16 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
+
     <div class="header-content">
       <div class="breadcrumb">
-        <span class="muted">Pollería Dylan</span> / <strong>Stock / Inventario</strong>
+        <span class="muted">Pollería Dylan</span> /
+        <strong>Stock / Inventario</strong>
       </div>
-      <div class="date-display">{{ fechaActual }}</div>
+
+      <div class="date-display">
+        {{ fechaActual }}
+      </div>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -18,90 +23,191 @@
     <div class="alert-banner" *ngIf="totalBajo > 0 || totalCritico > 0">
       <div class="alert-info">
         <ion-icon name="warning-outline"></ion-icon>
+
         <span>
-          <strong>{{ totalBajo }} insumos</strong> bajo el mínimo — <strong class="text-red">{{ totalCritico }} críticos</strong>
+          <strong>{{ totalBajo }} insumos</strong> bajo el mínimo —
+          <strong class="text-red">{{ totalCritico }} críticos</strong>
         </span>
       </div>
-      <button class="btn-warning-solid">Generar orden de compra</button>
+
+      <button class="btn-warning-solid">
+        Generar orden de compra
+      </button>
     </div>
 
     <div class="kpi-status-row">
       <div class="status-card border-gray">
-        <div class="kpi-amount text-dark">{{ totalInsumos }}</div>
-        <div class="kpi-subtext">Total insumos</div>
+        <div class="kpi-amount text-dark">
+          {{ totalInsumos }}
+        </div>
+        <div class="kpi-subtext">
+          Total insumos
+        </div>
       </div>
+
       <div class="status-card border-green">
-        <div class="kpi-amount text-green">{{ totalOk }}</div>
-        <div class="kpi-subtext">Stock OK</div>
+        <div class="kpi-amount text-green">
+          {{ totalOk }}
+        </div>
+        <div class="kpi-subtext">
+          Stock OK
+        </div>
       </div>
+
       <div class="status-card border-yellow">
-        <div class="kpi-amount text-yellow">{{ totalBajo }}</div>
-        <div class="kpi-subtext">Stock bajo</div>
+        <div class="kpi-amount text-yellow">
+          {{ totalBajo }}
+        </div>
+        <div class="kpi-subtext">
+          Stock bajo
+        </div>
       </div>
+
       <div class="status-card border-red">
-        <div class="kpi-amount text-red">{{ totalCritico }}</div>
-        <div class="kpi-subtext">Crítico</div>
+        <div class="kpi-amount text-red">
+          {{ totalCritico }}
+        </div>
+        <div class="kpi-subtext">
+          Crítico
+        </div>
       </div>
     </div>
 
     <div class="action-toolbar">
       <div class="search-box">
         <ion-icon name="search-outline"></ion-icon>
-        <input type="text" placeholder="Buscar insumo..." [(ngModel)]="textoBuscar" (input)="buscar()">
+
+        <input
+          type="text"
+          placeholder="Buscar insumo..."
+          [(ngModel)]="textoBuscar"
+          (input)="buscar()">
       </div>
 
       <div class="actions">
-        <button class="btn-outline" [ngClass]="{'active': soloAlertas}" (click)="toggleAlertas()">
-          <ion-icon name="alert-circle-outline"></ion-icon> Solo alertas
+        <button
+          class="btn-outline"
+          [ngClass]="{ 'active': soloAlertas }"
+          (click)="toggleAlertas()">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          Solo alertas
         </button>
-        <button class="btn-primary" (click)="abrirFormulario()">
-          <ion-icon name="add-outline"></ion-icon> Nuevo insumo
+
+        <button
+          class="btn-primary"
+          (click)="abrirFormulario()">
+          <ion-icon name="add-outline"></ion-icon>
+          Nuevo insumo
         </button>
-        <button class="btn-outline outline-dark" (click)="cargarInventarioFirebase()">
-          <ion-icon name="sync-outline"></ion-icon> Actualizar
+
+        <button
+          class="btn-outline outline-dark"
+          (click)="actualizarInventario()">
+          <ion-icon name="sync-outline"></ion-icon>
+          Actualizar
         </button>
       </div>
     </div>
 
     <div class="form-card" *ngIf="mostrarFormulario">
       <div class="form-header">
-        <h4>{{ editando ? 'Ajustar Inventario' : 'Nuevo Insumo / Artículo' }}</h4>
-        <button class="btn-icon" (click)="cerrarFormulario()"><ion-icon name="close-outline"></ion-icon></button>
+        <h4>
+          {{ editando ? 'Ajustar Inventario' : 'Nuevo Insumo / Artículo' }}
+        </h4>
+
+        <button
+          class="btn-icon"
+          (click)="cerrarFormulario()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
       </div>
-      
+
       <div class="form-row">
         <div class="input-group flex-grow">
           <label>Descripción del Artículo</label>
-          <input type="text" class="custom-input" placeholder="Ej. Inca Kola 1.5L" [(ngModel)]="nuevoInsumo.nombre">
+
+          <input
+            type="text"
+            class="custom-input"
+            placeholder="Ej. Inca Kola 1.5L"
+            [(ngModel)]="nuevoInsumo.nombre">
         </div>
+
         <div class="input-group">
           <label>Categoría</label>
-          <input type="text" class="custom-input" placeholder="Ej. Bebidas, Carnes..." [(ngModel)]="nuevoInsumo.categoria">
+
+          <input
+            type="text"
+            class="custom-input"
+            placeholder="Ej. Bebidas, Carnes..."
+            [(ngModel)]="nuevoInsumo.categoria">
         </div>
+
         <div class="input-group">
           <label>Cantidad Actual</label>
-          <input type="number" class="custom-input" placeholder="0" [(ngModel)]="nuevoInsumo.cantidad">
+
+          <input
+            type="number"
+            class="custom-input"
+            placeholder="0"
+            [(ngModel)]="nuevoInsumo.cantidad">
         </div>
+
         <div class="input-group">
           <label>Stock Mínimo</label>
-          <input type="number" class="custom-input" placeholder="Ej. 10" [(ngModel)]="nuevoInsumo.stockMinimo">
+
+          <input
+            type="number"
+            class="custom-input"
+            placeholder="Ej. 10"
+            [(ngModel)]="nuevoInsumo.stockMinimo">
         </div>
+
         <div class="input-group short">
           <label>Unidad</label>
-          <input type="text" class="custom-input" placeholder="kg, und..." [(ngModel)]="nuevoInsumo.unidad">
+
+          <input
+            type="text"
+            class="custom-input"
+            placeholder="kg, und..."
+            [(ngModel)]="nuevoInsumo.unidad">
         </div>
+
         <div class="input-group">
           <label>Precio Unit. (S/)</label>
-          <input type="number" class="custom-input" placeholder="0.00" [(ngModel)]="nuevoInsumo.precio">
+
+          <input
+            type="number"
+            class="custom-input"
+            placeholder="0.00"
+            [(ngModel)]="nuevoInsumo.precio">
         </div>
       </div>
 
       <div class="form-actions mt-20">
-        <button class="btn-primary" (click)="guardarInsumo()" [disabled]="!nuevoInsumo.nombre.trim() || nuevoInsumo.cantidad === null || !nuevoInsumo.stockMinimo">
+        <button
+          class="btn-primary"
+          (click)="guardarInsumo()"
+          [disabled]="
+            !nuevoInsumo.nombre.trim() ||
+            nuevoInsumo.cantidad === null ||
+            !nuevoInsumo.stockMinimo
+          ">
           {{ editando ? 'Actualizar Existencias' : 'Registrar en Almacén' }}
         </button>
-        <button *ngIf="editando" class="btn-outline outline-red ml-10" (click)="eliminarInsumo(idInsumoEditando!)">
-          <ion-icon name="trash-outline"></ion-icon> Eliminar Insumo
+
+        <button
+          class="btn-outline outline-dark ml-10"
+          (click)="cerrarFormulario()">
+          Cancelar
+        </button>
+
+        <button
+          *ngIf="editando"
+          class="btn-outline outline-red ml-10"
+          (click)="eliminarInsumo(idInsumoEditando!)">
+          <ion-icon name="trash-outline"></ion-icon>
+          Eliminar Insumo
         </button>
       </div>
     </div>
@@ -122,48 +228,93 @@
               <th class="text-center">Edit</th>
             </tr>
           </thead>
+
           <tbody>
             <tr *ngFor="let insumo of insumosFiltrados">
               <td class="insumo-cell">
-                <span class="icon-emoji">{{ obtenerEmoji(insumo.categoria) }}</span>
-                <span class="insumo-name">{{ insumo.nombre }}</span>
+                <span class="icon-emoji">
+                  {{ obtenerEmoji(insumo.categoria) }}
+                </span>
+
+                <span class="insumo-name">
+                  {{ insumo.nombre }}
+                </span>
               </td>
-              
-              <td class="text-muted">{{ insumo.categoria || 'General' }}</td>
-              
+
+              <td class="text-muted">
+                {{ insumo.categoria || 'General' }}
+              </td>
+
               <td class="text-center">
                 <div class="stock-display">
-                  <span class="stock-num" [ngClass]="obtenerColorEstado(insumo)">{{ insumo.cantidad }}</span>
+                  <span
+                    class="stock-num"
+                    [ngClass]="obtenerColorEstado(insumo)">
+                    {{ insumo.cantidad }}
+                  </span>
+
                   <div class="stock-bar-bg">
-                    <div class="stock-bar-fill" [ngClass]="obtenerColorEstado(insumo, true)" [style.width.%]="calcularPorcentaje(insumo)"></div>
+                    <div
+                      class="stock-bar-fill"
+                      [ngClass]="obtenerColorEstado(insumo, true)"
+                      [style.width.%]="calcularPorcentaje(insumo)">
+                    </div>
                   </div>
                 </div>
               </td>
-              
-              <td class="text-center text-muted">{{ insumo.stockMinimo }}</td>
-              <td class="text-center text-muted">{{ insumo.unidad || 'und' }}</td>
-              <td class="text-center text-muted">S/ {{ insumo.precio ? (insumo.precio | number:'1.2-2') : '0.00' }}</td>
-              
+
+              <td class="text-center text-muted">
+                {{ insumo.stockMinimo }}
+              </td>
+
+              <td class="text-center text-muted">
+                {{ insumo.unidad || 'und' }}
+              </td>
+
+              <td class="text-center text-muted">
+                S/ {{ insumo.precio ? (insumo.precio | number:'1.2-2') : '0.00' }}
+              </td>
+
               <td class="text-center">
-                <span class="badge" [ngClass]="obtenerColorEstado(insumo)">
+                <span
+                  class="badge"
+                  [ngClass]="obtenerColorEstado(insumo)">
                   {{ obtenerTextoEstado(insumo) }}
                 </span>
               </td>
-              
+
               <td class="text-center">
                 <div class="adjust-control">
-                  <button class="btn-adjust" (click)="ajustarStockRapido(insumo, -1)">-</button>
-                  <button class="btn-adjust" (click)="ajustarStockRapido(insumo, 1)">+</button>
+                  <button
+                    class="btn-adjust"
+                    type="button"
+                    (click)="ajustarStockRapido(insumo, -1)">
+                    -
+                  </button>
+
+                  <button
+                    class="btn-adjust"
+                    type="button"
+                    (click)="ajustarStockRapido(insumo, 1)">
+                    +
+                  </button>
                 </div>
               </td>
 
               <td class="text-center">
-                <button class="action-btn edit" (click)="seleccionarInsumo(insumo)"><ion-icon name="pencil-outline"></ion-icon></button>
+                <button
+                  class="action-btn edit"
+                  type="button"
+                  (click)="seleccionarInsumo(insumo)">
+                  <ion-icon name="pencil-outline"></ion-icon>
+                </button>
               </td>
             </tr>
 
             <tr *ngIf="insumosFiltrados.length === 0">
-              <td colspan="9" class="text-center py-4 text-muted">No se encontraron insumos.</td>
+              <td colspan="9" class="text-center py-4 text-muted">
+                No se encontraron insumos.
+              </td>
             </tr>
           </tbody>
         </table>

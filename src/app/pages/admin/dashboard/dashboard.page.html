@@ -112,8 +112,8 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let p of ultimosPedidos">
-              <td class="id-cell">#{{ p.id }}</td>
+            <tr *ngFor="let p of ultimosPedidos; let i = index">
+              <td class="id-cell">#{{ i + 1 }}</td>
               <td>{{ p.mesa }}</td>
               <td>{{ p.descripcion }}</td>
               <td class="bold-cell">S/ {{ p.total | number:'1.2-2' }}</td>
