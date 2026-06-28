@@ -3,7 +3,7 @@
    ======================================= */
 $bg-sidebar: #1A183A;
 $bg-active: #9620F5;
-$text-light: #C8C8DC; 
+$text-light: #C8C8DC;
 $text-white: #FFFFFF;
 $badge-red: #F43F5E;
 $logout-red: #FB7185;
@@ -25,7 +25,7 @@ ion-split-pane.custom-split-pane {
   }
 
   &.collapsed {
-    --side-width: 75px; 
+    --side-width: 75px;
     --side-min-width: 75px;
     --side-max-width: 75px;
   }
@@ -47,7 +47,7 @@ ion-menu.dark-sidebar {
      ESTADO CONTRAÍDO
      ======================================= */
   &.collapsed {
-    
+
     /* 1. Ocultar textos y perfil */
     .brand-text, ion-label, .nav-badge, .user-profile, .fade-text {
       opacity: 0;
@@ -62,25 +62,25 @@ ion-menu.dark-sidebar {
     .sidebar-brand {
       justify-content: center;
       padding: 20px 0;
-      .logo-icon { margin: 0; } 
+      .logo-icon { margin: 0; }
     }
 
     /* 3. Centrar Iconos del Menú (Centrado absoluto) */
     .custom-nav-list {
-      padding: 0; 
+      padding: 0;
     }
-    
+
     .menu-item {
       --padding-start: 0;
       --inner-padding-end: 0;
-      position: relative; 
-      
+      position: relative;
+
       &::part(native) {
         padding: 0;
       }
 
-      ion-icon { 
-        margin: 0 !important; 
+      ion-icon {
+        margin: 0 !important;
         font-size: 1.4rem;
         position: absolute;
         left: 50%;
@@ -91,15 +91,15 @@ ion-menu.dark-sidebar {
     /* 4. Footer centrado con espacio equilibrado */
     .sidebar-footer {
       padding: 15px 0; /* Restaurado el aire superior/inferior */
-      
-      .logout-btn, .collapse-btn { 
-        justify-content: center; 
+
+      .logout-btn, .collapse-btn {
+        justify-content: center;
         padding: 12px 0; /* Altura de clic cómoda */
         position: relative;
         min-height: 44px; /* Evita que se aplasten */
-        
-        ion-icon { 
-          margin: 0 !important; 
+
+        ion-icon {
+          margin: 0 !important;
           font-size: 1.4rem; /* Tamaño intermedio perfecto */
           position: absolute;
           left: 50%;
@@ -109,7 +109,7 @@ ion-menu.dark-sidebar {
 
       /* Esta es la clave para separarlos cuando está contraído */
       .collapse-btn {
-        margin-top: 10px; 
+        margin-top: 10px;
       }
     }
   }
@@ -184,13 +184,13 @@ ion-content.menu-content::part(scroll) {
     font-size: 0.9rem;
     transition: $elegant-transition;
 
-    ion-icon { 
-      font-size: 1.3rem; 
-      margin-right: 12px; 
-      color: #E2E2F6; 
+    ion-icon {
+      font-size: 1.3rem;
+      margin-right: 12px;
+      color: #E2E2F6;
       transition: $elegant-transition;
     }
-    
+
     ion-label {
       white-space: nowrap;
       transition: opacity 0.3s ease;
@@ -234,7 +234,7 @@ ion-content.menu-content::part(scroll) {
   display: flex;
   flex-direction: column;
   transition: $elegant-transition;
-  
+
   .user-profile {
     display: flex;
     align-items: center;
@@ -244,7 +244,7 @@ ion-content.menu-content::part(scroll) {
     overflow: hidden;
 
     .avatar {
-      width: 34px; 
+      width: 34px;
       height: 34px;
       background-color: #B252FF;
       color: white;
@@ -275,23 +275,23 @@ ion-content.menu-content::part(scroll) {
     font-weight: 500;
     width: 100%;
     transition: $elegant-transition;
-    
+
     .fade-text {
       white-space: nowrap;
       transition: opacity 0.3s ease;
     }
   }
 
-  .logout-btn { 
-    color: $logout-red; 
-    ion-icon { font-size: 1.4rem; transition: margin 0.3s ease; } 
+  .logout-btn {
+    color: $logout-red;
+    ion-icon { font-size: 1.4rem; transition: margin 0.3s ease; }
     &:hover { color: #FDA4AF; }
   }
-  
-  .collapse-btn { 
-    color: $text-light; 
+
+  .collapse-btn {
+    color: $text-light;
     margin-top: 8px; /* Separación entre ambos botones restaurada */
-    ion-icon { font-size: 1.2rem; transition: margin 0.3s ease; } 
+    ion-icon { font-size: 1.2rem; transition: margin 0.3s ease; }
     &:hover { color: $text-white; }
   }
 }

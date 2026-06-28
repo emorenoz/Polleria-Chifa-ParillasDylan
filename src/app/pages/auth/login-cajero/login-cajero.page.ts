@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -25,12 +25,13 @@ import {
   eyeOffOutline
 } from 'ionicons/icons';
 
-// 🔥 FIREBASE
-import { inject } from '@angular/core';
 import {
   Firestore,
   collection,
-  addDoc
+  addDoc,
+  getDocs,
+  query,
+  where
 } from '@angular/fire/firestore';
 
 @Component({
@@ -82,37 +83,57 @@ export class LoginCajeroPage {
     this.location.back();
   }
 
-  // 🔥 LOGIN + REGISTRO EN FIREBASE (SIN CAMBIAR TU LÓGICA)
   async login() {
+    const usuarioIngresado = this.usuario.trim().toLowerCase();
+    const passwordIngresado = this.password.trim();
 
-    if (
-      this.usuario === 'cajero' &&
-      this.password === '123456'
-    ) {
+    if (!usuarioIngresado || !passwordIngresado) {
+      alert('Ingresa usuario y contraseña');
+      return;
+    }
 
-      try {
+    try {
+      const usuariosRef = collection(this.firestore, 'usuarios');
 
-        await addDoc(
-          collection(this.firestore, 'login_cajero'),
-          {
-            usuario: this.usuario,
-            rol: 'cajero',
-            mensaje: 'Login exitoso',
-            fecha: new Date()
-          }
-        );
+      const consulta = query(
+        usuariosRef,
+        where('email', '==', usuarioIngresado),
+        where('password', '==', passwordIngresado),
+        where('rol', '==', 'caja'),
+        where('estadoActivo', '==', true)
+      );
 
-        console.log('🔥 Login cajero registrado en Firebase');
+      const snapshot = await getDocs(consulta);
 
-      } catch (error) {
-        console.error('❌ Error Firebase login cajero:', error);
+      if (snapshot.empty) {
+        alert('Credenciales incorrectas');
+        return;
       }
+
+      const usuarioDoc = snapshot.docs[0];
+      const data: any = usuarioDoc.data();
+
+      await addDoc(
+        collection(this.firestore, 'login_cajero'),
+        {
+          idUsuario: usuarioDoc.id,
+          usuario: data.email,
+          nombre: data.nombre,
+          rol: data.rol,
+          mensaje: 'Login exitoso',
+          fecha: new Date()
+        }
+      );
+
+      localStorage.setItem('usuarioId', usuarioDoc.id);
+      localStorage.setItem('usuarioNombre', data.nombre);
+      localStorage.setItem('usuarioRol', data.rol);
 
       this.router.navigate(['/cajero-dashboard']);
 
-    } else {
-      alert('Credenciales incorrectas');
+    } catch (error) {
+      console.error('❌ Error login cajero:', error);
+      alert('Error al iniciar sesión');
     }
-
   }
 }

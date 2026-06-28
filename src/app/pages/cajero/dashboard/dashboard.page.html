@@ -71,13 +71,34 @@
           </div>
         </div>
 
-        <div class="sub-section-historial" style="margin-top: 30px; border-top: 2px dashed #cbd5e1; padding-top: 20px;">
-          <h2 class="section-title" style="color: #64748b;">✅ Estado de Operaciones Recientes</h2>
+        <div class="sub-section-historial">
+          <h2 class="section-title title-historial">✅ Historial reciente de mesas cobradas</h2>
 
-          <div class="info-cierre-caja" style="background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 13px; color: #475569;">
-            <p style="margin: 0 0 6px 0;">
-              💡 <b>Flujo en Vivo:</b> Cuando un cliente pide la cuenta, aparece arriba en rojo alertando al cajero. Al pulsar el botón verde, el sistema registra el ticket, limpia la mesa y la pasa automáticamente al registro diario.
-            </p>
+          <div class="empty-state" *ngIf="historialVentas.length === 0">
+            <p>🧾 Todavía no hay mesas cobradas hoy.</p>
+          </div>
+
+          <div class="historial-cobros" *ngIf="historialVentas.length > 0">
+            <div
+              class="card-historial-cobro"
+              *ngFor="let venta of historialVentas | slice:0:6">
+
+              <div class="historial-left">
+                <strong>Mesa {{ venta.mesa }}</strong>
+                <span>👤 {{ venta.mesero || 'Mesero del Salón' }}</span>
+              </div>
+
+              <div class="historial-center">
+                <span>💳 {{ venta.metodoPago }}</span>
+                <small>🕒 {{ convertirFecha(venta.fecha) | date:'shortTime' }}</small>
+              </div>
+
+              <div class="historial-right">
+                <strong>S/ {{ venta.total.toFixed(2) }}</strong>
+                <span>✅ Cobrado</span>
+              </div>
+
+            </div>
           </div>
         </div>
 

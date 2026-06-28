@@ -56,6 +56,11 @@ import {
 
 import { Subscription } from 'rxjs';
 
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 @Component({
   selector: 'app-stock',
   templateUrl: './stock.page.html',
@@ -552,45 +557,107 @@ export class StockPage implements OnInit, OnDestroy {
   }
 
   exportarInventario() {
-    const encabezados = [
-      'Nombre',
-      'Categoría',
-      'Cantidad',
-      'Stock mínimo',
-      'Stock máximo',
-      'Unidad',
-      'Precio',
-      'Valor'
+    this.exportarInventarioExcel();
+  }
+
+  exportarInventarioExcel() {
+    const datos = this.insumosFiltrados.map(i => ({
+      Nombre: i.nombre,
+      Categoría: i.categoria,
+      Cantidad: Number(i.cantidad) || 0,
+      'Stock mínimo': Number(i.stockMinimo) || 0,
+      'Stock máximo': Number(i.stockMaximo) || 0,
+      Unidad: i.unidad,
+      Precio: Number(i.precio) || 0,
+      Valor: (Number(i.cantidad) || 0) * (Number(i.precio) || 0),
+      Estado: this.obtenerTextoEstado(i)
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(datos);
+
+    worksheet['!cols'] = [
+      { wch: 28 },
+      { wch: 22 },
+      { wch: 12 },
+      { wch: 15 },
+      { wch: 15 },
+      { wch: 10 },
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 15 }
     ];
+
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventario');
+
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array'
+    });
+
+    const blob = new Blob([excelBuffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+
+    saveAs(
+      blob,
+      `inventario_${new Date().toISOString().slice(0, 10)}.xlsx`
+    );
+  }
+
+  exportarInventarioPDF() {
+    const docPdf = new jsPDF('landscape', 'mm', 'a4');
+
+    docPdf.setFontSize(16);
+    docPdf.text('Reporte de Inventario - Pollería Dylan', 14, 15);
+
+    docPdf.setFontSize(10);
+    docPdf.text(`Fecha: ${this.fechaActual}`, 14, 23);
+    docPdf.text(`Total insumos: ${this.totalInsumos}`, 14, 30);
+    docPdf.text(`Stock OK: ${this.totalOk}`, 14, 36);
+    docPdf.text(`Bajo stock: ${this.totalBajo}`, 14, 42);
+    docPdf.text(`Crítico: ${this.totalCritico}`, 14, 48);
+    docPdf.text(`Valor inventario: S/ ${this.valorInventario.toFixed(2)}`, 14, 54);
 
     const filas = this.insumosFiltrados.map(i => [
       i.nombre,
       i.categoria,
-      i.cantidad,
-      i.stockMinimo,
-      i.stockMaximo,
+      Number(i.cantidad) || 0,
+      Number(i.stockMinimo) || 0,
+      Number(i.stockMaximo) || 0,
       i.unidad,
-      i.precio,
-      (Number(i.cantidad) || 0) * (Number(i.precio) || 0)
+      `S/ ${(Number(i.precio) || 0).toFixed(2)}`,
+      `S/ ${((Number(i.cantidad) || 0) * (Number(i.precio) || 0)).toFixed(2)}`,
+      this.obtenerTextoEstado(i)
     ]);
 
-    const csv = [
-      encabezados.join(','),
-      ...filas.map(fila => fila.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csv], {
-      type: 'text/csv;charset=utf-8;'
+    autoTable(docPdf, {
+      startY: 62,
+      head: [[
+        'Nombre',
+        'Categoría',
+        'Cantidad',
+        'Mínimo',
+        'Máximo',
+        'Unidad',
+        'Precio',
+        'Valor',
+        'Estado'
+      ]],
+      body: filas,
+      styles: {
+        fontSize: 8
+      },
+      headStyles: {
+        fillColor: [126, 58, 242],
+        textColor: [255, 255, 255]
+      }
     });
 
-    const url = URL.createObjectURL(blob);
-    const enlace = document.createElement('a');
-
-    enlace.href = url;
-    enlace.download = `inventario_${new Date().toISOString().slice(0, 10)}.csv`;
-    enlace.click();
-
-    URL.revokeObjectURL(url);
+    docPdf.save(
+      `inventario_${new Date().toISOString().slice(0, 10)}.pdf`
+    );
   }
 
   limpiarFormulario() {

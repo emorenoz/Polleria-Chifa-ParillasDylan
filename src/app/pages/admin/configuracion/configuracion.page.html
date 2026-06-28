@@ -1,41 +1,366 @@
-<ion-header [translucent]="true">
-  <ion-toolbar color="primary">
+<ion-header class="ion-no-border top-header">
+  <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>Configuración</ion-title>
-  </ion-toolbar>
 
-  <ion-toolbar class="tabs-toolbar">
-    <ion-segment value="general">
-      <ion-segment-button value="general"><ion-label>General</ion-label></ion-segment-button>
-      <ion-segment-button value="horarios"><ion-label>Horarios</ion-label></ion-segment-button>
-      <ion-segment-button value="impresion"><ion-label>Impresión</ion-label></ion-segment-button>
-      <ion-segment-button value="pagos"><ion-label>Pagos</ion-label></ion-segment-button>
-    </ion-segment>
+    <div class="header-content">
+      <div class="breadcrumb">
+        <span class="muted">Pollería Dylan</span> / <strong>Configuración</strong>
+      </div>
+      <div class="date-display">{{ fechaActual }}</div>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <div class="settings-container">
-    <div class="section-title">Datos del restaurante</div>
-    <div class="input-group">
-      <div class="input-wrapper"><label>Nombre del negocio</label><input type="text" [(ngModel)]="config.nombreEmpresa"></div>
-      <div class="input-wrapper"><label>RUC</label><input type="text" [(ngModel)]="config.ruc"></div>
-      <div class="input-wrapper"><label>Dirección</label><input type="text" [(ngModel)]="config.direccion"></div>
-      <div class="input-wrapper"><label>Teléfono</label><input type="text" [(ngModel)]="config.telefono"></div>
+<ion-content class="page-bg">
+  <div class="main-container">
+
+    <div class="tabs-bar">
+      <button class="tab-btn" [class.active]="tabActual === 'general'" (click)="cambiarTab('general')">
+        <ion-icon name="storefront-outline"></ion-icon> General
+      </button>
+
+      <button class="tab-btn" [class.active]="tabActual === 'horarios'" (click)="cambiarTab('horarios')">
+        <ion-icon name="time-outline"></ion-icon> Horarios
+      </button>
+
+      <button class="tab-btn" [class.active]="tabActual === 'impresion'" (click)="cambiarTab('impresion')">
+        <ion-icon name="print-outline"></ion-icon> Impresión
+      </button>
+
+      <button class="tab-btn" [class.active]="tabActual === 'notificaciones'" (click)="cambiarTab('notificaciones')">
+        <ion-icon name="notifications-outline"></ion-icon> Notificaciones
+      </button>
+
+      <button class="tab-btn" [class.active]="tabActual === 'pagos'" (click)="cambiarTab('pagos')">
+        <ion-icon name="card-outline"></ion-icon> Pagos
+      </button>
+
+      <button class="tab-btn" [class.active]="tabActual === 'seguridad'" (click)="cambiarTab('seguridad')">
+        <ion-icon name="shield-outline"></ion-icon> Seguridad
+      </button>
     </div>
 
-    <div class="section-title">Configuración fiscal</div>
-    <div class="input-group">
-      <div class="input-wrapper"><label>Moneda</label><input type="text" [(ngModel)]="config.moneda"></div>
+    <div class="settings-card" *ngIf="tabActual === 'general'">
+      <div class="section-title">DATOS DEL RESTAURANTE</div>
+
+      <div class="setting-row">
+        <div>
+          <label>Nombre del negocio</label>
+        </div>
+        <input type="text" [(ngModel)]="config.nombreEmpresa">
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>RUC</label>
+        </div>
+        <input type="text" [(ngModel)]="config.ruc">
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Dirección</label>
+        </div>
+        <input type="text" [(ngModel)]="config.direccion">
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Teléfono</label>
+        </div>
+        <input type="text" [(ngModel)]="config.telefono">
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Email</label>
+        </div>
+        <input type="email" [(ngModel)]="config.email">
+      </div>
+
+      <div class="section-title mt-20">CONFIGURACIÓN FISCAL</div>
+
+      <div class="setting-row">
+        <div>
+          <label>Moneda</label>
+          <small>Símbolo usado en precios</small>
+        </div>
+        <input type="text" [(ngModel)]="config.moneda">
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>IGV (%)</label>
+          <small>Impuesto General a las Ventas</small>
+        </div>
+        <input type="number" [(ngModel)]="config.igv">
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn-save" (click)="guardarConfiguracion()" [disabled]="guardando">
+          <ion-icon name="save-outline"></ion-icon>
+          {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
     </div>
 
-    <div class="footer-actions">
-      <ion-button (click)="guardarConfiguracion()" [disabled]="guardando">
-        <ion-icon slot="start" name="save"></ion-icon>
-        {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
-      </ion-button>
+    <div class="settings-card" *ngIf="tabActual === 'horarios'">
+      <div class="section-title">HORARIO DE ATENCIÓN</div>
+
+      <div class="setting-row">
+        <div>
+          <label>Hora de apertura</label>
+        </div>
+        <input type="time" [(ngModel)]="config.horaApertura">
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Hora de cierre</label>
+        </div>
+        <input type="time" [(ngModel)]="config.horaCierre">
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Atención los domingos</label>
+          <small>Habilitar servicio los domingos</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.atencionDomingos">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Días de descanso</label>
+          <small>El local no atiende estos días</small>
+        </div>
+
+        <div class="days">
+          <button *ngFor="let dia of diasSemana"
+                  [class.active]="config.diasDescanso.includes(dia)"
+                  (click)="toggleDiaDescanso(dia)">
+            {{ dia }}
+          </button>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn-save" (click)="guardarConfiguracion()" [disabled]="guardando">
+          <ion-icon name="save-outline"></ion-icon>
+          Guardar cambios
+        </button>
+      </div>
     </div>
+
+    <div class="settings-card" *ngIf="tabActual === 'impresion'">
+      <div class="section-title">CONFIGURACIÓN DE IMPRESORA</div>
+
+      <div class="setting-row">
+        <div>
+          <label>Impresión automática</label>
+          <small>Imprimir ticket al confirmar pedido</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.impresionAutomatica">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Copias por pedido</label>
+        </div>
+        <input type="number" [(ngModel)]="config.copiasPedido">
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Impresora de cocina</label>
+          <small>Enviar comandas a cocina automáticamente</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.impresoraCocina">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Modelo de impresora</label>
+          <small>Térmica 80mm</small>
+        </div>
+        <select [(ngModel)]="config.modeloImpresora">
+          <option value="Epson TM-T20X">Epson TM-T20X</option>
+          <option value="Xprinter XP-58">Xprinter XP-58</option>
+          <option value="Sunmi Printer">Sunmi Printer</option>
+        </select>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn-save" (click)="guardarConfiguracion()" [disabled]="guardando">
+          <ion-icon name="save-outline"></ion-icon>
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-card" *ngIf="tabActual === 'notificaciones'">
+      <div class="section-title">ALERTAS DEL SISTEMA</div>
+
+      <div class="setting-row">
+        <div>
+          <label>Nuevos pedidos</label>
+          <small>Sonido y alerta visual al recibir un pedido</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.alertaPedidos">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Stock bajo</label>
+          <small>Alertar cuando un insumo esté por debajo del mínimo</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.alertaStock">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Resumen de caja</label>
+          <small>Enviar resumen diario al correo</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.resumenCaja">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Correo de alertas</label>
+          <small>Destino de los reportes automáticos</small>
+        </div>
+        <input type="email" [(ngModel)]="config.correoAlertas">
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn-save" (click)="guardarConfiguracion()" [disabled]="guardando">
+          <ion-icon name="save-outline"></ion-icon>
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-card" *ngIf="tabActual === 'pagos'">
+      <div class="section-title">MÉTODOS DE PAGO ACEPTADOS</div>
+
+      <div class="setting-row">
+        <div>
+          <label>Efectivo</label>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.pagoEfectivo">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Tarjeta de crédito / débito</label>
+          <small>POS integrado</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.pagoTarjeta">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Yape / Plin</label>
+          <small>Pagos QR</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.pagoYape">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Número Yape</label>
+          <small>Número asociado al QR</small>
+        </div>
+        <input type="text" [(ngModel)]="config.numeroYape">
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn-save" (click)="guardarConfiguracion()" [disabled]="guardando">
+          <ion-icon name="save-outline"></ion-icon>
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-card" *ngIf="tabActual === 'seguridad'">
+      <div class="section-title">CONTROL DE ACCESO</div>
+
+      <div class="setting-row">
+        <div>
+          <label>Tiempo de sesión (minutos)</label>
+          <small>Cierre automático de sesión inactiva</small>
+        </div>
+        <input type="number" [(ngModel)]="config.tiempoSesion">
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Doble factor de autenticación</label>
+          <small>Código adicional al iniciar sesión</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.dobleFactor">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Historial de accesos</label>
+          <small>Registrar cada inicio de sesión</small>
+        </div>
+        <label class="switch">
+          <input type="checkbox" [(ngModel)]="config.historialAccesos">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <label>Cambiar contraseña admin</label>
+        </div>
+        <button class="btn-password" (click)="cambiarPasswordAdmin()">
+          Cambiar contraseña
+        </button>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn-save" (click)="guardarConfiguracion()" [disabled]="guardando">
+          <ion-icon name="save-outline"></ion-icon>
+          Guardar cambios
+        </button>
+      </div>
+    </div>
+
   </div>
 </ion-content>

@@ -29,9 +29,20 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { 
-  people, create, trash, arrowBack,
-  searchOutline, addOutline, closeOutline, pencilOutline, trashOutline, shieldCheckmarkOutline, peopleOutline, restaurantOutline, cashOutline
+import {
+  people,
+  create,
+  trash,
+  arrowBack,
+  searchOutline,
+  addOutline,
+  closeOutline,
+  pencilOutline,
+  trashOutline,
+  shieldCheckmarkOutline,
+  peopleOutline,
+  restaurantOutline,
+  cashOutline
 } from 'ionicons/icons';
 
 import {
@@ -81,39 +92,47 @@ export class UsuariosPage implements OnInit {
 
   private firestore = inject(Firestore);
 
-  // --- VARIABLES DE INTERFAZ NUEVAS ---
-  fechaActual: string = '';
-  mostrarFormulario: boolean = false;
-  
-  // Variables de Filtrado superior
-  filtroRol: string = 'Todos';
-  opcionesFiltro = ['Todos', 'Admin', 'Mesero', 'Cocina', 'Caja'];
+  fechaActual = '';
+  mostrarFormulario = false;
 
-  // Variables KPI
-  totalAdmins: number = 0;
-  totalMeseros: number = 0;
-  totalCocinas: number = 0;
-  totalCajas: number = 0;
+  filtroRol = 'Todos';
+  opcionesFiltro = ['Todos', 'Mesero', 'Cocina', 'Caja'];
+
+  totalAdmins = 0;
+  totalMeseros = 0;
+  totalCocinas = 0;
+  totalCajas = 0;
 
   nuevoUsuario = {
     nombre: '',
     email: '',
     password: '',
-    rol: '',
+    rol: 'mesero',
     estadoActivo: true
   };
 
   editando = false;
   idUsuarioEditando: string | null = null;
-  textoBuscar: string = '';
+  textoBuscar = '';
 
   listaUsuarios: any[] = [];
   usuariosFiltrados: any[] = [];
 
   constructor() {
-    addIcons({ 
-      people, create, trash, arrowBack,
-      searchOutline, addOutline, closeOutline, pencilOutline, trashOutline, shieldCheckmarkOutline, peopleOutline, restaurantOutline, cashOutline
+    addIcons({
+      people,
+      create,
+      trash,
+      arrowBack,
+      searchOutline,
+      addOutline,
+      closeOutline,
+      pencilOutline,
+      trashOutline,
+      shieldCheckmarkOutline,
+      peopleOutline,
+      restaurantOutline,
+      cashOutline
     });
   }
 
@@ -123,11 +142,16 @@ export class UsuariosPage implements OnInit {
   }
 
   configurarFecha() {
-    const opciones: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const opciones: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    };
+
     this.fechaActual = new Date().toLocaleDateString('es-PE', opciones);
   }
 
-  // --- CONTROL DE FORMULARIO ---
   abrirFormulario() {
     this.limpiarFormulario();
     this.editando = false;
@@ -141,27 +165,29 @@ export class UsuariosPage implements OnInit {
     this.idUsuarioEditando = null;
   }
 
-  // --- LÓGICA VISUAL (AVATARES, ROLES Y ESTADOS) ---
   obtenerInicial(nombre: string): string {
     return nombre ? nombre.charAt(0).toUpperCase() : '?';
   }
 
   obtenerColorAvatar(nombre: string): string {
     if (!nombre) return 'bg-gray';
+
     const code = nombre.charCodeAt(0);
+
     if (code % 4 === 0) return 'bg-purple';
     if (code % 4 === 1) return 'bg-blue';
     if (code % 4 === 2) return 'bg-green';
+
     return 'bg-orange';
   }
 
   formatUsername(email: string): string {
-    if (!email) return '@user';
+    if (!email) return '@' + this.obtenerInicial('');
     return '@' + email.split('@')[0];
   }
 
   obtenerNombreRol(rolId: string): string {
-    switch(rolId) {
+    switch (rolId) {
       case 'admin': return 'Admin';
       case 'mesero': return 'Mesero';
       case 'cocina': return 'Cocina';
@@ -171,7 +197,7 @@ export class UsuariosPage implements OnInit {
   }
 
   obtenerClaseRol(rolId: string): string {
-    switch(rolId) {
+    switch (rolId) {
       case 'admin': return 'badge-admin';
       case 'mesero': return 'badge-mesero';
       case 'cocina': return 'badge-cocina';
@@ -181,12 +207,12 @@ export class UsuariosPage implements OnInit {
   }
 
   obtenerIconoRol(rolId: string): string {
-    switch(rolId) {
+    switch (rolId) {
       case 'admin': return 'shield-checkmark-outline';
       case 'mesero': return 'people-outline';
       case 'cocina': return 'restaurant-outline';
       case 'caja': return 'cash-outline';
-      default: return 'person-outline';
+      default: return 'people-outline';
     }
   }
 
@@ -202,110 +228,159 @@ export class UsuariosPage implements OnInit {
     this.totalCajas = this.listaUsuarios.filter(u => u.rol === 'caja').length;
   }
 
-
-  // --- LOGICA DE FIREBASE INTACTA Y EXTENDIDA PARA ESTADO ---
-
   async cargarUsuariosFirebase() {
     try {
       const snapshot = await getDocs(collection(this.firestore, 'usuarios'));
+
       this.listaUsuarios = [];
 
       snapshot.forEach(docSnap => {
         const data: any = docSnap.data();
+
         this.listaUsuarios.push({
           id: docSnap.id,
           nombre: data.nombre || '',
           email: data.email || '',
-          rol: data.rol || 'mesero', // fallback
-          estadoActivo: data.estadoActivo !== false // Por defecto true
+          password: data.password || '',
+          rol: data.rol || 'mesero',
+          estadoActivo: data.estadoActivo !== false
         });
       });
 
       this.calcularKPIs();
       this.buscar();
+
     } catch (error) {
       console.error('Error cargando usuarios:', error);
     }
   }
 
   async guardarUsuario() {
-    if (!this.nuevoUsuario.nombre.trim() || !this.nuevoUsuario.email.trim() || (!this.editando && !this.nuevoUsuario.password) || !this.nuevoUsuario.rol) return;
+    const nombre = this.nuevoUsuario.nombre.trim();
+    const email = this.nuevoUsuario.email.trim().toLowerCase();
+    const password = this.nuevoUsuario.password.trim();
+    const rol = this.nuevoUsuario.rol;
+
+    if (!nombre || !rol) {
+      alert('Completa nombre y rol.');
+      return;
+    }
+
+    if (rol === 'admin') {
+      alert('No se puede crear ni modificar administradores desde este módulo.');
+      return;
+    }
+
+    if (rol === 'caja') {
+      if (!email || !password) {
+        alert('El cajero necesita usuario/correo y contraseña.');
+        return;
+      }
+
+      if (password.length < 6) {
+        alert('La contraseña debe tener mínimo 6 caracteres.');
+        return;
+      }
+    }
 
     try {
+      const dataGuardar: any = {
+        nombre,
+        rol,
+        estadoActivo: this.nuevoUsuario.estadoActivo,
+        updatedAt: new Date()
+      };
+
+      if (rol === 'caja') {
+        dataGuardar.email = email;
+        dataGuardar.password = password;
+      } else {
+        dataGuardar.email = '';
+        dataGuardar.password = '';
+      }
+
       if (this.editando && this.idUsuarioEditando) {
         const ref = doc(this.firestore, 'usuarios', this.idUsuarioEditando);
-        await updateDoc(ref, {
-          nombre: this.nuevoUsuario.nombre.trim(),
-          rol: this.nuevoUsuario.rol
-        });
-
-        // Actualización local
-        const index = this.listaUsuarios.findIndex(u => u.id === this.idUsuarioEditando);
-        if (index !== -1) {
-          this.listaUsuarios[index].nombre = this.nuevoUsuario.nombre.trim();
-          this.listaUsuarios[index].rol = this.nuevoUsuario.rol;
-        }
-
+        await updateDoc(ref, dataGuardar);
       } else {
-        const docRef = await addDoc(collection(this.firestore, 'usuarios'), {
-          nombre: this.nuevoUsuario.nombre.trim(),
-          email: this.nuevoUsuario.email.trim().toLowerCase(),
-          rol: this.nuevoUsuario.rol,
-          estadoActivo: true, // Nuevo por defecto activo
+        await addDoc(collection(this.firestore, 'usuarios'), {
+          ...dataGuardar,
+          estadoActivo: true,
           createdAt: new Date()
-        });
-
-        this.listaUsuarios.push({
-          id: docRef.id,
-          nombre: this.nuevoUsuario.nombre.trim(),
-          email: this.nuevoUsuario.email.trim().toLowerCase(),
-          rol: this.nuevoUsuario.rol,
-          estadoActivo: true
         });
       }
 
-      this.calcularKPIs();
-      this.buscar();
+      await this.cargarUsuariosFirebase();
       this.cerrarFormulario();
+
     } catch (error) {
       console.error('Error guardando usuario:', error);
     }
   }
 
   seleccionarUsuario(usuario: any) {
+    if (usuario.rol === 'admin') {
+      alert('El administrador no se modifica desde este módulo.');
+      return;
+    }
+
     this.editando = true;
     this.idUsuarioEditando = usuario.id;
+
     this.nuevoUsuario = {
       nombre: usuario.nombre,
-      email: usuario.email,
+      email: usuario.email || '',
       password: '',
       rol: usuario.rol,
       estadoActivo: usuario.estadoActivo
     };
+
     this.mostrarFormulario = true;
   }
 
   async eliminarUsuario(id: string) {
+    const usuario = this.listaUsuarios.find(u => u.id === id);
+
+    if (usuario?.rol === 'admin') {
+      alert('No se puede eliminar al administrador desde este módulo.');
+      return;
+    }
+
+    const confirmar = confirm('¿Seguro que deseas eliminar este usuario?');
+
+    if (!confirmar) return;
+
     try {
       await deleteDoc(doc(this.firestore, 'usuarios', id));
+
       this.listaUsuarios = this.listaUsuarios.filter(u => u.id !== id);
+
       this.calcularKPIs();
       this.buscar();
+
     } catch (error) {
       console.error('Error eliminando usuario:', error);
     }
   }
 
-  // ⭐ NUEVA FUNCIÓN: Actualizar el switch de estado (Habilitar/Deshabilitar)
   async toggleEstadoUsuario(usuario: any) {
+    if (usuario.rol === 'admin') {
+      alert('No se puede desactivar al administrador desde este módulo.');
+      return;
+    }
+
     const nuevoEstado = !usuario.estadoActivo;
-    usuario.estadoActivo = nuevoEstado; // Actualizamos vista rápido
-    
+    usuario.estadoActivo = nuevoEstado;
+
     try {
       const ref = doc(this.firestore, 'usuarios', usuario.id);
-      await updateDoc(ref, { estadoActivo: nuevoEstado });
+
+      await updateDoc(ref, {
+        estadoActivo: nuevoEstado,
+        updatedAt: new Date()
+      });
+
     } catch (error) {
-      // Revertir si falla
       usuario.estadoActivo = !nuevoEstado;
       console.error('Error cambiando estado de usuario:', error);
     }
@@ -315,14 +390,19 @@ export class UsuariosPage implements OnInit {
     const q = this.textoBuscar.toLowerCase().trim();
 
     this.usuariosFiltrados = this.listaUsuarios.filter(usuario => {
-      // Match texto (Nombre o @usuario)
-      const matchTexto = !q || 
-                         usuario.nombre.toLowerCase().includes(q) || 
-                         usuario.email.toLowerCase().includes(q);
+      const nombre = String(usuario.nombre || '').toLowerCase();
+      const email = String(usuario.email || '').toLowerCase();
 
-      // Match filtro de botones superiores
+      const matchTexto =
+        !q ||
+        nombre.includes(q) ||
+        email.includes(q);
+
       const rolVisual = this.obtenerNombreRol(usuario.rol);
-      const matchRol = this.filtroRol === 'Todos' || rolVisual === this.filtroRol;
+
+      const matchRol =
+        this.filtroRol === 'Todos' ||
+        rolVisual === this.filtroRol;
 
       return matchTexto && matchRol;
     });
@@ -333,7 +413,7 @@ export class UsuariosPage implements OnInit {
       nombre: '',
       email: '',
       password: '',
-      rol: '',
+      rol: 'mesero',
       estadoActivo: true
     };
   }

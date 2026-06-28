@@ -3,6 +3,7 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
+
     <div class="header-content">
       <div class="breadcrumb">
         <span class="muted">Pollería Dylan</span> / <strong>Reportes</strong>
@@ -15,133 +16,215 @@
 <ion-content class="page-bg">
   <div class="main-container">
 
-    <!-- BARRA SUPERIOR (Filtros de tiempo y Exportar) -->
     <div class="action-toolbar">
       <div class="filter-chips">
-        <button *ngFor="let rango of rangosTiempo" 
-                class="chip" 
-                [ngClass]="{'active': rangoSeleccionado === rango}" 
-                (click)="seleccionarRango(rango)">
+        <button
+          *ngFor="let rango of rangosTiempo"
+          class="chip"
+          [ngClass]="{ 'active': rangoSeleccionado === rango }"
+          (click)="seleccionarRango(rango)"
+        >
           {{ rango }}
         </button>
       </div>
 
       <button class="btn-outline outline-dark export-btn" (click)="exportarPDF()">
-        <ion-icon name="download-outline"></ion-icon> Exportar PDF
+        <ion-icon name="download-outline"></ion-icon>
+        Exportar PDF
       </button>
     </div>
 
-    <!-- TARJETAS KPI (Conectadas a tus variables de Firebase) -->
     <div class="kpi-status-row">
       <div class="status-card">
         <div class="kpi-title">Ventas totales</div>
-        <div class="kpi-amount text-purple">S/ {{ kpis.totalIngresos | number:'1.2-2' }}</div>
-        <div class="kpi-subtext text-green">+7% vs anterior</div>
+        <div class="kpi-amount text-purple">
+          S/ {{ kpis.totalIngresos | number:'1.2-2' }}
+        </div>
+        <div class="kpi-subtext text-muted">Según rango seleccionado</div>
       </div>
-      
+
       <div class="status-card">
         <div class="kpi-title">Pedidos totales</div>
-        <div class="kpi-amount text-purple">{{ kpis.totalPedidos }}</div>
-        <div class="kpi-subtext text-green">+8% vs anterior</div>
+        <div class="kpi-amount text-purple">
+          {{ kpis.totalPedidos }}
+        </div>
+        <div class="kpi-subtext text-muted">Ventas registradas</div>
       </div>
 
       <div class="status-card">
         <div class="kpi-title">Ticket promedio</div>
-        <div class="kpi-amount text-purple">S/ {{ kpis.ticketPromedio | number:'1.2-2' }}</div>
+        <div class="kpi-amount text-purple">
+          S/ {{ kpis.ticketPromedio | number:'1.2-2' }}
+        </div>
         <div class="kpi-subtext text-muted">Por pedido</div>
       </div>
 
       <div class="status-card">
-        <div class="kpi-title">Clientes únicos</div>
-        <!-- Mock visual basado en tu diseño -->
-        <div class="kpi-amount text-purple">320</div>
-        <div class="kpi-subtext text-green">Este mes</div>
+        <div class="kpi-title">Métodos usados</div>
+        <div class="kpi-amount text-purple">
+          {{ metodosPagoDisplay.length }}
+        </div>
+        <div class="kpi-subtext text-muted">Formas de pago</div>
       </div>
     </div>
 
-    <!-- GRID DE GRÁFICOS (2 Columnas) -->
-    <div class="charts-grid">
-      
-      <!-- GRÁFICO 1: VENTAS MENSUALES (Barras) -->
+    <div *ngIf="cargando" class="loading-box">
+      Generando reporte...
+    </div>
+
+    <div class="charts-grid" *ngIf="!cargando">
+
+      <!-- VENTAS MENSUALES -->
       <div class="chart-card">
         <h4>Ventas mensuales</h4>
-        <div class="bar-chart-container">
+
+        <div class="bar-chart-container" *ngIf="ventasMensuales.length > 0; else sinVentasMensuales">
           <div class="y-axis">
-            <span>26000</span><span>19500</span><span>13000</span><span>6500</span><span>0</span>
+            <span>100%</span>
+            <span>75%</span>
+            <span>50%</span>
+            <span>25%</span>
+            <span>0</span>
           </div>
+
           <div class="bar-area">
-            <!-- Barras simuladas para igualar el diseño -->
-            <div class="bar-group"><div class="bar purple" style="height: 60%;"></div><span class="x-label">Ene</span></div>
-            <div class="bar-group"><div class="bar purple" style="height: 50%;"></div><span class="x-label">Feb</span></div>
-            <div class="bar-group"><div class="bar purple" style="height: 80%;"></div><span class="x-label">Mar</span></div>
-            <div class="bar-group"><div class="bar purple" style="height: 70%;"></div><span class="x-label">Abr</span></div>
-            <div class="bar-group"><div class="bar purple" style="height: 90%;"></div><span class="x-label">May</span></div>
-            <div class="bar-group"><div class="bar purple" style="height: 100%;"></div><span class="x-label">Jun</span></div>
+            <div class="bar-group" *ngFor="let venta of ventasMensuales">
+              <div
+                class="bar purple"
+                [style.height.%]="
+                  kpis.totalIngresos > 0
+                    ? ((venta.total / kpis.totalIngresos) * 100)
+                    : 0
+                "
+              ></div>
+              <span class="x-label">{{ venta.mes }}</span>
+            </div>
           </div>
         </div>
+
+        <ng-template #sinVentasMensuales>
+          <div class="empty-chart">No hay ventas mensuales registradas.</div>
+        </ng-template>
+
         <div class="chart-legend justify-center">
-          <span class="legend-item"><div class="dot purple"></div> ventas</span>
-          <span class="legend-item"><div class="dot purple-light"></div> pedidos</span>
+          <span class="legend-item">
+            <div class="dot purple"></div>
+            Ventas
+          </span>
+          <span class="legend-item">
+            <div class="dot purple-light"></div>
+            Pedidos
+          </span>
         </div>
       </div>
 
-      <!-- GRÁFICO 2: MÉTODO DE PAGO (Donut) -->
+      <!-- MÉTODO DE PAGO -->
       <div class="chart-card">
         <h4>Método de pago</h4>
+
         <div class="donut-chart-container">
-          <!-- El donut está hecho con CSS conic-gradient -->
           <div class="donut"></div>
         </div>
+
         <div class="chart-legend vertical">
-          <!-- Conectado a tus datos de Firebase, si no hay, muestra un mock -->
           <div class="legend-row" *ngFor="let metodo of metodosPagoDisplay; let i = index">
-            <span class="legend-item"><div class="dot" [ngClass]="coloresMetodo[i % 3]"></div> {{ metodo.nombre }}</span>
-            <span class="legend-value">{{ calcularPorcentajePago(metodo.monto) }}%</span>
+            <span class="legend-item">
+              <div class="dot" [ngClass]="coloresMetodo[i % coloresMetodo.length]"></div>
+              {{ metodo.nombre }}
+            </span>
+
+            <span class="legend-value">
+              {{ calcularPorcentajePago(metodo.monto) }}%
+            </span>
           </div>
+
           <div class="legend-row" *ngIf="metodosPagoDisplay.length === 0">
             <span class="text-muted">No hay datos de pago aún.</span>
           </div>
         </div>
       </div>
 
-      <!-- GRÁFICO 3: VENTAS AM VS PM (Líneas) -->
+      <!-- VENTAS AM VS PM -->
       <div class="chart-card">
         <h4>Ventas AM vs PM</h4>
-        <div class="line-chart-container">
+
+        <div class="line-chart-container" *ngIf="ventasAmPm.length > 0; else sinVentasAmPm">
           <div class="y-axis">
-            <span>1200</span><span>600</span><span>300</span><span>0</span>
+            <span>AM</span>
+            <span>PM</span>
+            <span>0</span>
           </div>
-          <div class="line-area">
-            <!-- SVG para las líneas curvas idénticas al diseño -->
-            <svg viewBox="0 0 600 100" preserveAspectRatio="none" class="chart-svg">
-              <path d="M0,80 Q50,90 100,85 T200,90 T300,70 T400,60 T500,45 T600,60" fill="none" stroke="#f97316" stroke-width="3"/>
-              <path d="M0,60 Q50,55 100,65 T200,50 T300,30 T400,40 T500,20 T600,35" fill="none" stroke="#9620F5" stroke-width="3"/>
-            </svg>
-            <div class="x-axis-lines">
-              <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
+
+          <div class="line-area real-line-area">
+            <div class="ampm-bars" *ngFor="let dia of ventasAmPm">
+              <div class="ampm-day">
+                <div class="ampm-values">
+                  <div
+                    class="ampm-bar orange"
+                    [style.height.%]="
+                      kpis.totalIngresos > 0
+                        ? ((dia.am / kpis.totalIngresos) * 100)
+                        : 0
+                    "
+                    title="AM"
+                  ></div>
+
+                  <div
+                    class="ampm-bar purple"
+                    [style.height.%]="
+                      kpis.totalIngresos > 0
+                        ? ((dia.pm / kpis.totalIngresos) * 100)
+                        : 0
+                    "
+                    title="PM"
+                  ></div>
+                </div>
+
+                <span>{{ dia.dia }}</span>
+              </div>
             </div>
           </div>
         </div>
+
+        <ng-template #sinVentasAmPm>
+          <div class="empty-chart">No hay ventas AM/PM registradas.</div>
+        </ng-template>
+
         <div class="chart-legend justify-center mt-10">
-          <span class="legend-item"><div class="circle border-orange"></div> am</span>
-          <span class="legend-item"><div class="circle border-purple"></div> pm</span>
+          <span class="legend-item">
+            <div class="circle border-orange"></div>
+            AM
+          </span>
+          <span class="legend-item">
+            <div class="circle border-purple"></div>
+            PM
+          </span>
         </div>
       </div>
 
-      <!-- GRÁFICO 4: PRODUCTOS MÁS VENDIDOS (Barras Horizontales) -->
+      <!-- PRODUCTOS MÁS VENDIDOS -->
       <div class="chart-card">
         <h4>Productos más vendidos</h4>
-        <div class="progress-list">
-          <div class="progress-item" *ngFor="let prod of topProductosMock">
+
+        <div class="progress-list" *ngIf="topProductos.length > 0; else sinProductos">
+          <div class="progress-item" *ngFor="let prod of topProductos">
             <div class="progress-header">
               <span class="prod-name">{{ prod.nombre }}</span>
               <span class="prod-value">{{ prod.cantidad }} uds</span>
             </div>
+
             <div class="progress-track">
-              <div class="progress-fill purple" [style.width.%]="prod.porcentaje"></div>
+              <div
+                class="progress-fill purple"
+                [style.width.%]="prod.porcentaje"
+              ></div>
             </div>
           </div>
         </div>
+
+        <ng-template #sinProductos>
+          <div class="empty-chart">No hay productos vendidos aún.</div>
+        </ng-template>
       </div>
 
     </div>

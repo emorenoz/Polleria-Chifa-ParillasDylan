@@ -5,42 +5,14 @@ import { FormsModule } from '@angular/forms';
 import {
   IonContent,
   IonHeader,
-  IonTitle,
   IonToolbar,
-  IonCard,
-  IonCardHeader,
-  IonCardSubtitle,
-  IonCardTitle,
-  IonCardContent,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonText,
-  IonList,
-  IonItem,
-  IonSelect,
-  IonSelectOption,
-  IonInput,
-  IonButton,
   IonIcon,
-  IonNote,
-  IonLabel,
-  IonItemSliding,
-  IonItemOptions,
-  IonItemOption,
   IonButtons,
-  IonBackButton,
-  IonMenuButton // ✅ AÑADIDO PARA SOLUCIONAR EL ERROR
+  IonMenuButton
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
 import {
-  arrowUpCircle,
-  arrowDownCircle,
-  create,
-  trash,
-  arrowBack,
-  // ✅ NUEVOS ÍCONOS AÑADIDOS PARA EL REDISEÑO
   walletOutline,
   printOutline,
   trendingUpOutline,
@@ -69,47 +41,41 @@ import {
     FormsModule,
     IonContent,
     IonHeader,
-    IonTitle,
     IonToolbar,
-    IonCard,
-    IonCardHeader,
-    IonCardSubtitle,
-    IonCardTitle,
-    IonCardContent,
-    IonGrid,
-    IonRow,
-    IonCol,
-    IonText,
-    IonList,
-    IonItem,
-    IonSelect,
-    IonSelectOption,
-    IonInput,
-    IonButton,
     IonIcon,
-    IonNote,
-    IonLabel,
-    IonItemSliding,
-    IonItemOptions,
-    IonItemOption,
     IonButtons,
-    IonBackButton,
-    IonMenuButton // ✅ AÑADIDO EN LOS IMPORTS DEL COMPONENTE
+    IonMenuButton
   ]
 })
 export class CajaPage implements OnInit {
 
   private firestore = inject(Firestore);
 
-  // ✅ AÑADIDO: VARIABLE PARA EVITAR EL ERROR NG9 EN EL HTML
-  fechaActual: string = '';
+  fechaActual = '';
+  usuarioCaja = 'Admin';
+  horaApertura = '08:00';
+  fondoInicial = 350;
 
-  totalCaja: number = 0;
-  totalIngresos: number = 0;
-  totalEgresos: number = 0;
+  totalCaja = 0;
+  totalIngresos = 0;
+  totalEgresos = 0;
+
+  cantidadIngresos = 0;
+  cantidadEgresos = 0;
+
+  totalEfectivo = 0;
+  totalTarjeta = 0;
+  totalYape = 0;
+
+  porcentajeEfectivo = 0;
+  porcentajeTarjeta = 0;
+  porcentajeYape = 0;
+
+  mostrarFormulario = false;
 
   nuevoMovimiento = {
     tipo: '',
+    metodo: '',
     monto: null as number | null,
     descripcion: ''
   };
@@ -118,12 +84,6 @@ export class CajaPage implements OnInit {
 
   constructor() {
     addIcons({
-      arrowUpCircle,
-      arrowDownCircle,
-      create,
-      trash,
-      arrowBack,
-      // ✅ REGISTRO DE LOS NUEVOS ÍCONOS
       walletOutline,
       printOutline,
       trendingUpOutline,
@@ -139,78 +99,84 @@ export class CajaPage implements OnInit {
     await this.cargarMovimientosFirebase();
   }
 
-  // ✅ AÑADIDO: FUNCIÓN PARA MOSTRAR LA FECHA DINÁMICA
   configurarFecha() {
-    const opciones: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const opciones: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    };
+
     this.fechaActual = new Date().toLocaleDateString('es-PE', opciones);
   }
 
-  // Cargar movimientos desde Firebase
   async cargarMovimientosFirebase() {
-
     try {
-
       const movimientosRef = query(
         collection(this.firestore, 'caja'),
         orderBy('fecha', 'desc')
       );
 
-      const querySnapshot =
-        await getDocs(movimientosRef);
+      const querySnapshot = await getDocs(movimientosRef);
 
       this.historial = [];
 
       querySnapshot.forEach((docSnap) => {
-
         this.historial.push({
           id: docSnap.id,
           ...docSnap.data()
         });
-
       });
 
       this.calcularTotales();
 
-      console.log(
-        '✅ Movimientos cargados:',
-        this.historial.length
-      );
-
     } catch (error) {
-
-      console.error(
-        '❌ Error cargando movimientos:',
-        error
-      );
-
+      console.error('❌ Error cargando movimientos:', error);
     }
-
   }
 
-  // Registrar movimiento en Firebase
-  async registrarMovimiento() {
+  prepararIngreso() {
+    this.mostrarFormulario = true;
 
-    if (
-      !this.nuevoMovimiento.monto ||
-      !this.nuevoMovimiento.tipo
-    ) return;
+    this.nuevoMovimiento = {
+      tipo: 'ingreso',
+      metodo: 'Efectivo',
+      monto: null,
+      descripcion: ''
+    };
+  }
+
+  prepararEgreso() {
+    this.mostrarFormulario = true;
+
+    this.nuevoMovimiento = {
+      tipo: 'egreso',
+      metodo: 'Retiro',
+      monto: null,
+      descripcion: ''
+    };
+  }
+
+  async registrarMovimiento() {
+    if (!this.nuevoMovimiento.tipo || !this.nuevoMovimiento.monto) {
+      return;
+    }
 
     const movimiento = {
       tipo: this.nuevoMovimiento.tipo,
+      metodo: this.nuevoMovimiento.metodo || (
+        this.nuevoMovimiento.tipo === 'ingreso' ? 'Efectivo' : 'Retiro'
+      ),
       monto: Number(this.nuevoMovimiento.monto),
-      descripcion:
-        this.nuevoMovimiento.descripcion.trim()
-        ||
-        (
-          this.nuevoMovimiento.tipo === 'ingreso'
-            ? 'Ingreso manual'
-            : 'Egreso manual'
-        ),
+      descripcion: this.nuevoMovimiento.descripcion.trim() || (
+        this.nuevoMovimiento.tipo === 'ingreso'
+          ? 'Ingreso manual'
+          : 'Egreso manual'
+      ),
       fecha: new Date()
     };
 
     try {
-
       const docRef = await addDoc(
         collection(this.firestore, 'caja'),
         movimiento
@@ -225,52 +191,64 @@ export class CajaPage implements OnInit {
 
       this.nuevoMovimiento = {
         tipo: '',
+        metodo: '',
         monto: null,
         descripcion: ''
       };
 
-      console.log(
-        '✅ Movimiento registrado:',
-        docRef.id
-      );
+      this.mostrarFormulario = false;
 
     } catch (error) {
-
-      console.error(
-        '❌ Error registrando movimiento:',
-        error
-      );
-
+      console.error('❌ Error registrando movimiento:', error);
     }
-
   }
 
   calcularTotales() {
+    this.totalIngresos = this.historial
+      .filter(mov => mov.tipo === 'ingreso')
+      .reduce((sum, mov) => sum + Number(mov.monto || 0), 0);
 
-    this.totalIngresos =
-      this.historial
-        .filter(
-          mov => mov.tipo === 'ingreso'
-        )
-        .reduce(
-          (sum, mov) => sum + mov.monto,
-          0
-        );
+    this.totalEgresos = this.historial
+      .filter(mov => mov.tipo === 'egreso')
+      .reduce((sum, mov) => sum + Number(mov.monto || 0), 0);
 
-    this.totalEgresos =
-      this.historial
-        .filter(
-          mov => mov.tipo === 'egreso'
-        )
-        .reduce(
-          (sum, mov) => sum + mov.monto,
-          0
-        );
+    this.totalCaja = this.fondoInicial + this.totalIngresos - this.totalEgresos;
 
-    this.totalCaja =
-      this.totalIngresos -
-      this.totalEgresos;
+    this.cantidadIngresos = this.historial
+      .filter(mov => mov.tipo === 'ingreso').length;
 
+    this.cantidadEgresos = this.historial
+      .filter(mov => mov.tipo === 'egreso').length;
+
+    this.totalEfectivo = this.historial
+      .filter(mov => mov.tipo === 'ingreso' && mov.metodo === 'Efectivo')
+      .reduce((sum, mov) => sum + Number(mov.monto || 0), 0);
+
+    this.totalTarjeta = this.historial
+      .filter(mov => mov.tipo === 'ingreso' && mov.metodo === 'Tarjeta')
+      .reduce((sum, mov) => sum + Number(mov.monto || 0), 0);
+
+    this.totalYape = this.historial
+      .filter(mov => mov.tipo === 'ingreso' && mov.metodo === 'Yape')
+      .reduce((sum, mov) => sum + Number(mov.monto || 0), 0);
+
+    const totalMetodos = this.totalEfectivo + this.totalTarjeta + this.totalYape;
+
+    this.porcentajeEfectivo = totalMetodos > 0
+      ? (this.totalEfectivo / totalMetodos) * 100
+      : 0;
+
+    this.porcentajeTarjeta = totalMetodos > 0
+      ? (this.totalTarjeta / totalMetodos) * 100
+      : 0;
+
+    this.porcentajeYape = totalMetodos > 0
+      ? (this.totalYape / totalMetodos) * 100
+      : 0;
+  }
+
+  cerrarTurno() {
+    window.print();
   }
 
 }

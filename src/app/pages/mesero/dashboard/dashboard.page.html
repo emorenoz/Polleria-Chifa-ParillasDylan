@@ -11,21 +11,10 @@
 
     <div class="stats-and-actions">
       <div class="stats">
-        <span class="stat-item active">
-          <span class="dot"></span> {{ totalActivas }} activas
-        </span>
-
-        <span class="stat-item ready">
-          <span class="dot"></span> {{ totalListas }} listas
-        </span>
-
-        <span class="stat-item bill">
-          <span class="dot"></span> {{ totalEnCuenta }} en cuenta
-        </span>
-
-        <span class="stat-item free">
-          <span class="dot"></span> {{ totalLibres }} libres
-        </span>
+        <span class="stat-item active"><span class="dot"></span> {{ totalActivas }} activas</span>
+        <span class="stat-item ready"><span class="dot"></span> {{ totalListas }} listas</span>
+        <span class="stat-item bill"><span class="dot"></span> {{ totalEnCuenta }} en cuenta</span>
+        <span class="stat-item free"><span class="dot"></span> {{ totalLibres }} libres</span>
       </div>
 
       <div class="time-exit">
@@ -34,6 +23,10 @@
       </div>
     </div>
   </header>
+
+  <div class="ready-notification animated" *ngIf="mesaSeleccionada?.estado === 'listo'">
+    🔔 Pedido listo para recoger en cocina - Mesa {{ mesaSeleccionada?.numero }}
+  </div>
 
   <div class="main-content">
 
@@ -48,18 +41,21 @@
             'libre': mesa.estado === 'libre',
             'activa': mesa.estado === 'activa',
             'listo': mesa.estado === 'listo',
+            'recogido': mesa.estado === 'recogido',
             'cuenta': mesa.estado === 'cuenta',
             'selected': mesaSeleccionada?.id === mesa.id
           }"
-          (click)="seleccionarMesa(mesa)">
-
+          (click)="seleccionarMesa(mesa)"
+        >
           <span class="num-prefix">M</span>
           <span class="num-mesa">{{ mesa.numero }}</span>
-
-          <span class="mesa-alert" *ngIf="mesa.estado === 'listo'">
-            🍽️
-          </span>
+          <span class="mesa-alert" *ngIf="mesa.estado === 'listo'">🍽️</span>
+          <span class="mesa-alert" *ngIf="mesa.estado === 'recogido'">✅</span>
         </button>
+
+        <div class="empty-mesas" *ngIf="mesas.length === 0">
+          🍽️ No hay mesas registradas.
+        </div>
       </div>
 
       <div class="leyenda">
@@ -67,13 +63,14 @@
         <div class="leyenda-item"><span class="dot free"></span> Libre</div>
         <div class="leyenda-item"><span class="dot active"></span> Activa</div>
         <div class="leyenda-item"><span class="dot ready"></span> Listo para recoger</div>
+        <div class="leyenda-item"><span class="dot received"></span> Recogido</div>
         <div class="leyenda-item"><span class="dot bill"></span> Cuenta</div>
       </div>
     </aside>
 
     <section class="menu-section">
 
-      <div class="info-helper-bar" [ngClass]="{'has-selected': mesaSeleccionada}">
+      <div class="info-helper-bar" [ngClass]="{ 'has-selected': mesaSeleccionada }">
         <span *ngIf="!mesaSeleccionada">
           🛒 Selecciona una mesa para tomar el pedido
         </span>
@@ -88,14 +85,41 @@
           <span class="status-badge listo" *ngIf="mesaSeleccionada.estado === 'listo'">
             🍽️ Pedido listo para recoger
           </span>
+
+          <span class="status-badge recogido" *ngIf="mesaSeleccionada.estado === 'recogido'">
+            ✅ Plato recibido
+          </span>
         </div>
+      </div>
+
+      <div class="pickup-panel compact" *ngIf="mesaSeleccionada?.estado === 'listo'">
+        <div class="pickup-info">
+          <h3>🍽️ Pedido listo</h3>
+          <p>Mesa {{ mesaSeleccionada?.numero }} debe recoger el plato en cocina.</p>
+        </div>
+
+        <button class="btn-pickup" (click)="recibirPlato()">
+          ✅ Recibí el plato
+        </button>
+      </div>
+
+      <div class="deliver-panel compact" *ngIf="mesaSeleccionada?.estado === 'recogido'">
+        <div class="pickup-info">
+          <h3>✅ Plato recibido</h3>
+          <p>Entrega el pedido a la mesa {{ mesaSeleccionada?.numero }}.</p>
+        </div>
+
+        <button class="btn-deliver" (click)="entregarAMesa()">
+          🚀 Entregar a mesa
+        </button>
       </div>
 
       <nav class="categories-nav">
         <button
           *ngFor="let cat of categorias"
           [class.active]="categoriaSeleccionada === cat"
-          (click)="seleccionarCategoria(cat)">
+          (click)="seleccionarCategoria(cat)"
+        >
           {{ cat }}
         </button>
       </nav>
@@ -108,8 +132,8 @@
         <div
           class="card-producto"
           *ngFor="let prod of productosFiltrados"
-          [class.out-of-stock]="prod.stock === 0">
-
+          [class.out-of-stock]="prod.stock === 0"
+        >
           <div class="prod-img-box">
             <span class="prod-emoji">{{ obtenerIcono(prod.categoriaId) }}</span>
           </div>
@@ -128,13 +152,20 @@
 
               <button
                 class="btn-add-item"
-                [disabled]="!mesaSeleccionada || prod.stock === 0 || mesaSeleccionada.estado === 'listo' || mesaSeleccionada.estado === 'cuenta'"
-                (click)="agregarProducto(prod)">
+                [disabled]="
+                  enviandoCocina ||
+                  !mesaSeleccionada ||
+                  prod.stock === 0 ||
+                  mesaSeleccionada.estado === 'listo' ||
+                  mesaSeleccionada.estado === 'recogido' ||
+                  mesaSeleccionada.estado === 'cuenta'
+                "
+                (click)="agregarProducto(prod)"
+              >
                 + agregar
               </button>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -156,6 +187,10 @@
 
         <div class="ready-message" *ngIf="mesaSeleccionada && mesaSeleccionada.estado === 'listo'">
           🍽️ Este pedido ya está listo. Recógelo en cocina.
+        </div>
+
+        <div class="ready-message received" *ngIf="mesaSeleccionada && mesaSeleccionada.estado === 'recogido'">
+          ✅ Plato recibido. Entrégalo a la mesa.
         </div>
       </div>
 
@@ -183,8 +218,14 @@
               <div class="counter-box">
                 <button
                   class="btn-qty decrease"
-                  [disabled]="mesaSeleccionada.estado === 'listo' || mesaSeleccionada.estado === 'cuenta'"
-                  (click)="modificarCantidad(item, -1)">
+                  [disabled]="
+                    enviandoCocina ||
+                    mesaSeleccionada.estado === 'listo' ||
+                    mesaSeleccionada.estado === 'recogido' ||
+                    mesaSeleccionada.estado === 'cuenta'
+                  "
+                  (click)="modificarCantidad(item, -1)"
+                >
                   -
                 </button>
 
@@ -192,20 +233,31 @@
 
                 <button
                   class="btn-qty increase"
-                  [disabled]="mesaSeleccionada.estado === 'listo' || mesaSeleccionada.estado === 'cuenta'"
-                  (click)="modificarCantidad(item, 1)">
+                  [disabled]="
+                    enviandoCocina ||
+                    mesaSeleccionada.estado === 'listo' ||
+                    mesaSeleccionada.estado === 'recogido' ||
+                    mesaSeleccionada.estado === 'cuenta'
+                  "
+                  (click)="modificarCantidad(item, 1)"
+                >
                   +
                 </button>
               </div>
 
               <button
                 class="btn-trash-item"
-                [disabled]="mesaSeleccionada.estado === 'listo' || mesaSeleccionada.estado === 'cuenta'"
-                (click)="modificarCantidad(item, -item.cantidad)">
+                [disabled]="
+                  enviandoCocina ||
+                  mesaSeleccionada.estado === 'listo' ||
+                  mesaSeleccionada.estado === 'recogido' ||
+                  mesaSeleccionada.estado === 'cuenta'
+                "
+                (click)="modificarCantidad(item, -item.cantidad)"
+              >
                 🗑️
               </button>
             </div>
-
           </div>
         </div>
 
@@ -220,23 +272,49 @@
           <div class="cart-actions-layout">
             <button
               class="btn-action-submit kitchen"
-              [disabled]="!mesaSeleccionada || mesaSeleccionada.pedido.length === 0 || mesaSeleccionada.estado === 'listo' || mesaSeleccionada.estado === 'cuenta'"
-              (click)="procesarPago()">
-              🚀 Enviar a Cocina
+              [class.sending]="enviandoCocina"
+              [disabled]="
+                enviandoCocina ||
+                !mesaSeleccionada ||
+                mesaSeleccionada.pedido.length === 0 ||
+                mesaSeleccionada.estado === 'listo' ||
+                mesaSeleccionada.estado === 'recogido' ||
+                mesaSeleccionada.estado === 'cuenta'
+              "
+              (click)="procesarPago()"
+            >
+              <span *ngIf="!enviandoCocina">
+                🚀 Enviar a Cocina
+              </span>
+
+              <span *ngIf="enviandoCocina" class="loading-content">
+                <span class="spinner"></span>
+                Enviando...
+              </span>
             </button>
 
             <div class="secondary-actions-grid">
               <button
-                class="btn-action-secondary bill"
+                class="btn-action-secondary pickup"
                 [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'listo'"
-                (click)="pedirCuenta()">
-                🍽️ Recogido / Pedir Cuenta
+                (click)="recibirPlato()"
+              >
+                ✅ Recibí plato
+              </button>
+
+              <button
+                class="btn-action-secondary bill"
+                [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'recogido'"
+                (click)="entregarAMesa()"
+              >
+                🚀 Entregar a mesa
               </button>
 
               <button
                 class="btn-action-secondary clear"
                 [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'cuenta'"
-                (click)="liberarMesa()">
+                (click)="liberarMesa()"
+              >
                 ✔️ Liberar Mesa
               </button>
             </div>

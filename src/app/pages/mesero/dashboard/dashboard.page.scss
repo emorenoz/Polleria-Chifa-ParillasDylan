@@ -919,3 +919,204 @@ $color-ready: #22c55e;
     box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
   }
 }
+.ready-notification {
+  background: #fff7ed;
+  color: #9a3412;
+  border-bottom: 1px solid #fed7aa;
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pickup-panel.compact {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 10px 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pickup-info h3 {
+  margin: 0;
+  font-size: 17px;
+  color: #166534;
+  font-weight: 800;
+}
+
+.pickup-info p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #14532d;
+}
+
+.btn-pickup {
+  border: none;
+  background: #22c55e;
+  color: #ffffff;
+  border-radius: 9px;
+  padding: 9px 14px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-pickup:hover {
+  background: #16a34a;
+}
+
+.card-mesa.recogido {
+  background: #ecfdf5;
+  border: 2px solid #22c55e;
+  color: #166534;
+}
+
+.status-badge.recogido {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.dot.received {
+  background: #22c55e;
+}
+
+.btn-action-secondary.pickup {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.btn-action-secondary.pickup:disabled {
+  opacity: 0.45;
+}
+
+.btn-action-secondary.bill {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+}
+
+.ready-message.received {
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .pickup-panel.compact {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-pickup {
+    width: 100%;
+  }
+}
+.deliver-panel.compact {
+  background: #ecfdf5;
+  border: 1px solid #86efac;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 10px 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.deliver-panel .pickup-info h3 {
+  margin: 0;
+  font-size: 17px;
+  color: #166534;
+  font-weight: 800;
+}
+
+.deliver-panel .pickup-info p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #14532d;
+}
+
+.btn-deliver {
+  border: none;
+  background: #0ea5e9;
+  color: #ffffff;
+  border-radius: 9px;
+  padding: 9px 14px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-deliver:hover {
+  background: #0284c7;
+}
+
+.status-badge.recogido {
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 800;
+}
+
+.card-mesa.recogido {
+  background: #f0fdf4;
+  border: 2px solid #22c55e;
+  color: #166534;
+}
+
+.ready-message.received {
+  background: #dcfce7;
+  color: #166534;
+  border-radius: 10px;
+  padding: 10px;
+  margin-top: 12px;
+  font-weight: 700;
+}
+
+.dot.received {
+  background: #22c55e;
+}
+
+.btn-action-secondary.bill {
+  background: #dbeafe;
+  border: 1px solid #93c5fd;
+  color: #1d4ed8;
+  font-weight: 800;
+}
+
+.btn-action-secondary.pickup {
+  background: #dcfce7;
+  border: 1px solid #86efac;
+  color: #166534;
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .deliver-panel.compact {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-deliver {
+    width: 100%;
+  }
+}
+.btn-action-submit.kitchen {
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+.btn-action-submit.kitchen:active {
+  transform: scale(0.96);
+}
+
+.btn-action-submit.kitchen.sending {
+  transform: scale(0.96);
+  opacity: 0.85;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.18);
+}

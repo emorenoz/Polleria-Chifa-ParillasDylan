@@ -3,11 +3,14 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
+
     <div class="header-content">
       <div class="breadcrumb">
         <span class="muted">Pollería Dylan</span> / <strong>Caja</strong>
       </div>
-      <div class="date-display">{{ fechaActual || 'miércoles, 24 de junio de 2026' }}</div>
+      <div class="date-display">
+        {{ fechaActual || 'sábado, 27 de junio de 2026' }}
+      </div>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -15,127 +18,253 @@
 <ion-content class="page-bg">
   <div class="main-container">
 
+    <!-- BANNER CAJA -->
     <div class="shift-banner">
       <div class="banner-info">
         <ion-icon name="wallet-outline"></ion-icon>
         <div>
           <h3>Caja actual</h3>
-          <p>Turno mañana – Admin · 08:00</p>
+          <p>Turno mañana – {{ usuarioCaja || 'Admin' }} · {{ horaApertura || '08:00' }}</p>
         </div>
       </div>
-      <button class="btn-shift-close">
-        <ion-icon name="print-outline"></ion-icon> Cierre de turno
+
+      <button class="btn-shift-close" (click)="cerrarTurno()">
+        <ion-icon name="print-outline"></ion-icon>
+        Cierre de turno
       </button>
     </div>
 
+    <!-- KPI -->
     <div class="kpi-status-row">
       <div class="status-card">
         <div class="kpi-header">
-          <span class="trend up"><ion-icon name="trending-up-outline"></ion-icon> Total Ingresos</span>
+          <span class="trend up">
+            <ion-icon name="trending-up-outline"></ion-icon>
+            Total Ingresos
+          </span>
         </div>
-        <div class="kpi-amount text-green">S/ {{ totalIngresos | number:'1.2-2' }}</div>
-        <div class="kpi-subtext">Movimientos calculados</div>
+        <div class="kpi-amount text-green">
+          S/ {{ totalIngresos | number:'1.2-2' }}
+        </div>
+        <div class="kpi-subtext">{{ cantidadIngresos || 0 }} transacciones</div>
       </div>
 
       <div class="status-card">
         <div class="kpi-header">
-          <span class="trend down"><ion-icon name="trending-down-outline"></ion-icon> Total Egresos</span>
+          <span class="trend down">
+            <ion-icon name="trending-down-outline"></ion-icon>
+            Total Egresos
+          </span>
         </div>
-        <div class="kpi-amount text-red">S/ {{ totalEgresos | number:'1.2-2' }}</div>
-        <div class="kpi-subtext">Movimientos calculados</div>
+        <div class="kpi-amount text-red">
+          S/ {{ totalEgresos | number:'1.2-2' }}
+        </div>
+        <div class="kpi-subtext">{{ cantidadEgresos || 0 }} transacciones</div>
       </div>
 
       <div class="status-card">
         <div class="kpi-header">
-          <span class="trend neutral"><ion-icon name="cash-outline"></ion-icon> Efectivo en Caja</span>
+          <span class="trend neutral">
+            <ion-icon name="cash-outline"></ion-icon>
+            Efectivo en Caja
+          </span>
         </div>
-        <div class="kpi-amount text-purple">S/ {{ totalCaja | number:'1.2-2' }}</div>
-        <div class="kpi-subtext">Balance general actual</div>
+        <div class="kpi-amount text-purple">
+          S/ {{ totalCaja | number:'1.2-2' }}
+        </div>
+        <div class="kpi-subtext">
+          Fondo inicial S/ {{ fondoInicial || 0 | number:'1.2-2' }}
+        </div>
       </div>
     </div>
 
+    <!-- GRÁFICOS -->
     <div class="charts-grid">
       <div class="chart-card">
         <h4>Ingresos por hora</h4>
+
         <div class="mock-chart">
-          <div class="bar-col"><div class="bar" style="height: 30%;"></div><span>10am</span></div>
-          <div class="bar-col"><div class="bar" style="height: 60%;"></div><span>11am</span></div>
-          <div class="bar-col"><div class="bar" style="height: 100%;"></div><span>12pm</span></div>
-          <div class="bar-col"><div class="bar" style="height: 75%;"></div><span>1pm</span></div>
-          <div class="bar-col"><div class="bar" style="height: 50%;"></div><span>2pm</span></div>
-          <div class="bar-col"><div class="bar" style="height: 35%;"></div><span>3pm</span></div>
-          <div class="bar-col"><div class="bar" style="height: 40%;"></div><span>4pm</span></div>
+          <div class="bar-col">
+            <div class="bar" style="height: 30%;"></div>
+            <span>10am</span>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height: 60%;"></div>
+            <span>11am</span>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height: 100%;"></div>
+            <span>12pm</span>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height: 75%;"></div>
+            <span>1pm</span>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height: 50%;"></div>
+            <span>2pm</span>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height: 35%;"></div>
+            <span>3pm</span>
+          </div>
+          <div class="bar-col">
+            <div class="bar" style="height: 40%;"></div>
+            <span>4pm</span>
+          </div>
         </div>
       </div>
 
       <div class="payment-methods-card">
         <h4>Por método de pago</h4>
+
         <div class="method-item">
-          <div class="method-header"><span class="badge green">Efectivo</span> <span>S/ 56.00</span></div>
-          <div class="progress-track"><div class="progress-fill green" style="width: 40%;"></div></div>
+          <div class="method-header">
+            <span class="badge green">Efectivo</span>
+            <span>S/ {{ totalEfectivo | number:'1.2-2' }}</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill green" [style.width.%]="porcentajeEfectivo || 0"></div>
+          </div>
         </div>
+
         <div class="method-item">
-          <div class="method-header"><span class="badge blue">Tarjeta</span> <span>S/ 43.00</span></div>
-          <div class="progress-track"><div class="progress-fill blue" style="width: 30%;"></div></div>
+          <div class="method-header">
+            <span class="badge blue">Tarjeta</span>
+            <span>S/ {{ totalTarjeta | number:'1.2-2' }}</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill blue" [style.width.%]="porcentajeTarjeta || 0"></div>
+          </div>
         </div>
+
         <div class="method-item">
-          <div class="method-header"><span class="badge purple">Yape</span> <span>S/ 102.50</span></div>
-          <div class="progress-track"><div class="progress-fill purple" style="width: 70%;"></div></div>
+          <div class="method-header">
+            <span class="badge purple">Yape</span>
+            <span>S/ {{ totalYape | number:'1.2-2' }}</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill purple" [style.width.%]="porcentajeYape || 0"></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="form-card">
+    <!-- FORMULARIO -->
+    <div class="form-card" *ngIf="mostrarFormulario">
       <h4>Registrar Movimiento</h4>
+
       <div class="form-row">
         <div class="input-group">
           <select [(ngModel)]="nuevoMovimiento.tipo" class="custom-input">
-            <option value="" disabled selected>Tipo de movimiento</option>
+            <option value="" disabled>Tipo de movimiento</option>
             <option value="ingreso">Ingreso (+)</option>
             <option value="egreso">Egreso (-)</option>
           </select>
         </div>
+
         <div class="input-group">
-          <input type="number" class="custom-input" placeholder="Monto (S/.)" [(ngModel)]="nuevoMovimiento.monto">
+          <select [(ngModel)]="nuevoMovimiento.metodo" class="custom-input">
+            <option value="" disabled>Método</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Tarjeta">Tarjeta</option>
+            <option value="Yape">Yape</option>
+            <option value="Retiro">Retiro</option>
+          </select>
         </div>
+
+        <div class="input-group">
+          <input
+            type="number"
+            class="custom-input"
+            placeholder="Monto S/."
+            [(ngModel)]="nuevoMovimiento.monto"
+          />
+        </div>
+
         <div class="input-group flex-grow">
-          <input type="text" class="custom-input" placeholder="Descripción (Ej. Venta, pago...)" [(ngModel)]="nuevoMovimiento.descripcion">
+          <input
+            type="text"
+            class="custom-input"
+            placeholder="Descripción"
+            [(ngModel)]="nuevoMovimiento.descripcion"
+          />
         </div>
-        <button class="btn-save" (click)="registrarMovimiento()" [disabled]="!nuevoMovimiento.monto || !nuevoMovimiento.tipo">
+
+        <button
+          class="btn-save"
+          (click)="registrarMovimiento()"
+          [disabled]="!nuevoMovimiento.tipo || !nuevoMovimiento.monto || !nuevoMovimiento.descripcion"
+        >
           Guardar
         </button>
       </div>
     </div>
 
+    <!-- TABLA -->
     <div class="table-card">
       <div class="table-card-header">
         <div class="table-title">Movimientos del turno</div>
+
         <div class="actions">
-          <button class="btn-outline green" (click)="nuevoMovimiento.tipo = 'ingreso'"><ion-icon name="add-outline"></ion-icon> Ingreso</button>
-          <button class="btn-outline red" (click)="nuevoMovimiento.tipo = 'egreso'"><ion-icon name="remove-outline"></ion-icon> Egreso</button>
+          <button class="btn-outline green" (click)="prepararIngreso()">
+            <ion-icon name="add-outline"></ion-icon>
+            Ingreso
+          </button>
+
+          <button class="btn-outline red" (click)="prepararEgreso()">
+            <ion-icon name="remove-outline"></ion-icon>
+            Egreso
+          </button>
         </div>
       </div>
-      
+
       <div class="table-responsive">
         <table class="custom-table">
           <thead>
-            <tr><th>Hora</th><th>Descripción</th><th>Método</th><th class="text-right">Monto</th></tr>
+            <tr>
+              <th>Hora</th>
+              <th>Descripción</th>
+              <th>Método</th>
+              <th class="text-right">Monto</th>
+            </tr>
           </thead>
+
           <tbody>
             <tr *ngFor="let mov of historial">
-              <td class="time-cell">{{ mov.fecha?.seconds ? (mov.fecha.seconds * 1000 | date:'HH:mm') : (mov.fecha | date:'HH:mm') }}</td>
+              <td class="time-cell">
+                {{ mov.fecha?.seconds ? (mov.fecha.seconds * 1000 | date:'HH:mm') : (mov.fecha | date:'HH:mm') }}
+              </td>
+
               <td>{{ mov.descripcion }}</td>
+
               <td>
-                <span class="badge" [ngClass]="mov.tipo === 'ingreso' ? 'green' : 'red'">
-                  {{ mov.tipo === 'ingreso' ? 'Efectivo' : 'Retiro' }}
+                <span
+                  class="badge"
+                  [ngClass]="{
+                    'green': mov.metodo === 'Efectivo',
+                    'blue': mov.metodo === 'Tarjeta',
+                    'purple': mov.metodo === 'Yape',
+                    'red': mov.tipo === 'egreso'
+                  }"
+                >
+                  {{ mov.metodo || (mov.tipo === 'ingreso' ? 'Efectivo' : 'Retiro') }}
                 </span>
               </td>
-              <td class="text-right font-weight-bold" [ngClass]="mov.tipo === 'ingreso' ? 'text-green' : 'text-red'">
-                {{ mov.tipo === 'ingreso' ? '+' : '-' }} S/ {{ mov.monto | number:'1.2-2' }}
+
+              <td
+                class="text-right font-weight-bold"
+                [ngClass]="mov.tipo === 'ingreso' ? 'text-green' : 'text-red'"
+              >
+                {{ mov.tipo === 'ingreso' ? '+' : '-' }}
+                S/ {{ mov.monto | number:'1.2-2' }}
               </td>
             </tr>
+
             <tr *ngIf="historial.length === 0">
-              <td colspan="4" class="text-center text-muted py-4">No hay movimientos registrados hoy.</td>
+              <td colspan="4" class="text-center text-muted py-4">
+                No hay movimientos registrados hoy.
+              </td>
             </tr>
           </tbody>
         </table>
