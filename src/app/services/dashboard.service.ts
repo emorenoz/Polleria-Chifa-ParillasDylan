@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
+import { map } from 'rxjs/operators';
+
 import { PedidoService } from './pedido.service';
 import { VentaService } from './venta.service';
-import { map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -16,34 +17,100 @@ export class DashboardService {
   // 📊 TOTAL PEDIDOS
   totalPedidos() {
     return this.pedidoService.getPedidos().pipe(
-      map(p => p.length)
+      map(pedidos => pedidos.length)
     );
   }
 
   // 💰 TOTAL VENTAS
   totalVentas() {
     return this.ventaService.getVentas().pipe(
-      map(v => v.reduce((sum, x) => sum + (x.total || 0), 0))
+      map(ventas =>
+        ventas.reduce(
+          (sum, venta) => sum + (Number(venta.total) || 0),
+          0
+        )
+      )
     );
   }
 
   // 📦 PEDIDOS POR ESTADO
   pedidosPorEstado() {
     return this.pedidoService.getPedidos().pipe(
-      map(p => ({
-        pendientes: p.filter(x => x.estado === 'pendiente').length,
-        enProceso: p.filter(x => x.estado === 'en proceso').length,
-        entregados: p.filter(x => x.estado === 'entregado').length
+      map(pedidos => ({
+        pendientes: pedidos.filter(
+          p => p.estado === 'pendiente_cocina'
+        ).length,
+
+        preparando: pedidos.filter(
+          p => p.estado === 'preparando'
+        ).length,
+
+        listos: pedidos.filter(
+          p => p.estado === 'listo'
+        ).length,
+
+        entregados: pedidos.filter(
+          p => p.estado === 'entregado_mesa'
+        ).length,
+
+        enCuenta: pedidos.filter(
+          p => p.estado === 'cuenta'
+        ).length,
+
+        pagados: pedidos.filter(
+          p => p.estado === 'pagado'
+        ).length,
+
+        anulados: pedidos.filter(
+          p => p.estado === 'anulado'
+        ).length
       }))
     );
   }
 
-  // 📅 VENTAS HOY
+  // 📅 VENTAS DEL DÍA
   ventasHoy() {
     const hoy = new Date().toDateString();
 
     return this.ventaService.getVentas().pipe(
-      map(v => v.filter(x => new Date(x.fecha).toDateString() === hoy))
+      map(ventas =>
+        ventas.filter(v => {
+          if (!v.fecha) return false;
+
+          const fecha =
+            v.fecha?.seconds
+              ? new Date(v.fecha.seconds * 1000)
+              : new Date(v.fecha);
+
+          return fecha.toDateString() === hoy;
+        })
+      )
+    );
+  }
+
+  // 💵 TOTAL RECAUDADO HOY
+  totalVentasHoy() {
+    const hoy = new Date().toDateString();
+
+    return this.ventaService.getVentas().pipe(
+      map(ventas =>
+        ventas
+          .filter(v => {
+            if (!v.fecha) return false;
+
+            const fecha =
+              v.fecha?.seconds
+                ? new Date(v.fecha.seconds * 1000)
+                : new Date(v.fecha);
+
+            return fecha.toDateString() === hoy;
+          })
+          .reduce(
+            (sum, venta) =>
+              sum + (Number(venta.total) || 0),
+            0
+          )
+      )
     );
   }
 }

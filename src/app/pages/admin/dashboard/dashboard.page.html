@@ -3,6 +3,7 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
+
     <div class="header-content">
       <div class="breadcrumb">
         <span class="muted">Pollería Dylan</span> / <strong>Dashboard</strong>
@@ -16,76 +17,118 @@
   <div class="dashboard-container">
 
     <div class="kpi-grid">
+
       <div class="kpi-card">
-        <div class="kpi-icon purple"><ion-icon name="trending-up-outline"></ion-icon></div>
+        <div class="kpi-icon purple">
+          <ion-icon name="trending-up-outline"></ion-icon>
+        </div>
+
         <div class="kpi-data">
           <span class="title">Ventas del Día</span>
-          <h2>S/ {{ ventasDia | number:'1.0-0' }}</h2>
+          <h2>S/ {{ ventasDia | number:'1.2-2' }}</h2>
           <span class="subtitle">{{ pedidosHoy }} pedidos hoy</span>
         </div>
-        <div class="kpi-trend success"><ion-icon name="trending-up-outline"></ion-icon> {{ ventasCrecimiento }}%</div>
+
+        <div class="kpi-trend success">
+          <ion-icon name="trending-up-outline"></ion-icon>
+          {{ ventasCrecimiento }}%
+        </div>
       </div>
 
       <div class="kpi-card">
-        <div class="kpi-icon orange"><ion-icon name="cart-outline"></ion-icon></div>
+        <div class="kpi-icon orange">
+          <ion-icon name="cart-outline"></ion-icon>
+        </div>
+
         <div class="kpi-data">
           <span class="title">Pedidos Activos</span>
           <h2>{{ pedidosActivos }}</h2>
-          <span class="subtitle">{{ pedidosCocina }} en cocina • {{ pedidosPendientes }} pendientes</span>
+          <span class="subtitle">
+            {{ pedidosCocina }} en cocina • {{ pedidosPendientes }} pendientes
+          </span>
         </div>
-        <div class="kpi-trend success"><ion-icon name="trending-up-outline"></ion-icon> {{ pedidosCrecimiento }}</div>
+
+        <div class="kpi-trend success">
+          <ion-icon name="trending-up-outline"></ion-icon>
+          {{ pedidosCrecimiento }}
+        </div>
       </div>
 
       <div class="kpi-card">
-        <div class="kpi-icon blue"><ion-icon name="grid-outline"></ion-icon></div>
+        <div class="kpi-icon blue">
+          <ion-icon name="grid-outline"></ion-icon>
+        </div>
+
         <div class="kpi-data">
           <span class="title">Mesas Ocupadas</span>
           <h2>{{ mesasOcupadas }} / {{ mesasTotales }}</h2>
-          <span class="subtitle">{{ mesasEsperandoCuenta }} esperando cuenta</span>
+          <span class="subtitle">
+            {{ mesasEsperandoCuenta }} esperando cuenta
+          </span>
         </div>
-        <div class="kpi-trend success"><ion-icon name="trending-up-outline"></ion-icon> {{ mesasCrecimiento }}</div>
+
+        <div class="kpi-trend success">
+          <ion-icon name="trending-up-outline"></ion-icon>
+          {{ mesasCrecimiento }}
+        </div>
       </div>
 
       <div class="kpi-card">
-        <div class="kpi-icon green"><ion-icon name="people-outline"></ion-icon></div>
+        <div class="kpi-icon green">
+          <ion-icon name="people-outline"></ion-icon>
+        </div>
+
         <div class="kpi-data">
           <span class="title">Clientes Hoy</span>
           <h2>{{ clientesHoy }}</h2>
-          <span class="subtitle">+{{ clientesNuevos }} nuevos este mes</span>
+          <span class="subtitle">+{{ clientesNuevos }} nuevos registrados</span>
         </div>
-        <div class="kpi-trend success"><ion-icon name="trending-up-outline"></ion-icon> {{ clientesCrecimiento }}%</div>
+
+        <div class="kpi-trend success">
+          <ion-icon name="trending-up-outline"></ion-icon>
+          {{ clientesCrecimiento }}%
+        </div>
       </div>
+
     </div>
 
-    <div class="charts-section" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px;">
+    <div class="charts-section">
 
-      <div class="chart-card" style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);">
-        <div class="chart-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1e293b;">Ventas últimos 7 días</h3>
-          <span class="chart-badge" style="background: #f1f5f9; color: #64748b; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500;">Esta semana</span>
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>Ventas últimos 7 días</h3>
+          <span class="chart-badge">Esta semana</span>
         </div>
-        <div class="chart-body" style="position: relative; height: 260px; width: 100%;">
+
+        <div class="chart-body">
           <canvas id="ventasLineChart"></canvas>
         </div>
       </div>
 
-      <div class="chart-card" style="background: #ffffff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);">
-        <div class="chart-header" style="margin-bottom: 15px;">
-          <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #1e293b;">Ventas por categoría</h3>
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>Ventas por categoría</h3>
         </div>
-        <div class="chart-body" style="position: relative; height: 260px; width: 100%; display: flex; flex-direction: column; justify-content: center;">
-          <div style="height: 160px; margin-bottom: 15px;">
+
+        <div class="chart-body category-chart-body">
+          <div class="doughnut-box">
             <canvas id="categoriaDoughnutChart"></canvas>
           </div>
-          <div class="chart-legends" style="font-size: 12px; color: #475569;">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span>🟠 Pollos</span><strong>54%</strong>
+
+          <div class="chart-legends">
+            <div>
+              <span>🟠 Pollos</span>
+              <strong>54%</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span>🔵 Bebidas</span><strong>18%</strong>
+
+            <div>
+              <span>🔵 Bebidas</span>
+              <strong>18%</strong>
             </div>
-            <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-              <span>🟢 Acompañamientos</span><strong>16%</strong>
+
+            <div>
+              <span>🟢 Acompañamientos</span>
+              <strong>16%</strong>
             </div>
           </div>
         </div>
@@ -96,10 +139,14 @@
     <div class="table-section">
       <div class="table-header">
         <h3>Últimos pedidos</h3>
-        <a href="#" class="view-all-link">Ver todos →</a>
+        <span class="view-all-link">En tiempo real</span>
       </div>
 
-      <div class="table-responsive">
+      <div class="empty-table" *ngIf="ultimosPedidos.length === 0">
+        Todavía no hay pedidos registrados.
+      </div>
+
+      <div class="table-responsive" *ngIf="ultimosPedidos.length > 0">
         <table class="custom-table">
           <thead>
             <tr>
@@ -111,17 +158,32 @@
               <th>Hora</th>
             </tr>
           </thead>
+
           <tbody>
             <tr *ngFor="let p of ultimosPedidos; let i = index">
               <td class="id-cell">#{{ i + 1 }}</td>
-              <td>{{ p.mesa }}</td>
-              <td>{{ p.descripcion }}</td>
+              <td>{{ p.mesa || '-' }}</td>
+              <td>{{ p.descripcion || 'Sin descripción' }}</td>
               <td class="bold-cell">S/ {{ p.total | number:'1.2-2' }}</td>
+
               <td>
-                <span class="status-badge" [ngClass]="p.estado">{{ p.estado }}</span>
+                <span class="status-badge" [ngClass]="p.estado">
+                  {{
+                    p.estado === 'pendiente_cocina' ? 'Pendiente cocina' :
+                    p.estado === 'preparando' ? 'Preparando' :
+                    p.estado === 'listo' ? 'Listo' :
+                    p.estado === 'entregado_mesa' ? 'Entregado mesa' :
+                    p.estado === 'cuenta' ? 'En cuenta' :
+                    p.estado === 'pagado' ? 'Pagado' :
+                    p.estado === 'anulado' ? 'Anulado' :
+                    p.estado
+                  }}
+                </span>
               </td>
+
               <td class="time-cell">
-                <ion-icon name="time-outline"></ion-icon> {{ p.hora }}
+                <ion-icon name="time-outline"></ion-icon>
+                {{ p.hora }}
               </td>
             </tr>
           </tbody>

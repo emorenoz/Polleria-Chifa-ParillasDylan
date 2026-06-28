@@ -15,37 +15,66 @@ export class PedidoService {
     return this.pedidos.asObservable();
   }
 
-  // ➕ CREAR PEDIDO (Actualizado para respetar el estado que le mandas)
+  // 📋 OBTENER PEDIDOS ACTUALES
+  getPedidosActuales() {
+    return this.pedidos.value;
+  }
+
+  // ➕ CREAR PEDIDO
   crearPedido(pedido: any) {
     const actual = this.pedidos.value;
 
-    pedido.id = Date.now();
+    const nuevoPedido = {
+      id: pedido.id || Date.now(),
+      mesa: pedido.mesa || '',
+      productos: pedido.productos || pedido.items || [],
+      total: Number(pedido.total) || 0,
+      mesero: pedido.mesero || '',
+      fecha: pedido.fecha || new Date(),
+      estado: pedido.estado || 'pendiente_cocina'
+    };
 
-    // Si desde el componente ya definiste pedido.estado (ej: 'Activo'), lo conserva.
-    // Si no viene ningún estado, por defecto le pone 'pendiente'.
-    pedido.estado = pedido.estado || 'pendiente';
+    this.pedidos.next([...actual, nuevoPedido]);
 
-    this.pedidos.next([...actual, pedido]);
-    console.log('Pedido agregado al servicio reactivo:', pedido);
+    console.log('Pedido agregado:', nuevoPedido);
   }
 
   // ✏️ ACTUALIZAR ESTADO
   actualizarEstado(id: number, estado: string) {
-    const actual = this.pedidos.value;
-
-    const updated = actual.map(p => {
-      if (p.id === id) {
-        return { ...p, estado };
-      }
-      return p;
-    });
+    const updated = this.pedidos.value.map(p =>
+      p.id === id
+        ? { ...p, estado }
+        : p
+    );
 
     this.pedidos.next(updated);
   }
 
+  // 🔍 BUSCAR PEDIDO
+  obtenerPedido(id: number) {
+    return this.pedidos.value.find(p => p.id === id);
+  }
+
   // ❌ ELIMINAR PEDIDO
   eliminarPedido(id: number) {
-    const actual = this.pedidos.value;
-    this.pedidos.next(actual.filter(p => p.id !== id));
+    this.pedidos.next(
+      this.pedidos.value.filter(p => p.id !== id)
+    );
+  }
+
+  // 🚫 ANULAR PEDIDO (recomendado)
+  anularPedido(id: number) {
+    const updated = this.pedidos.value.map(p =>
+      p.id === id
+        ? { ...p, estado: 'anulado' }
+        : p
+    );
+
+    this.pedidos.next(updated);
+  }
+
+  // 🧹 LIMPIAR TODO
+  limpiarPedidos() {
+    this.pedidos.next([]);
   }
 }

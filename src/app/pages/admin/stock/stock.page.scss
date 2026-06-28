@@ -580,3 +580,17 @@
     }
   }
 }
+.inventory-value-card {
+  background: linear-gradient(135deg, #9620F5, #7c3aed);
+  color: white;
+  padding: 18px 24px;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 500;
+  box-shadow: 0 8px 25px rgba(150, 32, 245, 0.2);
+
+  strong {
+    font-size: 24px;
+    margin-left: 10px;
+  }
+}

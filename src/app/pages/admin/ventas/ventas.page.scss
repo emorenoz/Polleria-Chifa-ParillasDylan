@@ -18,14 +18,14 @@ ion-card {
 
 ion-list {
   background: transparent;
-  
+
   .form-item {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     margin-bottom: 12px;
     --background: #ffffff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-    
+
     ion-input, ion-select {
       font-size: 0.95rem;
       --padding-start: 8px;
@@ -47,7 +47,7 @@ ion-button {
     margin-right: 6px;
     font-size: 18px;
   }
-  
+
   &.ion-margin-top {
     margin-top: 12px;
   }
@@ -63,10 +63,10 @@ h3 {
 
 ion-item-sliding {
   margin-bottom: 6px;
-  
+
   ion-item {
     --background: #ffffff;
-    
+
     ion-label {
       h2 {
         font-size: 1.05rem;
@@ -93,5 +93,70 @@ ion-item-sliding {
       padding: 6px 10px;
       border-radius: 6px;
     }
+  }
+}
+/* =========================
+   RESUMEN DE VENTAS
+========================= */
+
+.resumen-ventas {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+
+  div {
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+
+    span {
+      display: block;
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+
+    strong {
+      font-size: 1.1rem;
+      color: #0f766e;
+    }
+  }
+}
+
+/* =========================
+   VENTA ANULADA
+========================= */
+
+.venta-anulada {
+  opacity: 0.55;
+  --background: #fef2f2 !important;
+
+  ion-label {
+    h2,
+    p {
+      text-decoration: line-through;
+    }
+  }
+
+  .monto-note {
+    background: #fee2e2 !important;
+    color: #b91c1c !important;
+  }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 600px) {
+  .resumen-ventas {
+    grid-template-columns: 1fr;
+  }
+
+  ion-note.monto-note {
+    font-size: 0.8rem !important;
+    padding: 5px 8px !important;
   }
 }

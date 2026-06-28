@@ -247,3 +247,184 @@ $border-color: #cbd5e1;
 @keyframes blinker {
   50% { opacity: 0; }
 }
+/* =====================================================
+   MEJORAS FLUJO CAJA: LISTO / CUENTA / RESUMEN
+===================================================== */
+
+.card-mesa-cobro {
+  .alert-ready {
+    color: #16a34a;
+  }
+
+  .alert-bill {
+    color: #e53e3e;
+  }
+}
+
+.estado-mesa-ticket {
+  font-size: 13px;
+  color: #64748b;
+  margin: 4px 0;
+
+  strong {
+    color: $caja-primary;
+  }
+}
+
+.resumen-cobro {
+  margin-top: 10px;
+  padding: 10px;
+  background: #ecfdf5;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #065f46;
+
+  p {
+    margin: 4px 0;
+  }
+}
+
+.btn-liquidar {
+  &:disabled {
+    background: #94a3b8 !important;
+    cursor: not-allowed;
+    box-shadow: none !important;
+  }
+}
+
+/* =====================================================
+   MODAL QR
+===================================================== */
+
+.modal-qr-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.modal-qr-card {
+  background: white;
+  border-radius: 16px;
+  padding: 22px;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+
+  h3 {
+    margin-top: 0;
+    color: $caja-primary;
+  }
+
+  .monto-pagar {
+    color: #475569;
+    font-size: 14px;
+
+    strong {
+      color: #16a34a;
+      font-size: 18px;
+    }
+  }
+
+  .qr-container {
+    margin: 16px auto;
+    padding: 14px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    width: 220px;
+    height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8fafc;
+  }
+
+  .img-qr {
+    width: 190px;
+    height: 190px;
+    object-fit: contain;
+  }
+
+  .txt-yapeo {
+    font-size: 13px;
+    font-weight: 700;
+    color: #334155;
+  }
+
+  .modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 16px;
+
+    button {
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-cancelar-modal {
+      background: #f1f5f9;
+      color: #334155;
+    }
+
+    .btn-confirmar-modal {
+      background: #22c55e;
+      color: white;
+    }
+  }
+}
+
+/* =====================================================
+   RESPONSIVE CAJERO
+===================================================== */
+
+@media (max-width: 900px) {
+  .main-content-cajero {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .right-panel {
+    width: 100%;
+  }
+
+  .panel-cajero-container {
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar-cajero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+
+    .stats-and-actions {
+      width: 100%;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .stats {
+      flex-wrap: wrap;
+    }
+  }
+
+  .main-content-cajero {
+    padding: 10px;
+  }
+
+  .methods-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

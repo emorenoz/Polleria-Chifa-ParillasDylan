@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+      <ion-back-button defaultHref="/admin/dashboard"></ion-back-button>
     </ion-buttons>
     <ion-title>Registro de Ventas</ion-title>
   </ion-toolbar>
@@ -15,35 +15,62 @@
         @if (editando) { Modificar Registro } @else { Nueva Venta / Cobro }
       </ion-card-title>
     </ion-card-header>
+
     <ion-card-content>
       <ion-list lines="none">
 
         <ion-item class="form-item">
-          <ion-input label="Cliente / Mesa" labelPlacement="stacked" type="text" placeholder="Ej. Mesa 4, Juan Pérez" [(ngModel)]="nuevaVenta.cliente"></ion-input>
+          <ion-input
+            label="Cliente / Mesa"
+            labelPlacement="stacked"
+            type="text"
+            placeholder="Ej. Mesa 4, Juan Pérez"
+            [(ngModel)]="nuevaVenta.cliente">
+          </ion-input>
         </ion-item>
 
         <ion-item class="form-item">
-          <ion-input label="Monto Total Recaudado (S/)" labelPlacement="stacked" type="number" placeholder="0.00" [(ngModel)]="nuevaVenta.total"></ion-input>
+          <ion-input
+            label="Monto Total Recaudado (S/)"
+            labelPlacement="stacked"
+            type="number"
+            placeholder="0.00"
+            [(ngModel)]="nuevaVenta.total">
+          </ion-input>
         </ion-item>
 
         <ion-item class="form-item last-item">
-          <ion-select label="Método de Pago" labelPlacement="stacked" placeholder="Seleccione método" [(ngModel)]="nuevaVenta.metodoPago">
-            <ion-select-option value="Efectivo 💵">Efectivo 💵</ion-select-option>
-            <ion-select-option value="Yape / Plin 📱">Yape / Plin 📱</ion-select-option>
-            <ion-select-option value="Tarjeta 💳">Tarjeta de Crédito/Débito 💳</ion-select-option>
+          <ion-select
+            label="Método de Pago"
+            labelPlacement="stacked"
+            placeholder="Seleccione método"
+            [(ngModel)]="nuevaVenta.metodoPago">
+
+            <ion-select-option value="Efectivo">Efectivo 💵</ion-select-option>
+            <ion-select-option value="Yape">Yape 📱</ion-select-option>
+            <ion-select-option value="Plin">Plin 📱</ion-select-option>
+            <ion-select-option value="Tarjeta">Tarjeta 💳</ion-select-option>
           </ion-select>
         </ion-item>
 
       </ion-list>
 
       <div class="ion-padding-top">
-        <ion-button expand="block" (click)="guardarVenta()" [disabled]="!nuevaVenta.cliente || !nuevaVenta.total || !nuevaVenta.metodoPago">
+        <ion-button
+          expand="block"
+          (click)="guardarVenta()"
+          [disabled]="!nuevaVenta.cliente || !nuevaVenta.total || nuevaVenta.total <= 0 || !nuevaVenta.metodoPago">
+
           <ion-icon slot="start" name="cash"></ion-icon>
           {{ editando ? 'Actualizar Comprobante' : 'Cerrar y Cobrar Venta' }}
         </ion-button>
 
         @if (editando) {
-          <ion-button expand="block" color="light" (click)="cancelarEdicion()" class="ion-margin-top">
+          <ion-button
+            expand="block"
+            color="light"
+            (click)="cancelarEdicion()"
+            class="ion-margin-top">
             Cancelar Edición
           </ion-button>
         }
@@ -51,16 +78,38 @@
     </ion-card-content>
   </ion-card>
 
-  <h3>Ingresos del Turno (Cloud)</h3>
+  <ion-card>
+    <ion-card-content>
+      <div class="resumen-ventas">
+        <div>
+          <span>Total vendido</span>
+          <strong>S/ {{ totalVentas | number:'1.2-2' }}</strong>
+        </div>
+
+        <div>
+          <span>Registros</span>
+          <strong>{{ listaVentas.length }}</strong>
+        </div>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <h3>Ingresos del Turno</h3>
 
   <ion-list lines="inset">
     @for (venta of listaVentas; track venta.id) {
       <ion-item-sliding>
-        <ion-item>
+        <ion-item [class.venta-anulada]="venta.estado === 'anulado'">
           <ion-label>
-            <h2><strong>{{ venta.cliente }}</strong></h2>
-            <p>Método: {{ venta.metodoPago }}</p>
-            <p class="hora-text">🕒 {{ venta.hora }}</p>
+            <h2>
+              <strong>{{ venta.cliente || 'Cliente / Mesa' }}</strong>
+            </h2>
+
+            <p>Método: {{ venta.metodoPago || 'No especificado' }}</p>
+            <p>Estado: {{ venta.estado === 'anulado' ? 'Anulado' : 'Pagado' }}</p>
+            <p class="hora-text">
+              📅 {{ venta.fechaTexto }} · 🕒 {{ venta.horaTexto }}
+            </p>
           </ion-label>
 
           <ion-note slot="end" class="monto-note">
@@ -69,17 +118,26 @@
         </ion-item>
 
         <ion-item-options side="end">
-          <ion-item-option color="warning" (click)="seleccionarVenta(venta)">
+          <ion-item-option
+            color="warning"
+            [disabled]="venta.estado === 'anulado'"
+            (click)="seleccionarVenta(venta)">
             <ion-icon slot="icon-only" name="create"></ion-icon>
           </ion-item-option>
-          <ion-item-option color="danger" (click)="eliminarVenta(venta.id)">
+
+          <ion-item-option
+            color="danger"
+            [disabled]="venta.estado === 'anulado'"
+            (click)="eliminarVenta(venta.id)">
             <ion-icon slot="icon-only" name="trash"></ion-icon>
           </ion-item-option>
         </ion-item-options>
       </ion-item-sliding>
     } @empty {
       <ion-item class="ion-text-center">
-        <ion-label color="medium">No se registran ventas cobradas el día de hoy.</ion-label>
+        <ion-label color="medium">
+          No se registran ventas cobradas.
+        </ion-label>
       </ion-item>
     }
   </ion-list>

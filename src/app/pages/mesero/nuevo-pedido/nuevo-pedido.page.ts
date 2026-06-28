@@ -21,7 +21,6 @@ import {
   IonCardContent
 } from '@ionic/angular/standalone';
 
-// 🔥 Firebase (Angular 17+)
 import {
   Firestore,
   collection,
@@ -56,7 +55,6 @@ import {
 })
 export class NuevoPedidoPage implements OnInit {
 
-  // 🔥 Conexión Firebase (inyección moderna)
   private db: Firestore = inject(Firestore);
 
   cliente = { nombre: '', apellido: '' };
@@ -75,11 +73,8 @@ export class NuevoPedidoPage implements OnInit {
 
   constructor(private router: Router) {}
 
-  ngOnInit() {
-    // No requiere inicialización adicional
-  }
+  ngOnInit() {}
 
-  // ✅ TU LÓGICA ORIGINAL (INTACTA)
   agregar(producto: any) {
     const item = this.carrito.find(p => p.nombre === producto.nombre);
 
@@ -92,13 +87,11 @@ export class NuevoPedidoPage implements OnInit {
     this.calcularTotal();
   }
 
-  // ✅ TU LÓGICA ORIGINAL (INTACTA)
   eliminar(index: number) {
     this.carrito.splice(index, 1);
     this.calcularTotal();
   }
 
-  // ✅ TU LÓGICA ORIGINAL (INTACTA)
   calcularTotal() {
     this.total = this.carrito.reduce(
       (sum, item) => sum + item.precio * item.cantidad,
@@ -124,23 +117,20 @@ export class NuevoPedidoPage implements OnInit {
         productos: this.carrito,
         total: this.total,
         comentario: this.comentario,
-        estado: 'pendiente',
-        fecha: serverTimestamp() // 🔥 recomendado para Firestore
+        estado: 'pendiente_cocina',
+        fecha: serverTimestamp()
       };
 
-      // 🔥 GUARDAR EN FIREBASE
       await addDoc(collection(this.db, 'pedidos'), pedido);
 
       alert('¡Pedido enviado con éxito a la cocina!');
 
-      // 🔄 LIMPIEZA (INTACTA TU LÓGICA)
       this.carrito = [];
       this.total = 0;
       this.mesa = '';
       this.comentario = '';
       this.cliente = { nombre: '', apellido: '' };
 
-      // 🔙 REGRESO
       this.router.navigate(['/mesero-dashboard']);
 
     } catch (error) {

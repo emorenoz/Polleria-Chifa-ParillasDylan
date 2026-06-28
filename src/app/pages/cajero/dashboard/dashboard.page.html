@@ -16,10 +16,12 @@
           <span class="stat-item totals">
             <span class="badge-count font-total">S/ {{ totalRecaudado.toFixed(2) }}</span> Recaudado hoy
           </span>
+
           <span class="stat-item pending">
             <span class="badge-count font-pending">{{ mesasPorCobrar.length }}</span> por cobrar
           </span>
         </div>
+
         <div class="time-exit">
           <span class="time">🕒 {{ horaActual }}</span>
           <button class="btn-exit" (click)="salir()">↩ Salir</button>
@@ -39,14 +41,31 @@
           </div>
 
           <div class="grid-mesas-cobro" *ngIf="mesasPorCobrar.length > 0">
-            <div *ngFor="let mesa of mesasPorCobrar"
-                 class="card-mesa-cobro"
-                 [class.selected]="mesaSeleccionada?.id === mesa.id"
-                 (click)="seleccionarMesa(mesa)">
+            <div
+              *ngFor="let mesa of mesasPorCobrar"
+              class="card-mesa-cobro"
+              [class.selected]="mesaSeleccionada?.id === mesa.id"
+              (click)="seleccionarMesa(mesa)">
+
               <div class="mesa-badge">Mesa {{ mesa.numero }}</div>
+
               <div class="mesa-info-pago">
-                <span class="total-pago">Total: S/ {{ calcularTotalMesa(mesa).toFixed(2) }}</span>
-                <span class="alert-blink">⚠️ Esperando pago</span>
+                <span class="total-pago">
+                  Total: S/ {{ calcularTotalMesa(mesa).toFixed(2) }}
+                </span>
+
+                <span
+                  class="alert-blink"
+                  [ngClass]="{
+                    'alert-ready': mesa.estado === 'listo',
+                    'alert-bill': mesa.estado === 'cuenta'
+                  }">
+                  {{
+                    mesa.estado === 'listo'
+                      ? '🍽️ Pedido listo'
+                      : '💵 Esperando pago'
+                  }}
+                </span>
               </div>
             </div>
           </div>
@@ -54,8 +73,11 @@
 
         <div class="sub-section-historial" style="margin-top: 30px; border-top: 2px dashed #cbd5e1; padding-top: 20px;">
           <h2 class="section-title" style="color: #64748b;">✅ Estado de Operaciones Recientes</h2>
+
           <div class="info-cierre-caja" style="background: #f8fafc; padding: 12px; border-radius: 8px; font-size: 13px; color: #475569;">
-            <p style="margin: 0 0 6px 0;">💡 <b>Flujo en Vivo:</b> Cuando un cliente pide la cuenta, aparece arriba en rojo alertando al cajero. Al pulsar el botón verde, el sistema registra el ticket, limpia la mesa y la pasa automáticamente al registro diario.</p>
+            <p style="margin: 0 0 6px 0;">
+              💡 <b>Flujo en Vivo:</b> Cuando un cliente pide la cuenta, aparece arriba en rojo alertando al cajero. Al pulsar el botón verde, el sistema registra el ticket, limpia la mesa y la pasa automáticamente al registro diario.
+            </p>
           </div>
         </div>
 
@@ -71,7 +93,20 @@
         <div class="ticket-container" *ngIf="mesaSeleccionada">
           <div class="ticket-header">
             <h3>Mesa N° {{ mesaSeleccionada.numero }}</h3>
+
             <p>Atendido por: 👤 {{ obtenerMeseroDeMesa(mesaSeleccionada) }}</p>
+
+            <p class="estado-mesa-ticket">
+              Estado:
+              <strong>
+                {{
+                  mesaSeleccionada.estado === 'listo'
+                    ? 'Pedido listo'
+                    : 'Esperando pago'
+                }}
+              </strong>
+            </p>
+
             <hr class="divider">
           </div>
 
@@ -80,10 +115,24 @@
               <span>Cant. / Producto</span>
               <span>Subtotal</span>
             </div>
+
             <div class="ticket-row" *ngFor="let item of mesaSeleccionada.pedido">
-              <span>{{ item.cantidad }}x {{ item.nombre ?? item.producto?.nombre ?? 'Producto' }}</span>
-              <span>S/ {{ ((item.precio ?? item.producto?.precio ?? 0) * (item.cantidad ?? 0)).toFixed(2) }}</span>
+              <span>
+                {{ item.cantidad }}x {{ item.nombre ?? item.producto?.nombre ?? item.producto ?? 'Producto' }}
+              </span>
+
+              <span>
+                S/
+                {{
+                  (
+                    (item.precio ?? item.precioUnitario ?? item.producto?.precio ?? 0)
+                    *
+                    (item.cantidad ?? 0)
+                  ).toFixed(2)
+                }}
+              </span>
             </div>
+
             <hr class="divider">
           </div>
 
@@ -92,29 +141,70 @@
               <span>Subtotal:</span>
               <span>S/ {{ subtotalSeleccionado.toFixed(2) }}</span>
             </div>
+
             <div class="total-row discount">
               <span>Descuento (S/):</span>
-              <input type="number" [(ngModel)]="descuento" (input)="recubicarTotal()" min="0">
+              <input
+                type="number"
+                [(ngModel)]="descuento"
+                (input)="recubicarTotal()"
+                min="0">
             </div>
+
             <div class="total-row net-total">
               <span>TOTAL A PAGAR:</span>
               <span>S/ {{ totalSeleccionado.toFixed(2) }}</span>
+            </div>
+
+            <div class="resumen-cobro">
+              <p>
+                🧾 Método:
+                <strong>{{ metodoPago }}</strong>
+              </p>
+
+              <p>
+                👤 Mesero:
+                <strong>{{ obtenerMeseroDeMesa(mesaSeleccionada) }}</strong>
+              </p>
             </div>
           </div>
 
           <div class="payment-methods">
             <p class="method-title">Seleccionar Método de Pago:</p>
+
             <div class="methods-grid">
-              <button [class.active]="metodoPago === 'Efectivo'" (click)="cambiarMetodoPago('Efectivo')">💵 Efectivo</button>
-              <button [class.active]="metodoPago === 'Yape'" (click)="cambiarMetodoPago('Yape')">📱 Yape</button>
-              <button [class.active]="metodoPago === 'Plin'" (click)="cambiarMetodoPago('Plin')">💳 Plin</button>
-              <button [class.active]="metodoPago === 'Tarjeta'" (click)="cambiarMetodoPago('Tarjeta')">💳 Tarjeta</button>
+              <button
+                [class.active]="metodoPago === 'Efectivo'"
+                (click)="cambiarMetodoPago('Efectivo')">
+                💵 Efectivo
+              </button>
+
+              <button
+                [class.active]="metodoPago === 'Yape'"
+                (click)="cambiarMetodoPago('Yape')">
+                📱 Yape
+              </button>
+
+              <button
+                [class.active]="metodoPago === 'Plin'"
+                (click)="cambiarMetodoPago('Plin')">
+                💳 Plin
+              </button>
+
+              <button
+                [class.active]="metodoPago === 'Tarjeta'"
+                (click)="cambiarMetodoPago('Tarjeta')">
+                💳 Tarjeta
+              </button>
             </div>
           </div>
 
           <div class="ticket-footer">
-            <button class="btn-liquidar" (click)="cobrarYLiberarMesa()">
-              ✅ Confirmar Pago y Cerrar Mesa
+            <button
+              class="btn-liquidar"
+              [disabled]="!mesaSeleccionada"
+              (click)="cobrarYLiberarMesa()">
+              💰 Confirmar Pago y Liberar Mesa
             </button>
           </div>
         </div>
@@ -125,14 +215,18 @@
 
   <div class="modal-qr-overlay" *ngIf="mostrarQr">
     <div class="modal-qr-card">
-      <h3>📱 ESCANEAR QR YAPE</h3>
-      <p class="monto-pagar">Total a cobrar: <strong>S/ {{ totalSeleccionado.toFixed(2) }}</strong></p>
+      <h3>📱 ESCANEAR QR {{ metodoPago | uppercase }}</h3>
+
+      <p class="monto-pagar">
+        Total a cobrar:
+        <strong>S/ {{ totalSeleccionado.toFixed(2) }}</strong>
+      </p>
 
       <div class="qr-container">
-        <img [src]="rutaImagenQr" alt="Código QR Yape" class="img-qr">
+        <img [src]="rutaImagenQr" alt="Código QR de pago" class="img-qr">
       </div>
 
-      <p class="txt-yapeo">✅ YAPEO REALIZADO?</p>
+      <p class="txt-yapeo">✅ ¿Pago realizado?</p>
 
       <div class="modal-actions">
         <button class="btn-cancelar-modal" (click)="cerrarModalQr()">Volver</button>

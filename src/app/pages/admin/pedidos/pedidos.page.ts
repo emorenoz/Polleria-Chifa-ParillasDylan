@@ -27,6 +27,7 @@ import {
   doc,
   updateDoc
 } from '@angular/fire/firestore';
+
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -53,20 +54,19 @@ export class PedidosPage implements OnInit, OnDestroy {
 
   fechaActual: string = '';
 
-  // Contadores analíticos superiores
   totalPendientes = 0;
   totalCocina = 0;
-  totalEntregados = 0;
+  totalListos = 0;
+  totalCuenta = 0;
+  totalPagados = 0;
   totalAnulados = 0;
   montoTotalGlobal = 0;
 
-  // Colecciones de datos de control
-  listaPedidos: any[] = [];         // Datos puros de Firebase filtrados por hoy
-  pedidosFiltrados: any[] = [];     // Datos que se muestran en el HTML tras buscar/filtrar
+  listaPedidos: any[] = [];
+  pedidosFiltrados: any[] = [];
 
-  // Variables de control de UI (Filtros activos)
   terminoBusqueda: string = '';
-  estadoSeleccionado: string = 'Todos'; // Controla las pestañas superiores
+  estadoSeleccionado: string = 'Todos';
 
   constructor(private datePipe: DatePipe) {
     addIcons({
@@ -84,14 +84,12 @@ export class PedidosPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Liberar la conexión a Firestore al salir de la página
-    if (this.pedidosSub) {
-      this.pedidosSub.unsubscribe();
-    }
+    this.pedidosSub?.unsubscribe();
   }
 
   configurarFecha() {
     const hoy = new Date();
+
     this.fechaActual =
       this.datePipe.transform(
         hoy,
@@ -101,45 +99,52 @@ export class PedidosPage implements OnInit, OnDestroy {
       ) || '';
   }
 
-  // 🔥 CARGAR PEDIDOS DESDE FIREBASE EN TIEMPO REAL
   cargarPedidosFirebase() {
-    const hoyString = new Date().toDateString(); // Formato estándar: "Wed Jun 24 2026"
+    const hoyString = new Date().toDateString();
     const pedidosRef = collection(this.firestore, 'pedidos');
 
-    // Escucha activa reactiva en vivo
     this.pedidosSub = collectionData(pedidosRef, { idField: 'id' }).subscribe({
       next: (pedidos: any[]) => {
 
-        // 1. Filtrar estrictamente los pedidos creados el día de hoy
         const pedidosHoy = pedidos.filter(p => {
           if (!p.fecha) return false;
-          // Validar si viene como Timestamp de Firebase (.seconds) o fecha nativa ISO/Date string
-          const fechaObj = p.fecha?.seconds ? new Date(p.fecha.seconds * 1000) : new Date(p.fecha);
+
+          const fechaObj = this.convertirFecha(p.fecha);
           return fechaObj.toDateString() === hoyString;
         });
 
-        // 2. Mapear y procesar la estructura limpia sin romper la UI
-        this.listaPedidos = pedidosHoy.map(p => ({
-          id: p.id,
-          mesa: p.mesa ? `Mesa ${p.mesa}` : 'Llevar / Delivery',
-          numMesaRaw: p.mesa || '', // Para búsquedas precisas por número
-          mesero: p.mesero || 'No asignado',
-          items: Array.isArray(p.productos) ? p.productos.reduce((acc: number, item: any) => acc + (item.cantidad || 1), 0) : (p.items || 0),
-          total: p.total || 0,
-          estado: (p.estado || 'pendiente').toLowerCase(),
-          hora: this.extraerHora(p.fecha)
-        }));
+        this.listaPedidos = pedidosHoy.map(p => {
+          const productos = p.productos || p.items || [];
 
-        // 3. Ordenar cronológicamente (Del más reciente al más antiguo)
-        this.listaPedidos.sort((a, b) => b.hora.localeCompare(a.hora));
+          return {
+            id: p.id,
+            mesa: p.mesa ? `Mesa ${p.mesa}` : 'Llevar / Delivery',
+            numMesaRaw: p.mesa || '',
+            mesero: p.mesero || 'No asignado',
+            items: Array.isArray(productos)
+              ? productos.reduce(
+                  (acc: number, item: any) => acc + (Number(item.cantidad) || 1),
+                  0
+                )
+              : 0,
+            descripcion: Array.isArray(productos)
+              ? productos
+                  .map((item: any) => item.nombre || item.producto || 'Producto')
+                  .join(' + ')
+              : 'Sin productos',
+            total: Number(p.total) || 0,
+            estado: (p.estado || 'pendiente_cocina').toLowerCase(),
+            hora: this.extraerHora(p.fecha),
+            fechaOrden: this.convertirFecha(p.fecha).getTime()
+          };
+        });
 
-        // 4. Calcular métricas globales de las tarjetas
+        this.listaPedidos.sort((a, b) => b.fechaOrden - a.fechaOrden);
+
         this.calcularMetricas();
-
-        // 5. Aplicar filtros iniciales/actuales
         this.filtrarPedidos();
 
-        console.log(`✅ ${this.listaPedidos.length} Pedidos de hoy procesados en vivo.`);
+        console.log(`✅ ${this.listaPedidos.length} pedidos de hoy procesados en vivo.`);
       },
       error: (error) => {
         console.error('❌ Error en canal de datos de pedidos:', error);
@@ -147,16 +152,32 @@ export class PedidosPage implements OnInit, OnDestroy {
     });
   }
 
-  // 🔥 EXTRAER HORA DESDE CUALQUIER FORMATO DE TIMESTAMP
+  convertirFecha(fecha: any): Date {
+    if (!fecha) return new Date(0);
+
+    if (fecha?.seconds) {
+      return new Date(fecha.seconds * 1000);
+    }
+
+    if (fecha?.toDate) {
+      return fecha.toDate();
+    }
+
+    return new Date(fecha);
+  }
+
   extraerHora(fecha: any): string {
     if (!fecha) return '--:--';
+
     try {
-      const date = fecha.seconds
-        ? new Date(fecha.seconds * 1000)
-        : (fecha.toDate ? fecha.toDate() : new Date(fecha));
+      const date = this.convertirFecha(fecha);
 
       return !isNaN(date.getTime())
-        ? date.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', hour12: false })
+        ? date.toLocaleTimeString('es-PE', {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+          })
         : '--:--';
     } catch {
       return '--:--';
@@ -164,68 +185,132 @@ export class PedidosPage implements OnInit, OnDestroy {
   }
 
   calcularMetricas() {
-    this.totalPendientes = this.listaPedidos.filter(p => p.estado === 'pendiente').length;
-    this.totalCocina = this.listaPedidos.filter(p => p.estado === 'cocina').length;
-    this.totalEntregados = this.listaPedidos.filter(p => p.estado === 'entregado').length;
-    this.totalAnulados = this.listaPedidos.filter(p => p.estado === 'anulado').length;
+    this.totalPendientes = this.listaPedidos.filter(
+      p => p.estado === 'pendiente_cocina'
+    ).length;
 
-    // Solo se suma al monto global recaudado los pedidos que ya fueron entregados/cobrados
+    this.totalCocina = this.listaPedidos.filter(
+      p => p.estado === 'preparando'
+    ).length;
+
+    this.totalListos = this.listaPedidos.filter(
+      p => p.estado === 'listo'
+    ).length;
+
+    this.totalCuenta = this.listaPedidos.filter(
+      p => p.estado === 'cuenta'
+    ).length;
+
+    this.totalPagados = this.listaPedidos.filter(
+      p => p.estado === 'pagado'
+    ).length;
+
+    this.totalAnulados = this.listaPedidos.filter(
+      p => p.estado === 'anulado'
+    ).length;
+
     this.montoTotalGlobal = this.listaPedidos
-      .filter(p => p.estado === 'entregado')
-      .reduce((acc, p) => acc + p.total, 0);
+      .filter(p => p.estado === 'pagado')
+      .reduce((acc, p) => acc + (Number(p.total) || 0), 0);
   }
 
-  // 🔍 BUSCADOR INTERACTIVO Y FILTRO POR PESTAÑAS (Pendiente, Cocina, etc.)
   filtrarPedidos() {
     this.pedidosFiltrados = this.listaPedidos.filter(p => {
-      // Filtro 1: Por la pestaña de estado seleccionada
-      const cumpleEstado = this.estadoSeleccionado === 'Todos' || p.estado === this.estadoSeleccionado.toLowerCase();
+      const estadoFiltro = this.normalizarFiltroEstado(this.estadoSeleccionado);
 
-      // Filtro 2: Por el cuadro de búsqueda (Mesa, Mesero, o ID)
+      const cumpleEstado =
+        estadoFiltro === 'todos' ||
+        p.estado === estadoFiltro;
+
       const busqueda = this.terminoBusqueda.trim().toLowerCase();
-      const cumpleBusqueda = !busqueda ||
-        p.id.toLowerCase().includes(busqueda) ||
-        p.mesa.toLowerCase().includes(busqueda) ||
-        p.numMesaRaw.toString().includes(busqueda) ||
-        p.mesero.toLowerCase().includes(busqueda);
+
+      const cumpleBusqueda =
+        !busqueda ||
+        String(p.id).toLowerCase().includes(busqueda) ||
+        String(p.mesa).toLowerCase().includes(busqueda) ||
+        String(p.numMesaRaw).toLowerCase().includes(busqueda) ||
+        String(p.mesero).toLowerCase().includes(busqueda) ||
+        String(p.descripcion).toLowerCase().includes(busqueda);
 
       return cumpleEstado && cumpleBusqueda;
     });
   }
 
-  // Cambiar de pestaña superior (Todos, Pendientes, Cocina...)
+  normalizarFiltroEstado(estado: string): string {
+    const e = estado.toLowerCase();
+
+    if (e === 'todos') return 'todos';
+    if (e === 'pendiente' || e === 'pendientes') return 'pendiente_cocina';
+    if (e === 'cocina' || e === 'preparando') return 'preparando';
+    if (e === 'listo' || e === 'listos') return 'listo';
+    if (e === 'cuenta') return 'cuenta';
+    if (e === 'pagado' || e === 'pagados') return 'pagado';
+    if (e === 'anulado' || e === 'anulados') return 'anulado';
+
+    return e;
+  }
+
   seleccionarFiltroEstado(estado: string) {
     this.estadoSeleccionado = estado;
     this.filtrarPedidos();
   }
 
-  // 🔥 ACTUALIZAR ESTADO DEL PEDIDO DIRECTO EN FIREBASE
-  // Este método te sirve para avanzar el flujo de manera manual desde el admin si fuese necesario
-  async cambiarEstadoPedido(idPedido: string, nuevoEstado: 'pendiente' | 'cocina' | 'entregado' | 'anulado') {
+  async cambiarEstadoPedido(
+    idPedido: string,
+    nuevoEstado:
+      | 'pendiente_cocina'
+      | 'preparando'
+      | 'listo'
+      | 'entregado_mesa'
+      | 'cuenta'
+      | 'pagado'
+      | 'anulado'
+  ) {
     try {
       const pedidoDocRef = doc(this.firestore, 'pedidos', idPedido);
+
       await updateDoc(pedidoDocRef, {
         estado: nuevoEstado
       });
+
       console.log(`Estado del pedido ${idPedido} actualizado a: ${nuevoEstado}`);
-      // Nota: No necesitas volver a cargar los datos manualmente ya que collectionData se encarga de refrescar la UI en tiempo real.
+
     } catch (error) {
       console.error(`Error al actualizar el estado del pedido ${idPedido}:`, error);
     }
   }
 
-  // Botón manual de sincronización (fuerza la reinicialización si fuese necesario)
   actualizarDatos() {
-    if (this.pedidosSub) this.pedidosSub.unsubscribe();
+    this.pedidosSub?.unsubscribe();
     this.cargarPedidosFirebase();
   }
 
   exportarReporte() {
     console.log('Exportando listado de pedidos del día a CSV/PDF...');
-    // Aquí puedes implementar una conversión rápida de `this.pedidosFiltrados` a formato CSV
   }
 
   verDetallePedido(id: string) {
     console.log('Abriendo modal o navegación del pedido ID:', id);
+  }
+
+  obtenerEstadoTexto(estado: string): string {
+    switch (estado) {
+      case 'pendiente_cocina':
+        return 'Pendiente cocina';
+      case 'preparando':
+        return 'Preparando';
+      case 'listo':
+        return 'Listo';
+      case 'entregado_mesa':
+        return 'Entregado mesa';
+      case 'cuenta':
+        return 'En cuenta';
+      case 'pagado':
+        return 'Pagado';
+      case 'anulado':
+        return 'Anulado';
+      default:
+        return estado;
+    }
   }
 }

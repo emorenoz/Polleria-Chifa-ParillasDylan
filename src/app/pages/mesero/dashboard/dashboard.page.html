@@ -11,10 +11,23 @@
 
     <div class="stats-and-actions">
       <div class="stats">
-        <span class="stat-item active"><span class="dot"></span> {{ totalActivas }} activas</span>
-        <span class="stat-item bill"><span class="dot"></span> {{ totalEnCuenta }} en cuenta</span>
-        <span class="stat-item free"><span class="dot"></span> {{ totalLibres }} libres</span>
+        <span class="stat-item active">
+          <span class="dot"></span> {{ totalActivas }} activas
+        </span>
+
+        <span class="stat-item ready">
+          <span class="dot"></span> {{ totalListas }} listas
+        </span>
+
+        <span class="stat-item bill">
+          <span class="dot"></span> {{ totalEnCuenta }} en cuenta
+        </span>
+
+        <span class="stat-item free">
+          <span class="dot"></span> {{ totalLibres }} libres
+        </span>
       </div>
+
       <div class="time-exit">
         <span class="time">🕒 {{ horaActual }}</span>
         <button class="btn-exit" (click)="salir()">↩ Salir</button>
@@ -34,12 +47,18 @@
           [ngClass]="{
             'libre': mesa.estado === 'libre',
             'activa': mesa.estado === 'activa',
+            'listo': mesa.estado === 'listo',
             'cuenta': mesa.estado === 'cuenta',
             'selected': mesaSeleccionada?.id === mesa.id
           }"
           (click)="seleccionarMesa(mesa)">
+
           <span class="num-prefix">M</span>
           <span class="num-mesa">{{ mesa.numero }}</span>
+
+          <span class="mesa-alert" *ngIf="mesa.estado === 'listo'">
+            🍽️
+          </span>
         </button>
       </div>
 
@@ -47,6 +66,7 @@
         <h4>LEYENDA</h4>
         <div class="leyenda-item"><span class="dot free"></span> Libre</div>
         <div class="leyenda-item"><span class="dot active"></span> Activa</div>
+        <div class="leyenda-item"><span class="dot ready"></span> Listo para recoger</div>
         <div class="leyenda-item"><span class="dot bill"></span> Cuenta</div>
       </div>
     </aside>
@@ -54,10 +74,20 @@
     <section class="menu-section">
 
       <div class="info-helper-bar" [ngClass]="{'has-selected': mesaSeleccionada}">
-        <span *ngIf="!mesaSeleccionada">🛒 Selecciona una mesa para tomar el pedido</span>
+        <span *ngIf="!mesaSeleccionada">
+          🛒 Selecciona una mesa para tomar el pedido
+        </span>
+
         <div class="selected-meta" *ngIf="mesaSeleccionada">
           <span class="table-tag">📍 Mesa {{ mesaSeleccionada.numero }}</span>
-          <span class="status-badge" [ngClass]="mesaSeleccionada.estado">{{ mesaSeleccionada.estado | uppercase }}</span>
+
+          <span class="status-badge" [ngClass]="mesaSeleccionada.estado">
+            {{ mesaSeleccionada.estado | uppercase }}
+          </span>
+
+          <span class="status-badge listo" *ngIf="mesaSeleccionada.estado === 'listo'">
+            🍽️ Pedido listo para recoger
+          </span>
         </div>
       </div>
 
@@ -75,7 +105,10 @@
           🍽️ No hay platos disponibles en esta categoría.
         </div>
 
-        <div class="card-producto" *ngFor="let prod of productosFiltrados" [class.out-of-stock]="prod.stock === 0">
+        <div
+          class="card-producto"
+          *ngFor="let prod of productosFiltrados"
+          [class.out-of-stock]="prod.stock === 0">
 
           <div class="prod-img-box">
             <span class="prod-emoji">{{ obtenerIcono(prod.categoriaId) }}</span>
@@ -95,7 +128,7 @@
 
               <button
                 class="btn-add-item"
-                [disabled]="!mesaSeleccionada || prod.stock === 0"
+                [disabled]="!mesaSeleccionada || prod.stock === 0 || mesaSeleccionada.estado === 'listo' || mesaSeleccionada.estado === 'cuenta'"
                 (click)="agregarProducto(prod)">
                 + agregar
               </button>
@@ -110,6 +143,7 @@
     <aside class="sidebar-pedido">
       <div class="sidebar-pedido-header">
         <h3>Pedido actual</h3>
+
         <span class="items-count-badge" *ngIf="mesaSeleccionada && mesaSeleccionada.pedido.length > 0">
           {{ mesaSeleccionada.pedido.length }} ítems
         </span>
@@ -119,6 +153,10 @@
         <div class="cart-icon">🛒</div>
         <p>Sin items aún</p>
         <span>Selecciona una mesa en el salón</span>
+
+        <div class="ready-message" *ngIf="mesaSeleccionada && mesaSeleccionada.estado === 'listo'">
+          🍽️ Este pedido ya está listo. Recógelo en cocina.
+        </div>
       </div>
 
       <div class="cart-content" *ngIf="mesaSeleccionada && mesaSeleccionada.pedido.length > 0">
@@ -128,10 +166,14 @@
 
             <div class="item-main-row">
               <span class="item-emoji-prefix">🍗</span>
+
               <div class="item-info">
                 <span class="item-name">{{ item.producto.nombre }}</span>
-                <span class="item-price-unit">S/ {{ item.producto.precio | number:'1.2-2' }} c/u</span>
+                <span class="item-price-unit">
+                  S/ {{ item.producto.precio | number:'1.2-2' }} c/u
+                </span>
               </div>
+
               <span class="item-price-total">
                 S/ {{ (item.producto.precio * item.cantidad) | number:'1.2-2' }}
               </span>
@@ -139,11 +181,27 @@
 
             <div class="item-controls-row">
               <div class="counter-box">
-                <button class="btn-qty decrease" (click)="modificarCantidad(item, -1)">-</button>
+                <button
+                  class="btn-qty decrease"
+                  [disabled]="mesaSeleccionada.estado === 'listo' || mesaSeleccionada.estado === 'cuenta'"
+                  (click)="modificarCantidad(item, -1)">
+                  -
+                </button>
+
                 <span class="qty-number">{{ item.cantidad }}</span>
-                <button class="btn-qty increase" (click)="modificarCantidad(item, 1)">+</button>
+
+                <button
+                  class="btn-qty increase"
+                  [disabled]="mesaSeleccionada.estado === 'listo' || mesaSeleccionada.estado === 'cuenta'"
+                  (click)="modificarCantidad(item, 1)">
+                  +
+                </button>
               </div>
-              <button class="btn-trash-item" (click)="modificarCantidad(item, -item.cantidad)">
+
+              <button
+                class="btn-trash-item"
+                [disabled]="mesaSeleccionada.estado === 'listo' || mesaSeleccionada.estado === 'cuenta'"
+                (click)="modificarCantidad(item, -item.cantidad)">
                 🗑️
               </button>
             </div>
@@ -154,13 +212,15 @@
         <div class="cart-summary">
           <div class="total-row">
             <span>Total:</span>
-            <strong class="total-amount">S/ {{ calcularTotal() | number:'1.2-2' }}</strong>
+            <strong class="total-amount">
+              S/ {{ calcularTotal() | number:'1.2-2' }}
+            </strong>
           </div>
 
           <div class="cart-actions-layout">
             <button
               class="btn-action-submit kitchen"
-              [disabled]="!mesaSeleccionada || mesaSeleccionada.pedido.length === 0"
+              [disabled]="!mesaSeleccionada || mesaSeleccionada.pedido.length === 0 || mesaSeleccionada.estado === 'listo' || mesaSeleccionada.estado === 'cuenta'"
               (click)="procesarPago()">
               🚀 Enviar a Cocina
             </button>
@@ -168,10 +228,11 @@
             <div class="secondary-actions-grid">
               <button
                 class="btn-action-secondary bill"
-                [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'activa'"
+                [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'listo'"
                 (click)="pedirCuenta()">
-                💵 Pedir Cuenta
+                🍽️ Recogido / Pedir Cuenta
               </button>
+
               <button
                 class="btn-action-secondary clear"
                 [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'cuenta'"

@@ -110,7 +110,11 @@ export class DashboardPage implements OnInit, OnDestroy {
       const promesasMesas = data.map(async (m) => {
         const estadoNormalizado = m.estado?.toLowerCase();
 
-        if (estadoNormalizado === 'ocupada' || estadoNormalizado === 'cuenta') {
+        if (
+          estadoNormalizado === 'activa' ||
+          estadoNormalizado === 'listo' ||
+          estadoNormalizado === 'cuenta'
+        ) {
           const itemsPedido = await this.obtenerItemsPedidoDeMesa(m.id);
           return { ...m, pedido: itemsPedido };
         } else {
@@ -122,7 +126,7 @@ export class DashboardPage implements OnInit, OnDestroy {
 
       this.mesasPorCobrar = mesasProcesadas.filter(m => {
         const est = m.estado?.toLowerCase();
-        return est === 'cuenta' || est === 'ocupada';
+        return est === 'cuenta' || est === 'listo' || est === 'activa';
       });
 
       if (this.mesaSeleccionada) {
@@ -132,7 +136,8 @@ export class DashboardPage implements OnInit, OnDestroy {
           actualizada &&
           (
             actualizada.estado?.toLowerCase() === 'cuenta' ||
-            actualizada.estado?.toLowerCase() === 'ocupada'
+            actualizada.estado?.toLowerCase() === 'listo' ||
+            actualizada.estado?.toLowerCase() === 'activa'
           )
         ) {
           this.seleccionarMesa(actualizada);
@@ -151,12 +156,11 @@ export class DashboardPage implements OnInit, OnDestroy {
         pedidosRef,
         where('idMesa', '==', idMesa),
         where('estado', 'in', [
-          'Cocina',
-          'Entregado',
-          'Pendiente',
-          'cocina',
-          'entregado',
-          'pendiente'
+          'pendiente_cocina',
+          'preparando',
+          'listo',
+          'entregado_mesa',
+          'cuenta'
         ])
       );
 
@@ -164,8 +168,8 @@ export class DashboardPage implements OnInit, OnDestroy {
 
       let listaProductos: any[] = [];
 
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
+      querySnapshot.forEach((docSnap) => {
+        const data = docSnap.data();
 
         const arrayOriginal =
           data['productos'] ??
@@ -186,24 +190,38 @@ export class DashboardPage implements OnInit, OnDestroy {
     }
   }
 
+  convertirFecha(fecha: any): Date {
+    if (!fecha) return new Date(0);
+
+    if (fecha?.seconds) {
+      return new Date(fecha.seconds * 1000);
+    }
+
+    return new Date(fecha);
+  }
+
   calcularRecaudacionDelDia() {
     const ventasRef = collection(this.db, 'ventas');
 
     this.ventasSubscription = collectionData(ventasRef).subscribe((ventas: any[]) => {
       const hoy = new Date().toDateString();
 
-      const ventasDeHoy = [...ventas].filter(
-        v => v.fecha && new Date(v.fecha).toDateString() === hoy
-      );
+      const ventasDeHoy = [...ventas].filter(v => {
+        const fechaVenta = this.convertirFecha(v.fecha);
+        return v.fecha && fechaVenta.toDateString() === hoy;
+      });
 
       this.totalRecaudado = ventasDeHoy.reduce(
-        (acc, v) => acc + (v.total || 0),
+        (acc, v) => acc + (Number(v.total) || 0),
         0
       );
 
-      this.historialVentas = ventasDeHoy.sort(
-        (a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-      );
+      this.historialVentas = ventasDeHoy.sort((a, b) => {
+        const fechaB = this.convertirFecha(b.fecha);
+        const fechaA = this.convertirFecha(a.fecha);
+
+        return fechaB.getTime() - fechaA.getTime();
+      });
     });
   }
 
@@ -356,12 +374,11 @@ export class DashboardPage implements OnInit, OnDestroy {
         pedidosRef,
         where('idMesa', '==', this.mesaSeleccionada.id),
         where('estado', 'in', [
-          'Cocina',
-          'Entregado',
-          'Pendiente',
-          'cocina',
-          'entregado',
-          'pendiente'
+          'pendiente_cocina',
+          'preparando',
+          'listo',
+          'entregado_mesa',
+          'cuenta'
         ])
       );
 
@@ -370,7 +387,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       for (const documento of querySnapshot.docs) {
         const pedDocRef = doc(this.db, 'pedidos', documento.id);
         await updateDoc(pedDocRef, {
-          estado: 'Pagado'
+          estado: 'pagado'
         });
       }
 
@@ -379,7 +396,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       const mesaRef = doc(this.db, 'mesas', this.mesaSeleccionada.id);
 
       await updateDoc(mesaRef, {
-        estado: 'disponible',
+        estado: 'libre',
         pedido: []
       });
 

@@ -52,7 +52,7 @@ export interface ItemCarrito {
 export interface Mesa {
   id: string;
   numero: string;
-  estado: 'libre' | 'activa' | 'cuenta';
+  estado: 'libre' | 'activa' | 'listo' | 'cuenta' | 'pagado';
   pedido: ItemCarrito[];
 }
 
@@ -156,11 +156,6 @@ export class DashboardPage implements OnInit, OnDestroy {
       }
     });
 
-    /*
-      IMPORTANTE:
-      Ahora el mesero carga productos desde INVENTARIO.
-      Así usa los mismos IDs que el stock del admin.
-    */
     const inventarioCollection = collection(this.firestore, 'inventario');
     const inventario$ = collectionData(inventarioCollection, { idField: 'id' }) as Observable<any[]>;
 
@@ -289,27 +284,12 @@ export class DashboardPage implements OnInit, OnDestroy {
     const mesa = this.mesaSeleccionada;
     const total = this.calcularTotal();
 
-    const pedidoCocinaOriginal = {
-      mesa: mesa.numero,
-      idMesa: mesa.id,
-      items: mesa.pedido.map(i => ({
-        id: i.producto.id,
-        producto: i.producto.nombre,
-        cantidad: i.cantidad,
-        precio: i.producto.precio
-      })),
-      total: total,
-      mesero: this.nombreMesero,
-      estado: 'enviado_cocina',
-      fecha: new Date().toISOString()
-    };
-
-    const pedidoAdminCompatible = {
+    const pedido = {
       mesa: mesa.numero,
       idMesa: mesa.id,
       mesero: this.nombreMesero,
       total: total,
-      estado: 'cocina',
+      estado: 'pendiente_cocina',
       fecha: new Date(),
       productos: mesa.pedido.map(i => ({
         id: i.producto.id,
@@ -321,8 +301,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     };
 
     try {
-      await addDoc(collection(this.firestore, 'pedidos_cocina'), pedidoCocinaOriginal);
-      await addDoc(collection(this.firestore, 'pedidos'), pedidoAdminCompatible);
+      await addDoc(collection(this.firestore, 'pedidos'), pedido);
 
       const refMesa = doc(this.firestore, `mesas/${mesa.id}`);
       await updateDoc(refMesa, {
@@ -331,10 +310,10 @@ export class DashboardPage implements OnInit, OnDestroy {
       });
 
       this.mesaSeleccionada = null;
-      console.log('✅ Pedido enviado usando productos del inventario');
+      console.log('✅ Pedido enviado a cocina usando productos del inventario');
 
     } catch (error) {
-      console.error('Error al procesar y distribuir el pedido:', error);
+      console.error('Error al procesar y enviar el pedido:', error);
     }
   }
 
@@ -344,6 +323,10 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   get totalActivas() {
     return this.mesas.filter(m => m.estado === 'activa').length;
+  }
+
+  get totalListas() {
+    return this.mesas.filter(m => m.estado === 'listo').length;
   }
 
   get totalEnCuenta() {

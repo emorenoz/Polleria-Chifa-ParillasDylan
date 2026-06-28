@@ -36,8 +36,7 @@ import {
   collectionData,
   addDoc,
   doc,
-  updateDoc,
-  deleteDoc
+  updateDoc
 } from '@angular/fire/firestore';
 
 import { Subscription } from 'rxjs';
@@ -89,6 +88,7 @@ export class VentasPage implements OnInit, OnDestroy {
   idVentaEditando: string | null = null;
 
   listaVentas: any[] = [];
+  totalVentas: number = 0;
 
   constructor() {
     addIcons({ cash, create, trash, arrowBack });
@@ -98,61 +98,70 @@ export class VentasPage implements OnInit, OnDestroy {
     this.cargarVentasFirebase();
   }
 
-  // 🔥 FIREBASE REAL EN TIEMPO REAL
   cargarVentasFirebase() {
-
     const ventasCollection = collection(this.firestore, 'ventas');
 
     this.ventasSubscription = collectionData(
       ventasCollection,
       { idField: 'id' }
     ).subscribe({
-      next: (ventas) => {
-        this.listaVentas = ventas || [];
-        console.log('📦 Ventas cargadas:', ventas);
+      next: (ventas: any[]) => {
+        this.listaVentas = (ventas || [])
+          .map(v => ({
+            ...v,
+            estado: v.estado || 'pagado',
+            fechaOrden: this.convertirFecha(v.fecha).getTime(),
+            fechaTexto: this.obtenerFechaTexto(v.fecha),
+            horaTexto: this.obtenerHoraTexto(v.fecha || v.hora)
+          }))
+          .sort((a, b) => b.fechaOrden - a.fechaOrden);
+
+        this.totalVentas = this.listaVentas
+          .filter(v => v.estado !== 'anulado')
+          .reduce((acc, v) => acc + (Number(v.total) || 0), 0);
+
+        console.log('📦 Ventas cargadas:', this.listaVentas);
       },
       error: (error) => {
         console.error('❌ Error Firebase ventas:', error);
       }
     });
-
   }
 
   async guardarVenta() {
-
-    if (!this.nuevaVenta.cliente || !this.nuevaVenta.total || !this.nuevaVenta.metodoPago) {
-      alert('Por favor rellena todos los campos.');
+    if (
+      !this.nuevaVenta.cliente ||
+      !this.nuevaVenta.total ||
+      this.nuevaVenta.total <= 0 ||
+      !this.nuevaVenta.metodoPago
+    ) {
+      alert('Por favor rellena todos los campos correctamente.');
       return;
     }
 
     const ahora = new Date();
-    const hora = ahora.getHours().toString().padStart(2, '0') + ':' +
-                 ahora.getMinutes().toString().padStart(2, '0');
 
     try {
-
       if (this.editando && this.idVentaEditando) {
-
         const ref = doc(this.firestore, 'ventas', this.idVentaEditando);
 
         await updateDoc(ref, {
           cliente: this.nuevaVenta.cliente,
-          total: this.nuevaVenta.total,
+          total: Number(this.nuevaVenta.total),
           metodoPago: this.nuevaVenta.metodoPago
         });
 
         this.cancelarEdicion();
 
       } else {
-
         await addDoc(collection(this.firestore, 'ventas'), {
           cliente: this.nuevaVenta.cliente,
-          total: this.nuevaVenta.total,
+          total: Number(this.nuevaVenta.total),
           metodoPago: this.nuevaVenta.metodoPago,
-          hora,
-          fecha: ahora
+          fecha: ahora,
+          estado: 'pagado',
+          origen: 'admin'
         });
-
       }
 
       this.limpiarFormulario();
@@ -160,17 +169,21 @@ export class VentasPage implements OnInit, OnDestroy {
     } catch (error) {
       console.error('❌ Error Firebase ventas:', error);
     }
-
   }
 
   seleccionarVenta(venta: any) {
+    if (venta.estado === 'anulado') {
+      alert('No puedes editar una venta anulada.');
+      return;
+    }
+
     this.editando = true;
     this.idVentaEditando = venta.id;
 
     this.nuevaVenta = {
-      cliente: venta.cliente,
-      total: venta.total,
-      metodoPago: venta.metodoPago
+      cliente: venta.cliente || '',
+      total: Number(venta.total) || 0,
+      metodoPago: venta.metodoPago || ''
     };
   }
 
@@ -181,10 +194,20 @@ export class VentasPage implements OnInit, OnDestroy {
   }
 
   async eliminarVenta(id: string) {
+    const confirmar = confirm('¿Seguro que deseas anular esta venta?');
+
+    if (!confirmar) return;
+
     try {
-      await deleteDoc(doc(this.firestore, 'ventas', id));
+      const ventaRef = doc(this.firestore, 'ventas', id);
+
+      await updateDoc(ventaRef, {
+        estado: 'anulado',
+        fechaAnulacion: new Date()
+      });
+
     } catch (error) {
-      console.error('❌ Error eliminando venta:', error);
+      console.error('❌ Error anulando venta:', error);
     }
   }
 
@@ -194,6 +217,39 @@ export class VentasPage implements OnInit, OnDestroy {
       total: null,
       metodoPago: ''
     };
+  }
+
+  convertirFecha(fecha: any): Date {
+    if (!fecha) return new Date(0);
+
+    if (fecha?.seconds) {
+      return new Date(fecha.seconds * 1000);
+    }
+
+    if (fecha?.toDate) {
+      return fecha.toDate();
+    }
+
+    return new Date(fecha);
+  }
+
+  obtenerFechaTexto(fecha: any): string {
+    const date = this.convertirFecha(fecha);
+
+    if (isNaN(date.getTime())) return '--/--/----';
+
+    return date.toLocaleDateString('es-PE');
+  }
+
+  obtenerHoraTexto(fecha: any): string {
+    const date = this.convertirFecha(fecha);
+
+    if (isNaN(date.getTime())) return '--:--';
+
+    return date.toLocaleTimeString('es-PE', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 
   ngOnDestroy() {

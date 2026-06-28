@@ -133,7 +133,7 @@
       width: 100%;
       font-size: 14px;
       color: var(--text-main);
-      
+
       &::placeholder {
         color: var(--text-muted);
       }
@@ -267,6 +267,125 @@
 
     tbody tr:last-child td {
       border-bottom: none;
+    }
+  }
+}
+/* =========================
+   MEJORAS ESTADOS NUEVOS
+========================= */
+
+.status-card {
+  .status-label {
+    .dot {
+      &.yellow { background-color: #f59e0b; }
+      &.blue { background-color: #3b82f6; }
+    }
+  }
+}
+
+.btn-outline {
+  &.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+
+    ion-icon {
+      color: white;
+    }
+  }
+}
+
+.empty-table {
+  padding: 35px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+  background: #fafafc;
+}
+
+/* Estados visuales nuevos */
+.table-card {
+  .custom-table {
+    .status-badge {
+      &.pendiente_cocina {
+        background: rgba(140, 142, 167, 0.12);
+        color: var(--text-muted);
+      }
+
+      &.preparando {
+        background: rgba(255, 140, 0, 0.12);
+        color: #ff8c00;
+      }
+
+      &.listo {
+        background: rgba(16, 185, 129, 0.12);
+        color: #10b981;
+      }
+
+      &.entregado_mesa {
+        background: rgba(59, 130, 246, 0.12);
+        color: #2563eb;
+      }
+
+      &.cuenta {
+        background: rgba(245, 158, 11, 0.15);
+        color: #b45309;
+      }
+
+      &.pagado {
+        background: rgba(34, 197, 94, 0.12);
+        color: #059669;
+      }
+
+      &.anulado {
+        background: rgba(239, 68, 68, 0.12);
+        color: #dc2626;
+      }
+    }
+  }
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 768px) {
+  .main-container {
+    padding: 14px;
+  }
+
+  .top-header {
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+  }
+
+  .action-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .search-box {
+      max-width: 100%;
+      width: 100%;
+    }
+
+    .actions {
+      width: 100%;
+
+      .btn-outline {
+        flex: 1;
+        justify-content: center;
+      }
+    }
+  }
+
+  .table-card {
+    .table-card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
     }
   }
 }

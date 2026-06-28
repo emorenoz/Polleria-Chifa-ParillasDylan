@@ -15,6 +15,7 @@
         <span class="stat-item kitchen"><span class="badge-count">{{ totalEnCocina }}</span> en cocina</span>
         <span class="stat-item ready"><span class="badge-count">{{ totalListos }}</span> listos</span>
       </div>
+
       <div class="time-exit">
         <span class="time">🕒 {{ horaActual }}</span>
         <button class="btn-exit" (click)="salir()">↩ Salir</button>
@@ -24,16 +25,28 @@
 
   <div class="filter-bar">
     <span class="filter-label">Filtrar:</span>
-    <button [class.active]="categoriaSeleccionada === 'todos'" (click)="aplicarFiltro('todos')">
+
+    <button
+      [class.active]="categoriaSeleccionada === 'todos'"
+      (click)="aplicarFiltro('todos')">
       Todos ({{ pedidos.length }})
     </button>
-    <button [class.active]="categoriaSeleccionada === 'enviado_cocina'" (click)="aplicarFiltro('enviado_cocina')">
+
+    <button
+      [class.active]="categoriaSeleccionada === 'pendiente_cocina'"
+      (click)="aplicarFiltro('pendiente_cocina')">
       Nuevo ({{ totalNuevos }})
     </button>
-    <button [class.active]="categoriaSeleccionada === 'preparando'" (click)="aplicarFiltro('preparando')">
+
+    <button
+      [class.active]="categoriaSeleccionada === 'preparando'"
+      (click)="aplicarFiltro('preparando')">
       Preparando ({{ totalEnCocina }})
     </button>
-    <button [class.active]="categoriaSeleccionada === 'listo'" (click)="aplicarFiltro('listo')">
+
+    <button
+      [class.active]="categoriaSeleccionada === 'listo'"
+      (click)="aplicarFiltro('listo')">
       Listo ({{ totalListos }})
     </button>
   </div>
@@ -41,34 +54,45 @@
   <main class="main-content-cocina">
     <div class="grid-comandas">
 
-      <div *ngFor="let pedido of pedidosFiltrados"
-           class="card-comanda"
-           [ngClass]="getCardClass(pedido.estado)">
+      <div
+        *ngFor="let pedido of pedidosFiltrados"
+        class="card-comanda"
+        [ngClass]="getCardClass(pedido.estado)">
 
         <div class="card-header">
           <div class="mesa-info">
             <h3>Mesa {{ pedido.mesa }}</h3>
-            <span class="mesero-name">👤 {{ pedido.mesero }}</span>
+            <span class="mesero-name">👤 {{ pedido.mesero || 'Mesero' }}</span>
           </div>
+
           <div class="status-time">
             <span class="badge-status" [ngClass]="pedido.estado">
               {{ getBadgeLabel(pedido.estado) }}
             </span>
-            <span class="time-elapsed">⏱️ {{ obtenerMinutosTranscurridos(pedido.fecha) }}</span>
+            <span class="time-elapsed">
+              ⏱️ {{ obtenerMinutosTranscurridos(pedido.fecha) }}
+            </span>
           </div>
         </div>
 
         <div class="card-body">
-          <div class="item-row" *ngFor="let item of pedido.items">
+          <div
+            class="item-row"
+            *ngFor="let item of (pedido.productos || pedido.items || [])">
+
             <span class="qty">{{ item.cantidad }}x</span>
-            <span class="product-name">{{ item.producto }}</span>
+            <span class="product-name">
+              {{ item.nombre || item.producto || 'Producto' }}
+            </span>
           </div>
         </div>
 
         <div class="card-footer">
-          <button class="btn-action"
-                  [ngClass]="getColorBtn(pedido.estado)"
-                  (click)="cambiarEstado(pedido)">
+          <button
+            class="btn-action"
+            [ngClass]="getColorBtn(pedido.estado)"
+            (click)="cambiarEstado(pedido)">
+
             {{ getLabelBtn(pedido.estado) }}
           </button>
         </div>
