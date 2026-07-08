@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
 
@@ -12,7 +13,8 @@ import {
   addDoc,
   getDocs,
   query,
-  where
+  where,
+  setDoc
 } from '@angular/fire/firestore';
 
 import {
@@ -55,16 +57,15 @@ export interface ItemCarrito {
 export interface Mesa {
   id: string;
   numero: string;
-  estado: 'libre' | 'activa' | 'listo' | 'recogido' | 'cuenta' | 'pagado';
+  estado: 'libre' | 'activa' | 'preparando' | 'listo' | 'entregado_mesa' | 'cuenta' | 'pagado';
   pedido: ItemCarrito[];
   fechaPedido?: any;
   fechaPedidoCocina?: any;
-  fechaRecogidoCocina?: any;
   fechaEntregadoMesa?: any;
+  fechaCuenta?: any;
   mesero?: string;
   pedidoEnCocina?: boolean;
   pedidoListo?: boolean;
-  pedidoRecogido?: boolean;
   pedidoEntregadoMesa?: boolean;
   notificacionMesero?: boolean;
 }
@@ -74,6 +75,7 @@ export interface Mesa {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     DecimalPipe,
     IonContent,
     IonHeader,
@@ -109,8 +111,8 @@ export class DashboardPage implements OnInit, OnDestroy {
     'Chifa',
     'Parrillas',
     'Criollos',
-    'Bebidas',
-    'Guarniciones'
+    'Guarniciones',
+    'Bebidas'
   ];
 
   categoriaSeleccionada: string = 'Todos';
@@ -121,6 +123,11 @@ export class DashboardPage implements OnInit, OnDestroy {
   mesas$: Observable<Mesa[]> | undefined;
   mesas: Mesa[] = [];
   mesaSeleccionada: Mesa | null = null;
+
+  modoPedido: 'mesas' | 'para_llevar' = 'mesas';
+  clienteNombre: string = '';
+  clienteTelefono: string = '';
+  pedidoParaLlevar: ItemCarrito[] = [];
 
   private mesasSubscription?: Subscription;
   private productosSubscription?: Subscription;
@@ -141,9 +148,12 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.mesasSubscription) this.mesasSubscription.unsubscribe();
-    if (this.productosSubscription) this.productosSubscription.unsubscribe();
-    if (this.relojInterval) clearInterval(this.relojInterval);
+    this.mesasSubscription?.unsubscribe();
+    this.productosSubscription?.unsubscribe();
+
+    if (this.relojInterval) {
+      clearInterval(this.relojInterval);
+    }
   }
 
   iniciarReloj(): void {
@@ -163,6 +173,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.mesasSubscription = this.mesas$.subscribe(res => {
       this.mesas = res.map(m => ({
         ...m,
+        estado: this.normalizarEstadoMesa(m.estado),
         pedido: m.pedido ?? []
       }));
 
@@ -180,36 +191,93 @@ export class DashboardPage implements OnInit, OnDestroy {
       }
     });
 
-    const inventarioCollection = collection(this.firestore, 'inventario');
+    const productosCollection = collection(this.firestore, 'productos');
 
-    const inventario$ = collectionData(
-      inventarioCollection,
+    const productos$ = collectionData(
+      productosCollection,
       { idField: 'id' }
     ) as Observable<any[]>;
 
-    this.productosSubscription = inventario$.subscribe(res => {
-      this.productos = res.map(item => ({
-        id: item.id,
-        nombre: item.nombre || '',
-        precio: Number(item.precio || 0),
-        categoria: item.categoria || 'General',
-        categoriaId: this.convertirCategoriaAId(item.categoria || ''),
-        stock: item.cantidad ?? 0
-      }));
+    this.productosSubscription = productos$.subscribe(res => {
+      this.productos = res
+        .map(item => ({
+          id: item.id,
+          nombre: item.nombre ?? '',
+          precio: Number(item.precio ?? 0),
+          categoria: item.categoria ?? 'General',
+          categoriaId: this.convertirCategoriaAId(item.categoria ?? ''),
+          stock: item.stock ?? null
+        }))
+        .filter(producto =>
+          producto.nombre.trim() !== '' &&
+          producto.precio > 0
+        )
+        .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
       this.filtrarProductos();
     });
   }
 
-  convertirCategoriaAId(categoria: string): string {
-    const c = categoria.toLowerCase();
+  normalizarEstadoMesa(estado: any): Mesa['estado'] {
+    const e = String(estado || 'libre').toLowerCase().trim();
 
-    if (c.includes('pollo') || c.includes('brasa')) return 'cat_pollos';
-    if (c.includes('chifa') || c.includes('sopa')) return 'cat_chifa';
-    if (c.includes('bebida') || c.includes('vino')) return 'cat_bebidas';
-    if (c.includes('parrilla')) return 'cat_parrillas';
-    if (c.includes('criollo')) return 'cat_criollos';
-    if (c.includes('guarnicion') || c.includes('guarniciones')) return 'cat_guarniciones';
+    if (e === 'recogido') return 'entregado_mesa';
+    if (e === 'entregado') return 'entregado_mesa';
+    if (e === 'ocupada') return 'activa';
+    if (e === 'pendiente_cocina') return 'activa';
+
+    if (
+      e === 'libre' ||
+      e === 'activa' ||
+      e === 'preparando' ||
+      e === 'listo' ||
+      e === 'entregado_mesa' ||
+      e === 'cuenta' ||
+      e === 'pagado'
+    ) {
+      return e;
+    }
+
+    return 'libre';
+  }
+
+  convertirCategoriaAId(categoria: string): string {
+    const c = categoria.toLowerCase().trim();
+
+    if (
+      c.includes('pollo') ||
+      c.includes('brasa') ||
+      c.includes('mostro') ||
+      c.includes('mostrito') ||
+      c.includes('salchibrasa')
+    ) return 'cat_pollos';
+
+    if (
+      c.includes('chifa') ||
+      c.includes('sopa')
+    ) return 'cat_chifa';
+
+    if (
+      c.includes('parrilla') ||
+      c.includes('parrillero')
+    ) return 'cat_parrillas';
+
+    if (
+      c.includes('criollo')
+    ) return 'cat_criollos';
+
+    if (
+      c.includes('guarnicion') ||
+      c.includes('guarniciones')
+    ) return 'cat_guarniciones';
+
+    if (
+      c.includes('bebida') ||
+      c.includes('fria') ||
+      c.includes('fría') ||
+      c.includes('caliente') ||
+      c.includes('vino')
+    ) return 'cat_bebidas';
 
     return 'cat_extras';
   }
@@ -237,9 +305,42 @@ export class DashboardPage implements OnInit, OnDestroy {
       const categoriaBaja = (p.categoria || '').toLowerCase();
 
       if (this.categoriaSeleccionada === 'Todos') return true;
-      if (this.categoriaSeleccionada === 'Pollos') return p.categoriaId === 'cat_pollos';
-      if (this.categoriaSeleccionada === 'Chifa') return p.categoriaId === 'cat_chifa';
-      if (this.categoriaSeleccionada === 'Bebidas') return p.categoriaId === 'cat_bebidas';
+
+      if (this.categoriaSeleccionada === 'Pollos') {
+        return p.categoriaId === 'cat_pollos' ||
+          nombreBajo.includes('pollo') ||
+          nombreBajo.includes('brasa') ||
+          nombreBajo.includes('mostro') ||
+          nombreBajo.includes('mostrito') ||
+          nombreBajo.includes('salchibrasa');
+      }
+
+      if (this.categoriaSeleccionada === 'Chifa') {
+        return p.categoriaId === 'cat_chifa' ||
+          categoriaBaja.includes('chifa') ||
+          categoriaBaja.includes('sopa') ||
+          nombreBajo.includes('chaufa') ||
+          nombreBajo.includes('aeropuerto') ||
+          nombreBajo.includes('tallarin') ||
+          nombreBajo.includes('tallarín') ||
+          nombreBajo.includes('wantan');
+      }
+
+      if (this.categoriaSeleccionada === 'Bebidas') {
+        return p.categoriaId === 'cat_bebidas' ||
+          categoriaBaja.includes('bebida') ||
+          nombreBajo.includes('gaseosa') ||
+          nombreBajo.includes('chicha') ||
+          nombreBajo.includes('maracuy') ||
+          nombreBajo.includes('limonada') ||
+          nombreBajo.includes('agua') ||
+          nombreBajo.includes('café') ||
+          nombreBajo.includes('cafe') ||
+          nombreBajo.includes('té') ||
+          nombreBajo.includes('te') ||
+          nombreBajo.includes('anís') ||
+          nombreBajo.includes('anis');
+      }
 
       if (this.categoriaSeleccionada === 'Guarniciones') {
         return p.categoriaId === 'cat_guarniciones' ||
@@ -248,6 +349,10 @@ export class DashboardPage implements OnInit, OnDestroy {
           nombreBajo.includes('papas') ||
           nombreBajo.includes('ensalada') ||
           nombreBajo.includes('arroz') ||
+          nombreBajo.includes('plátano') ||
+          nombreBajo.includes('platano') ||
+          nombreBajo.includes('huevo') ||
+          nombreBajo.includes('hot dog') ||
           nombreBajo.includes('wantan');
       }
 
@@ -255,9 +360,12 @@ export class DashboardPage implements OnInit, OnDestroy {
         return p.categoriaId === 'cat_parrillas' ||
           nombreBajo.includes('parrilla') ||
           nombreBajo.includes('anticucho') ||
+          nombreBajo.includes('brocheta') ||
           nombreBajo.includes('churrasco') ||
           nombreBajo.includes('chuleta') ||
-          nombreBajo.includes('bistec');
+          nombreBajo.includes('bistec') ||
+          nombreBajo.includes('pechuga') ||
+          nombreBajo.includes('chorizo');
       }
 
       if (this.categoriaSeleccionada === 'Criollos') {
@@ -266,7 +374,9 @@ export class DashboardPage implements OnInit, OnDestroy {
           nombreBajo.includes('lomo') ||
           nombreBajo.includes('saltado') ||
           nombreBajo.includes('tallarín verde') ||
-          nombreBajo.includes('chicharrón');
+          nombreBajo.includes('tallarin verde') ||
+          nombreBajo.includes('chicharrón') ||
+          nombreBajo.includes('chicharron');
       }
 
       return true;
@@ -276,11 +386,17 @@ export class DashboardPage implements OnInit, OnDestroy {
   seleccionarMesa(mesa: Mesa): void {
     this.mesaSeleccionada = {
       ...mesa,
+      estado: this.normalizarEstadoMesa(mesa.estado),
       pedido: mesa.pedido ?? []
     };
   }
 
   async agregarProducto(producto: Producto): Promise<void> {
+    if (this.modoPedido === 'para_llevar') {
+      await this.agregarProductoParaLlevar(producto);
+      return;
+    }
+
     if (!this.mesaSeleccionada || this.enviandoCocina || this.pedidoEnviado) return;
 
     if (producto.stock !== null && producto.stock <= 0) {
@@ -288,7 +404,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       return;
     }
 
-    let estadoActualizado = this.mesaSeleccionada.estado;
+    let estadoActualizado = this.normalizarEstadoMesa(this.mesaSeleccionada.estado);
     let fechaPedido = this.mesaSeleccionada.fechaPedido ?? null;
 
     if (estadoActualizado === 'libre') {
@@ -381,8 +497,8 @@ export class DashboardPage implements OnInit, OnDestroy {
     const fecha: any =
       mesa.fechaPedido ||
       mesa.fechaPedidoCocina ||
-      mesa.fechaRecogidoCocina ||
-      mesa.fechaEntregadoMesa;
+      mesa.fechaEntregadoMesa ||
+      mesa.fechaCuenta;
 
     if (!fecha) return null;
 
@@ -435,6 +551,11 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   async procesarPago(): Promise<void> {
+    if (this.modoPedido === 'para_llevar') {
+      await this.enviarParaLlevarACocina();
+      return;
+    }
+
     if (this.enviandoCocina || this.pedidoEnviado) return;
 
     if (!this.mesaSeleccionada || this.mesaSeleccionada.pedido.length === 0) {
@@ -447,6 +568,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     const mesa = this.mesaSeleccionada;
     const total = this.calcularTotal();
     const fechaActual = new Date();
+    const fechaCaja = this.obtenerFechaCaja();
 
     const productosPedido = mesa.pedido.map(i => ({
       id: i.producto.id,
@@ -459,6 +581,7 @@ export class DashboardPage implements OnInit, OnDestroy {
     }));
 
     const pedido = {
+      tipoPedido: 'mesa',
       mesa: mesa.numero,
       idMesa: mesa.id,
       mesero: this.nombreMesero,
@@ -466,6 +589,7 @@ export class DashboardPage implements OnInit, OnDestroy {
       estado: 'pendiente_cocina',
       fecha: fechaActual,
       fechaPedido: fechaActual.toISOString(),
+      fechaCaja,
       productos: productosPedido,
       items: productosPedido,
       cajero: '',
@@ -484,7 +608,6 @@ export class DashboardPage implements OnInit, OnDestroy {
         mesero: this.nombreMesero,
         pedidoEnCocina: true,
         pedidoListo: false,
-        pedidoRecogido: false,
         pedidoEntregadoMesa: false,
         notificacionMesero: false,
         fechaPedido: mesa.fechaPedido ?? fechaActual.toISOString(),
@@ -520,11 +643,15 @@ export class DashboardPage implements OnInit, OnDestroy {
   }
 
   get totalActivas(): number {
-    return this.mesas.filter(m => m.estado === 'activa').length;
+    return this.mesas.filter(m => m.estado === 'activa' || m.estado === 'preparando').length;
   }
 
   get totalListas(): number {
     return this.mesas.filter(m => m.estado === 'listo').length;
+  }
+
+  get totalEntregadas(): number {
+    return this.mesas.filter(m => m.estado === 'entregado_mesa').length;
   }
 
   get totalEnCuenta(): number {
@@ -562,29 +689,29 @@ export class DashboardPage implements OnInit, OnDestroy {
     const mesa = this.mesaSeleccionada;
 
     try {
-      mesa.estado = 'recogido';
-
       const refMesa = doc(this.firestore, `mesas/${mesa.id}`);
 
       await updateDoc(refMesa, {
-        estado: 'recogido',
-        pedidoRecogido: true,
-        pedidoListo: false,
-        notificacionMesero: false,
-        fechaRecogidoCocina: new Date()
+        estado: 'listo',
+        pedidoListo: true,
+        pedidoEnCocina: false,
+        pedidoEntregadoMesa: false,
+        notificacionMesero: false
       });
 
-      await this.actualizarPedidoActivoMesa(mesa.id, 'recogido');
+      await this.actualizarPedidoActivoMesa(mesa.id, 'listo');
 
       this.mesaSeleccionada = {
         ...mesa,
-        estado: 'recogido'
+        estado: 'listo',
+        pedidoListo: true,
+        pedidoEnCocina: false
       };
 
-      console.log(`✅ Plato recibido de cocina - Mesa ${mesa.numero}`);
+      console.log(`✅ Plato listo para entregar - Mesa ${mesa.numero}`);
 
     } catch (error) {
-      console.error('Error al recibir plato:', error);
+      console.error('Error al marcar plato como listo:', error);
     }
   }
 
@@ -594,22 +721,23 @@ export class DashboardPage implements OnInit, OnDestroy {
     const mesa = this.mesaSeleccionada;
 
     try {
-      mesa.estado = 'cuenta';
-
       const refMesa = doc(this.firestore, `mesas/${mesa.id}`);
 
       await updateDoc(refMesa, {
-        estado: 'cuenta',
+        estado: 'entregado_mesa',
         pedidoEntregadoMesa: true,
-        pedidoRecogido: false,
+        pedidoListo: false,
         fechaEntregadoMesa: new Date()
       });
 
-      await this.actualizarPedidoActivoMesa(mesa.id, 'cuenta');
+      await this.actualizarPedidoActivoMesa(mesa.id, 'entregado_mesa');
 
       this.mesaSeleccionada = {
         ...mesa,
-        estado: 'cuenta'
+        estado: 'entregado_mesa',
+        pedidoEntregadoMesa: true,
+        pedidoListo: false,
+        fechaEntregadoMesa: new Date()
       };
 
       console.log(`🚀 Pedido entregado a mesa ${mesa.numero}`);
@@ -619,7 +747,38 @@ export class DashboardPage implements OnInit, OnDestroy {
     }
   }
 
-  private async actualizarPedidoActivoMesa(idMesa: string, nuevoEstado: string): Promise<void> {
+  async pedirCuenta(): Promise<void> {
+    if (!this.mesaSeleccionada) return;
+
+    const mesa = this.mesaSeleccionada;
+
+    try {
+      const refMesa = doc(this.firestore, `mesas/${mesa.id}`);
+
+      await updateDoc(refMesa, {
+        estado: 'cuenta',
+        fechaCuenta: new Date()
+      });
+
+      await this.actualizarPedidoActivoMesa(mesa.id, 'cuenta');
+
+      this.mesaSeleccionada = {
+        ...mesa,
+        estado: 'cuenta',
+        fechaCuenta: new Date()
+      };
+
+      console.log(`🧾 Cuenta solicitada - Mesa ${mesa.numero}`);
+
+    } catch (error) {
+      console.error('Error al pedir cuenta:', error);
+    }
+  }
+
+  private async actualizarPedidoActivoMesa(
+    idMesa: string,
+    nuevoEstado: 'pendiente_cocina' | 'preparando' | 'listo' | 'entregado_mesa' | 'cuenta' | 'pagado' | 'anulado'
+  ): Promise<void> {
     const pedidosRef = collection(this.firestore, 'pedidos');
 
     const q = query(
@@ -629,9 +788,8 @@ export class DashboardPage implements OnInit, OnDestroy {
         'pendiente_cocina',
         'preparando',
         'listo',
-        'recogido',
-        'cuenta',
-        'entregado_mesa'
+        'entregado_mesa',
+        'cuenta'
       ])
     );
 
@@ -647,16 +805,14 @@ export class DashboardPage implements OnInit, OnDestroy {
     }
   }
 
-  async pedirCuenta(): Promise<void> {
-    await this.entregarAMesa();
-  }
-
   async liberarMesa(): Promise<void> {
     if (!this.mesaSeleccionada) return;
 
     const total = this.calcularTotal();
+    const fechaCaja = this.obtenerFechaCaja();
 
     const registroVenta = {
+      tipoPedido: 'mesa',
       mesa: this.mesaSeleccionada.numero,
       idMesa: this.mesaSeleccionada.id,
       items: this.mesaSeleccionada.pedido.map(i => ({
@@ -680,11 +836,14 @@ export class DashboardPage implements OnInit, OnDestroy {
       total,
       metodoPago: 'Efectivo',
       fecha: new Date().toISOString(),
+      fechaCaja,
       mesero: this.nombreMesero,
       estado: 'pagado'
     };
 
     await addDoc(collection(this.firestore, 'ventas'), registroVenta);
+
+    await this.actualizarPedidoActivoMesa(this.mesaSeleccionada.id, 'pagado');
 
     const refMesa = doc(this.firestore, `mesas/${this.mesaSeleccionada.id}`);
 
@@ -694,16 +853,205 @@ export class DashboardPage implements OnInit, OnDestroy {
       mesero: '',
       pedidoEnCocina: false,
       pedidoListo: false,
-      pedidoRecogido: false,
       pedidoEntregadoMesa: false,
       notificacionMesero: false,
       fechaPedido: null,
       fechaPedidoCocina: null,
-      fechaRecogidoCocina: null,
-      fechaEntregadoMesa: null
+      fechaEntregadoMesa: null,
+      fechaCuenta: null
     });
 
     this.mesaSeleccionada = null;
+  }
+
+  cambiarModoPedido(modo: 'mesas' | 'para_llevar'): void {
+    this.modoPedido = modo;
+
+    if (modo === 'mesas') {
+      this.clienteNombre = '';
+      this.clienteTelefono = '';
+      this.pedidoParaLlevar = [];
+    }
+
+    if (modo === 'para_llevar') {
+      this.mesaSeleccionada = null;
+    }
+
+    this.filtrarProductos();
+  }
+
+  async agregarProductoParaLlevar(producto: Producto): Promise<void> {
+    if (this.enviandoCocina || this.pedidoEnviado) return;
+
+    if (producto.stock !== null && producto.stock <= 0) {
+      console.warn('Producto sin stock:', producto.nombre);
+      return;
+    }
+
+    const pedido = [...this.pedidoParaLlevar];
+    const item = pedido.find(i => i.producto.id === producto.id);
+
+    if (item) {
+      if (producto.stock !== null && item.cantidad + 1 > producto.stock) {
+        console.warn('No hay suficiente stock para:', producto.nombre);
+        return;
+      }
+
+      item.cantidad++;
+    } else {
+      pedido.push({
+        producto,
+        cantidad: 1
+      });
+    }
+
+    this.pedidoParaLlevar = pedido;
+  }
+
+  modificarCantidadParaLlevar(item: ItemCarrito, cambio: number): void {
+    if (this.enviandoCocina || this.pedidoEnviado) return;
+
+    const pedido = [...this.pedidoParaLlevar];
+    const index = pedido.findIndex(i => i.producto.id === item.producto.id);
+
+    if (index !== -1) {
+      const nuevaCantidad = pedido[index].cantidad + cambio;
+
+      if (cambio > 0) {
+        const productoActualizado = this.productos.find(
+          p => p.id === item.producto.id
+        );
+
+        const stockDisponible = productoActualizado?.stock ?? item.producto.stock;
+
+        if (stockDisponible !== null && nuevaCantidad > stockDisponible) {
+          console.warn('No hay suficiente stock para:', item.producto.nombre);
+          return;
+        }
+      }
+
+      pedido[index].cantidad = nuevaCantidad;
+
+      if (pedido[index].cantidad <= 0) {
+        pedido.splice(index, 1);
+      }
+    }
+
+    this.pedidoParaLlevar = pedido;
+  }
+
+  calcularTotalParaLlevar(): number {
+    return this.pedidoParaLlevar.reduce((total, item) => {
+      return total + (Number(item.producto.precio || 0) * Number(item.cantidad || 0));
+    }, 0);
+  }
+
+  obtenerFechaCaja(): string {
+    const hoy = new Date();
+    const year = hoy.getFullYear();
+    const month = String(hoy.getMonth() + 1).padStart(2, '0');
+    const day = String(hoy.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  validarClienteParaLlevar(): boolean {
+    return (
+      this.clienteNombre.trim().length >= 2 &&
+      this.clienteTelefono.trim().length >= 6 &&
+      this.pedidoParaLlevar.length > 0
+    );
+  }
+
+  async enviarParaLlevarACocina(): Promise<void> {
+    if (this.enviandoCocina || this.pedidoEnviado) return;
+
+    if (!this.validarClienteParaLlevar()) {
+      console.warn('Falta nombre, teléfono o productos para llevar.');
+      return;
+    }
+
+    this.enviandoCocina = true;
+    this.pedidoEnviado = false;
+
+    const fechaActual = new Date();
+    const fechaCaja = this.obtenerFechaCaja();
+    const total = this.calcularTotalParaLlevar();
+
+    const productosPedido = this.pedidoParaLlevar.map(i => ({
+      id: i.producto.id,
+      nombre: i.producto.nombre,
+      producto: i.producto.nombre,
+      cantidad: i.cantidad,
+      precio: i.producto.precio,
+      precioUnitario: i.producto.precio,
+      subtotal: i.producto.precio * i.cantidad
+    }));
+
+    const clienteNombreLimpio = this.clienteNombre.trim();
+    const clienteTelefonoLimpio = this.clienteTelefono.trim();
+
+    const pedido = {
+      tipoPedido: 'para_llevar',
+      mesa: 'Para llevar',
+      idMesa: '',
+      clienteNombre: clienteNombreLimpio,
+      clienteTelefono: clienteTelefonoLimpio,
+      mesero: this.nombreMesero,
+      total,
+      estado: 'pendiente_cocina',
+      fecha: fechaActual,
+      fechaPedido: fechaActual.toISOString(),
+      fechaCaja,
+      productos: productosPedido,
+      items: productosPedido,
+      cajero: '',
+      origen: 'mesero',
+      creadoPor: this.nombreMesero
+    };
+
+    try {
+      await addDoc(collection(this.firestore, 'pedidos'), pedido);
+
+      const clienteId = clienteTelefonoLimpio.replace(/[^0-9]/g, '');
+
+      if (clienteId) {
+        await setDoc(doc(this.firestore, `clientes/${clienteId}`), {
+          nombre: clienteNombreLimpio,
+          telefono: clienteTelefonoLimpio,
+          ultimaCompra: fechaActual.toISOString(),
+          fecha: fechaActual,
+          fechaRegistro: fechaActual,
+          fechaCaja,
+          actualizadoEn: fechaActual
+        }, { merge: true });
+      }
+
+      console.log('✅ Pedido para llevar enviado a cocina:', pedido);
+
+      this.clienteNombre = '';
+      this.clienteTelefono = '';
+      this.pedidoParaLlevar = [];
+
+      this.enviandoCocina = false;
+      this.pedidoEnviado = true;
+
+      setTimeout(() => {
+        this.pedidoEnviado = false;
+      }, 2000);
+
+    } catch (error) {
+      console.error('❌ Error al enviar pedido para llevar:', error);
+
+      this.enviandoCocina = false;
+      this.pedidoEnviado = false;
+    }
+  }
+
+  limpiarPedidoParaLlevar(): void {
+    this.clienteNombre = '';
+    this.clienteTelefono = '';
+    this.pedidoParaLlevar = [];
   }
 
   salir(): void {

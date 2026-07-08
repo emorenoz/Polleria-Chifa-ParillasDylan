@@ -43,6 +43,10 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+
 @Component({
   selector: 'app-reportes',
   templateUrl: './reportes.page.html',
@@ -189,7 +193,7 @@ export class ReportesPage implements OnInit {
     return dias[fecha.getDay()];
   }
 
-  exportarPDF() {
+  async exportarPDF() {
     if (!this.reporteGenerado) {
       alert('Primero genera un reporte.');
       return;
@@ -221,13 +225,16 @@ export class ReportesPage implements OnInit {
     autoTable(docPdf, {
       startY: 86,
       head: [['Método de pago', 'Transacciones', 'Monto', 'Porcentaje']],
-      body: filasPago.length > 0
-        ? filasPago
-        : [['Sin datos', '0', 'S/ 0.00', '0%']],
-      styles: { fontSize: 9 },
+      body: filasPago.length > 0 ? filasPago : [['Sin datos', '0', 'S/ 0.00', '0%']],
+      styles: {
+        fontSize: 9,
+        halign: 'center',
+        valign: 'middle'
+      },
       headStyles: {
         fillColor: [126, 58, 242],
-        textColor: [255, 255, 255]
+        textColor: [255, 255, 255],
+        halign: 'center'
       }
     });
 
@@ -242,18 +249,53 @@ export class ReportesPage implements OnInit {
     autoTable(docPdf, {
       startY: finalY + 10,
       head: [['Producto', 'Cantidad vendida', 'Porcentaje']],
-      body: filasProductos.length > 0
-        ? filasProductos
-        : [['Sin datos', '0', '0%']],
-      styles: { fontSize: 9 },
+      body: filasProductos.length > 0 ? filasProductos : [['Sin datos', '0', '0%']],
+      styles: {
+        fontSize: 9,
+        halign: 'center',
+        valign: 'middle'
+      },
       headStyles: {
         fillColor: [126, 58, 242],
-        textColor: [255, 255, 255]
+        textColor: [255, 255, 255],
+        halign: 'center'
       }
     });
 
     const fechaArchivo = new Date().toISOString().slice(0, 10);
-    docPdf.save(`reporte_ventas_${fechaArchivo}.pdf`);
+    const nombreArchivo = `reporte_ventas_${fechaArchivo}.pdf`;
+
+    if (Capacitor.isNativePlatform()) {
+      await this.descargarPDFAndroid(docPdf, nombreArchivo);
+    } else {
+      docPdf.save(nombreArchivo);
+    }
+  }
+
+  async descargarPDFAndroid(docPdf: jsPDF, nombreArchivo: string) {
+    try {
+      const pdfBase64 = docPdf.output('datauristring').split(',')[1];
+
+      const resultado = await Filesystem.writeFile({
+        path: nombreArchivo,
+        data: pdfBase64,
+        directory: Directory.Documents,
+        recursive: true
+      });
+
+      await Share.share({
+        title: 'Reporte de ventas',
+        text: 'Reporte PDF generado desde Pollería Dylan.',
+        url: resultado.uri,
+        dialogTitle: 'Guardar o compartir PDF'
+      });
+
+      console.log('✅ PDF exportado en Android:', resultado.uri);
+
+    } catch (error) {
+      console.error('❌ Error exportando PDF en Android:', error);
+      alert('No se pudo exportar el PDF en Android.');
+    }
   }
 
   async generarReporte() {

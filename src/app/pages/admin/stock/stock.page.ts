@@ -56,8 +56,11 @@ import {
 
 import { Subscription } from 'rxjs';
 
-import * as XLSX from 'xlsx';
-import { saveAs } from 'file-saver';
+import * as XLSX from 'xlsx-js-style';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -560,7 +563,7 @@ export class StockPage implements OnInit, OnDestroy {
     this.exportarInventarioExcel();
   }
 
-  exportarInventarioExcel() {
+  async exportarInventarioExcel() {
     const datos = this.insumosFiltrados.map(i => ({
       Nombre: i.nombre,
       Categoría: i.categoria,
@@ -573,7 +576,7 @@ export class StockPage implements OnInit, OnDestroy {
       Estado: this.obtenerTextoEstado(i)
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(datos);
+    const worksheet: any = XLSX.utils.json_to_sheet(datos);
 
     worksheet['!cols'] = [
       { wch: 28 },
@@ -587,10 +590,133 @@ export class StockPage implements OnInit, OnDestroy {
       { wch: 15 }
     ];
 
-    const workbook = XLSX.utils.book_new();
+    this.aplicarEstilosExcel(worksheet);
 
+    const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Inventario');
 
+    const nombreArchivo = `inventario_${new Date().toISOString().slice(0, 10)}.xlsx`;
+
+    if (Capacitor.isNativePlatform()) {
+      await this.descargarExcelAndroid(workbook, nombreArchivo);
+    } else {
+      this.descargarExcelWeb(workbook, nombreArchivo);
+    }
+  }
+
+  aplicarEstilosExcel(worksheet: any) {
+    const rango = XLSX.utils.decode_range(worksheet['!ref']);
+
+    for (let row = rango.s.r; row <= rango.e.r; row++) {
+      for (let col = rango.s.c; col <= rango.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+
+        if (!worksheet[cellAddress]) continue;
+
+        worksheet[cellAddress].s = {
+          alignment: {
+            horizontal: 'center',
+            vertical: 'center',
+            wrapText: true
+          },
+          font: {
+            name: 'Calibri',
+            sz: 11,
+            color: { rgb: '111827' }
+          },
+          border: {
+            top: { style: 'thin', color: { rgb: 'D1D5DB' } },
+            bottom: { style: 'thin', color: { rgb: 'D1D5DB' } },
+            left: { style: 'thin', color: { rgb: 'D1D5DB' } },
+            right: { style: 'thin', color: { rgb: 'D1D5DB' } }
+          }
+        };
+
+        if (row === 0) {
+          worksheet[cellAddress].s = {
+            alignment: {
+              horizontal: 'center',
+              vertical: 'center',
+              wrapText: true
+            },
+            font: {
+              name: 'Calibri',
+              sz: 12,
+              bold: true,
+              color: { rgb: 'FFFFFF' }
+            },
+            fill: {
+              fgColor: { rgb: '7C3AED' }
+            },
+            border: {
+              top: { style: 'thin', color: { rgb: '6D28D9' } },
+              bottom: { style: 'thin', color: { rgb: '6D28D9' } },
+              left: { style: 'thin', color: { rgb: '6D28D9' } },
+              right: { style: 'thin', color: { rgb: '6D28D9' } }
+            }
+          };
+        }
+      }
+    }
+
+    worksheet['!rows'] = [
+      { hpt: 24 },
+      ...Array(Math.max(0, rango.e.r)).fill({ hpt: 22 })
+    ];
+
+    const precioCol = 6;
+    const valorCol = 7;
+
+    for (let row = 1; row <= rango.e.r; row++) {
+      [precioCol, valorCol].forEach(col => {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+
+        if (worksheet[cellAddress]) {
+          worksheet[cellAddress].z = '"S/ "#,##0.00';
+          worksheet[cellAddress].s = {
+            ...worksheet[cellAddress].s,
+            font: {
+              name: 'Calibri',
+              sz: 11,
+              bold: true,
+              color: { rgb: '111827' }
+            }
+          };
+        }
+      });
+    }
+  }
+
+  async descargarExcelAndroid(workbook: XLSX.WorkBook, nombreArchivo: string) {
+    try {
+      const excelBase64 = XLSX.write(workbook, {
+        bookType: 'xlsx',
+        type: 'base64'
+      });
+
+      const resultado = await Filesystem.writeFile({
+        path: nombreArchivo,
+        data: excelBase64,
+        directory: Directory.Documents,
+        recursive: true
+      });
+
+      await Share.share({
+        title: 'Reporte de inventario',
+        text: 'Reporte Excel generado desde Pollería Dylan.',
+        url: resultado.uri,
+        dialogTitle: 'Guardar o compartir Excel'
+      });
+
+      console.log('✅ Excel exportado en Android:', resultado.uri);
+
+    } catch (error) {
+      console.error('❌ Error exportando en Android:', error);
+      this.descargarExcelWeb(workbook, nombreArchivo);
+    }
+  }
+
+  descargarExcelWeb(workbook: XLSX.WorkBook, nombreArchivo: string) {
     const excelBuffer = XLSX.write(workbook, {
       bookType: 'xlsx',
       type: 'array'
@@ -600,10 +726,14 @@ export class StockPage implements OnInit, OnDestroy {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     });
 
-    saveAs(
-      blob,
-      `inventario_${new Date().toISOString().slice(0, 10)}.xlsx`
-    );
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(blob);
+    enlace.download = nombreArchivo;
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+
+    console.log('✅ Excel descargado en PC/navegador:', nombreArchivo);
   }
 
   exportarInventarioPDF() {

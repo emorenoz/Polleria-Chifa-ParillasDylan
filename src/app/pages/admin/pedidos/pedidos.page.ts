@@ -29,6 +29,11 @@ import {
 } from '@angular/fire/firestore';
 
 import { Subscription } from 'rxjs';
+import * as XLSX from 'xlsx-js-style';
+
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 @Component({
   selector: 'app-pedidos',
@@ -57,6 +62,7 @@ export class PedidosPage implements OnInit, OnDestroy {
   totalPendientes = 0;
   totalCocina = 0;
   totalListos = 0;
+  totalEntregados = 0;
   totalCuenta = 0;
   totalPagados = 0;
   totalAnulados = 0;
@@ -107,19 +113,26 @@ export class PedidosPage implements OnInit, OnDestroy {
       next: (pedidos: any[]) => {
 
         const pedidosHoy = pedidos.filter(p => {
-          if (!p.fecha) return false;
+          if (!p.fecha && !p.fechaPedido && !p.fechaCaja) return false;
 
-          const fechaObj = this.convertirFecha(p.fecha);
+          const fechaObj = this.convertirFecha(p.fecha || p.fechaPedido || p.fechaCaja);
           return fechaObj.toDateString() === hoyString;
         });
 
-        this.listaPedidos = pedidosHoy.map(p => {
+        this.listaPedidos = pedidosHoy.map((p, index) => {
           const productos = p.productos || p.items || [];
+          const fechaPedido = p.fecha || p.fechaPedido || p.fechaCaja;
 
           return {
             id: p.id,
-            mesa: p.mesa ? `Mesa ${p.mesa}` : 'Llevar / Delivery',
+            numeroPedido: index + 1,
+            mesa: p.tipoPedido === 'para_llevar'
+              ? 'Para llevar'
+              : (p.mesa ? `Mesa ${p.mesa}` : 'Llevar / Delivery'),
             numMesaRaw: p.mesa || '',
+            tipoPedido: p.tipoPedido || 'mesa',
+            clienteNombre: p.clienteNombre || '',
+            clienteTelefono: p.clienteTelefono || '',
             mesero: p.mesero || 'No asignado',
             items: Array.isArray(productos)
               ? productos.reduce(
@@ -133,9 +146,9 @@ export class PedidosPage implements OnInit, OnDestroy {
                   .join(' + ')
               : 'Sin productos',
             total: Number(p.total) || 0,
-            estado: (p.estado || 'pendiente_cocina').toLowerCase(),
-            hora: this.extraerHora(p.fecha),
-            fechaOrden: this.convertirFecha(p.fecha).getTime()
+            estado: this.normalizarEstadoPedido(p.estado),
+            hora: this.extraerHora(fechaPedido),
+            fechaOrden: this.convertirFecha(fechaPedido).getTime()
           };
         });
 
@@ -155,15 +168,19 @@ export class PedidosPage implements OnInit, OnDestroy {
   convertirFecha(fecha: any): Date {
     if (!fecha) return new Date(0);
 
-    if (fecha?.seconds) {
-      return new Date(fecha.seconds * 1000);
-    }
-
     if (fecha?.toDate) {
       return fecha.toDate();
     }
 
-    return new Date(fecha);
+    if (fecha?.seconds) {
+      return new Date(fecha.seconds * 1000);
+    }
+
+    const fechaConvertida = new Date(fecha);
+
+    return isNaN(fechaConvertida.getTime())
+      ? new Date(0)
+      : fechaConvertida;
   }
 
   extraerHora(fecha: any): string {
@@ -184,30 +201,27 @@ export class PedidosPage implements OnInit, OnDestroy {
     }
   }
 
+  normalizarEstadoPedido(estado: any): string {
+    const e = String(estado || 'pendiente_cocina').toLowerCase().trim();
+
+    if (e === 'pendiente' || e === 'pendientes') return 'pendiente_cocina';
+    if (e === 'cocina') return 'preparando';
+    if (e === 'entregado' || e === 'entregados') return 'entregado_mesa';
+    if (e === 'recogido') return 'entregado_mesa';
+    if (e === 'cancelado' || e === 'cancelada') return 'anulado';
+    if (e === 'anulada') return 'anulado';
+
+    return e;
+  }
+
   calcularMetricas() {
-    this.totalPendientes = this.listaPedidos.filter(
-      p => p.estado === 'pendiente_cocina'
-    ).length;
-
-    this.totalCocina = this.listaPedidos.filter(
-      p => p.estado === 'preparando'
-    ).length;
-
-    this.totalListos = this.listaPedidos.filter(
-      p => p.estado === 'listo'
-    ).length;
-
-    this.totalCuenta = this.listaPedidos.filter(
-      p => p.estado === 'cuenta'
-    ).length;
-
-    this.totalPagados = this.listaPedidos.filter(
-      p => p.estado === 'pagado'
-    ).length;
-
-    this.totalAnulados = this.listaPedidos.filter(
-      p => p.estado === 'anulado'
-    ).length;
+    this.totalPendientes = this.listaPedidos.filter(p => p.estado === 'pendiente_cocina').length;
+    this.totalCocina = this.listaPedidos.filter(p => p.estado === 'preparando').length;
+    this.totalListos = this.listaPedidos.filter(p => p.estado === 'listo').length;
+    this.totalEntregados = this.listaPedidos.filter(p => p.estado === 'entregado_mesa').length;
+    this.totalCuenta = this.listaPedidos.filter(p => p.estado === 'cuenta').length;
+    this.totalPagados = this.listaPedidos.filter(p => p.estado === 'pagado').length;
+    this.totalAnulados = this.listaPedidos.filter(p => p.estado === 'anulado').length;
 
     this.montoTotalGlobal = this.listaPedidos
       .filter(p => p.estado === 'pagado')
@@ -229,23 +243,29 @@ export class PedidosPage implements OnInit, OnDestroy {
         String(p.id).toLowerCase().includes(busqueda) ||
         String(p.mesa).toLowerCase().includes(busqueda) ||
         String(p.numMesaRaw).toLowerCase().includes(busqueda) ||
+        String(p.tipoPedido).toLowerCase().includes(busqueda) ||
+        String(p.clienteNombre).toLowerCase().includes(busqueda) ||
+        String(p.clienteTelefono).toLowerCase().includes(busqueda) ||
         String(p.mesero).toLowerCase().includes(busqueda) ||
-        String(p.descripcion).toLowerCase().includes(busqueda);
+        String(p.descripcion).toLowerCase().includes(busqueda) ||
+        String(this.obtenerEstadoTexto(p.estado)).toLowerCase().includes(busqueda);
 
       return cumpleEstado && cumpleBusqueda;
     });
   }
 
   normalizarFiltroEstado(estado: string): string {
-    const e = estado.toLowerCase();
+    const e = String(estado || '').toLowerCase().trim();
 
     if (e === 'todos') return 'todos';
     if (e === 'pendiente' || e === 'pendientes') return 'pendiente_cocina';
     if (e === 'cocina' || e === 'preparando') return 'preparando';
     if (e === 'listo' || e === 'listos') return 'listo';
-    if (e === 'cuenta') return 'cuenta';
+    if (e === 'entregado' || e === 'entregados' || e === 'entregado_mesa') return 'entregado_mesa';
+    if (e === 'recogido') return 'entregado_mesa';
+    if (e === 'cuenta' || e === 'en cuenta') return 'cuenta';
     if (e === 'pagado' || e === 'pagados') return 'pagado';
-    if (e === 'anulado' || e === 'anulados') return 'anulado';
+    if (e === 'anulado' || e === 'anulados' || e === 'cancelado' || e === 'cancelados') return 'anulado';
 
     return e;
   }
@@ -270,7 +290,8 @@ export class PedidosPage implements OnInit, OnDestroy {
       const pedidoDocRef = doc(this.firestore, 'pedidos', idPedido);
 
       await updateDoc(pedidoDocRef, {
-        estado: nuevoEstado
+        estado: nuevoEstado,
+        fechaActualizacion: new Date()
       });
 
       console.log(`Estado del pedido ${idPedido} actualizado a: ${nuevoEstado}`);
@@ -285,8 +306,184 @@ export class PedidosPage implements OnInit, OnDestroy {
     this.cargarPedidosFirebase();
   }
 
-  exportarReporte() {
-    console.log('Exportando listado de pedidos del día a CSV/PDF...');
+  async exportarReporte() {
+    if (!this.pedidosFiltrados || this.pedidosFiltrados.length === 0) {
+      alert('No hay pedidos para exportar.');
+      return;
+    }
+
+    const datos = this.pedidosFiltrados.map((p, index) => ({
+      Pedido: `#${index + 1}`,
+      Tipo: p.tipoPedido === 'para_llevar' ? 'Para llevar' : 'Mesa',
+      Mesa: p.mesa || '-',
+      Cliente: p.clienteNombre || '-',
+      Teléfono: p.clienteTelefono || '-',
+      Mesero: p.mesero || '-',
+      Items: Number(p.items) || 0,
+      Descripción: p.descripcion || '-',
+      Total: Number(p.total || 0),
+      Estado: this.obtenerEstadoTexto(p.estado),
+      Hora: p.hora || '--:--'
+    }));
+
+    const worksheet: any = XLSX.utils.json_to_sheet(datos);
+
+    worksheet['!cols'] = [
+      { wch: 10 },
+      { wch: 14 },
+      { wch: 16 },
+      { wch: 24 },
+      { wch: 16 },
+      { wch: 22 },
+      { wch: 10 },
+      { wch: 50 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 10 }
+    ];
+
+    this.aplicarEstilosExcel(worksheet);
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Pedidos');
+
+    const fecha = new Date().toISOString().slice(0, 10);
+    const nombreArchivo = `pedidos_${fecha}.xlsx`;
+
+    if (Capacitor.isNativePlatform()) {
+      await this.descargarExcelAndroid(workbook, nombreArchivo);
+    } else {
+      this.descargarExcelWeb(workbook, nombreArchivo);
+    }
+  }
+
+  aplicarEstilosExcel(worksheet: any) {
+    const rango = XLSX.utils.decode_range(worksheet['!ref']);
+
+    for (let row = rango.s.r; row <= rango.e.r; row++) {
+      for (let col = rango.s.c; col <= rango.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+
+        if (!worksheet[cellAddress]) continue;
+
+        worksheet[cellAddress].s = {
+          alignment: {
+            horizontal: 'center',
+            vertical: 'center',
+            wrapText: true
+          },
+          font: {
+            name: 'Calibri',
+            sz: 11,
+            color: { rgb: '111827' }
+          },
+          border: {
+            top: { style: 'thin', color: { rgb: 'D1D5DB' } },
+            bottom: { style: 'thin', color: { rgb: 'D1D5DB' } },
+            left: { style: 'thin', color: { rgb: 'D1D5DB' } },
+            right: { style: 'thin', color: { rgb: 'D1D5DB' } }
+          }
+        };
+
+        if (row === 0) {
+          worksheet[cellAddress].s = {
+            alignment: {
+              horizontal: 'center',
+              vertical: 'center',
+              wrapText: true
+            },
+            font: {
+              name: 'Calibri',
+              sz: 12,
+              bold: true,
+              color: { rgb: 'FFFFFF' }
+            },
+            fill: {
+              fgColor: { rgb: '7C3AED' }
+            },
+            border: {
+              top: { style: 'thin', color: { rgb: '6D28D9' } },
+              bottom: { style: 'thin', color: { rgb: '6D28D9' } },
+              left: { style: 'thin', color: { rgb: '6D28D9' } },
+              right: { style: 'thin', color: { rgb: '6D28D9' } }
+            }
+          };
+        }
+      }
+    }
+
+    worksheet['!rows'] = [
+      { hpt: 24 },
+      ...Array(Math.max(0, rango.e.r)).fill({ hpt: 24 })
+    ];
+
+    const totalCol = 8;
+
+    for (let row = 1; row <= rango.e.r; row++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: row, c: totalCol });
+
+      if (worksheet[cellAddress]) {
+        worksheet[cellAddress].z = '"S/ "#,##0.00';
+        worksheet[cellAddress].s = {
+          ...worksheet[cellAddress].s,
+          font: {
+            name: 'Calibri',
+            sz: 11,
+            bold: true,
+            color: { rgb: '111827' }
+          }
+        };
+      }
+    }
+  }
+
+  async descargarExcelAndroid(workbook: XLSX.WorkBook, nombreArchivo: string) {
+    try {
+      const excelBase64 = XLSX.write(workbook, {
+        bookType: 'xlsx',
+        type: 'base64'
+      });
+
+      const resultado = await Filesystem.writeFile({
+        path: nombreArchivo,
+        data: excelBase64,
+        directory: Directory.Documents,
+        recursive: true
+      });
+
+      await Share.share({
+        title: 'Reporte de pedidos',
+        text: 'Reporte Excel generado desde Pollería Dylan.',
+        url: resultado.uri,
+        dialogTitle: 'Guardar o compartir Excel'
+      });
+
+      console.log('✅ Excel exportado en Android:', resultado.uri);
+
+    } catch (error) {
+      console.error('❌ Error exportando en Android:', error);
+      this.descargarExcelWeb(workbook, nombreArchivo);
+    }
+  }
+
+  descargarExcelWeb(workbook: XLSX.WorkBook, nombreArchivo: string) {
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: 'xlsx',
+      type: 'array'
+    });
+
+    const blob = new Blob([excelBuffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(blob);
+    enlace.download = nombreArchivo;
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+
+    console.log('✅ Excel descargado en PC/navegador:', nombreArchivo);
   }
 
   verDetallePedido(id: string) {

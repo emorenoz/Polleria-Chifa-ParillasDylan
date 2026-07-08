@@ -272,7 +272,7 @@
     .input-group {
       flex: 1;
       min-width: 180px;
-      
+
       &.flex-grow {
         flex: 2;
         min-width: 250px;
@@ -415,5 +415,254 @@
 
     tbody tr:hover { background: #fafbfe; }
     tbody tr:last-child td { border-bottom: none; }
+  }
+}
+/* =========================
+   CAJA POS REAL
+========================= */
+.pos-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+  padding: 24px;
+}
+
+.pedidos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pedido-cobro-card {
+  background: #fafafc;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  strong {
+    color: var(--text-main);
+    font-size: 15px;
+  }
+
+  p {
+    margin: 4px 0;
+    color: var(--text-main);
+    font-size: 13px;
+  }
+
+  small {
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  &:hover {
+    border-color: var(--primary);
+    background: #fbf7ff;
+    transform: translateY(-1px);
+  }
+
+  &.selected {
+    border-color: var(--primary);
+    background: rgba(150, 32, 245, 0.08);
+    box-shadow: 0 4px 12px rgba(150, 32, 245, 0.12);
+  }
+}
+
+.pedido-total {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+  white-space: nowrap;
+  align-self: center;
+}
+
+.cobro-panel {
+  background: #fafafc;
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  padding: 20px;
+
+  h4 {
+    margin: 0 0 16px 0;
+    font-size: 1rem;
+    color: var(--text-main);
+    font-weight: 700;
+  }
+
+  .input-group {
+    margin-bottom: 14px;
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+  }
+
+  .custom-input {
+    width: 100%;
+    height: 42px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 0 14px;
+    background: white;
+    color: var(--text-main);
+    outline: none;
+
+    &:focus {
+      border-color: var(--primary);
+    }
+  }
+
+  .btn-save {
+    width: 100%;
+    height: 44px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+
+    &:disabled {
+      background: var(--text-muted);
+      cursor: not-allowed;
+    }
+  }
+}
+
+.cobro-info {
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 16px;
+
+  p {
+    margin: 6px 0;
+    font-size: 13px;
+    color: var(--text-main);
+  }
+}
+
+.cambio-box {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 15px;
+}
+
+.empty-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--text-muted);
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+}
+
+/* Badge fuera de tabla */
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+
+  &.green {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--success);
+  }
+
+  &.red {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+  }
+
+  &.blue {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+  }
+
+  &.purple {
+    background: rgba(150, 32, 245, 0.1);
+    color: var(--primary);
+  }
+}
+
+/* =========================
+   RESPONSIVE POS
+========================= */
+@media (max-width: 950px) {
+  .charts-grid,
+  .pos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shift-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .btn-shift-close {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 650px) {
+  .main-container {
+    padding: 14px;
+  }
+
+  .top-header .header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .kpi-status-row {
+    grid-template-columns: 1fr;
+  }
+
+  .pos-grid {
+    padding: 16px;
+  }
+
+  .pedido-cobro-card {
+    flex-direction: column;
+  }
+
+  .pedido-total {
+    align-self: flex-start;
+  }
+
+  .table-card .table-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .table-card .table-card-header .actions {
+    width: 100%;
+
+    .btn-outline {
+      flex: 1;
+      justify-content: center;
+    }
   }
 }

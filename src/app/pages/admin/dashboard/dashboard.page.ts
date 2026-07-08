@@ -74,9 +74,16 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   private categoriaDoughnutChart?: Chart;
 
   private ventasGlobales: any[] = [];
+  private pedidosGlobales: any[] = [];
 
   constructor(private datePipe: DatePipe) {
-    addIcons({ trendingUpOutline, cartOutline, gridOutline, peopleOutline, timeOutline });
+    addIcons({
+      trendingUpOutline,
+      cartOutline,
+      gridOutline,
+      peopleOutline,
+      timeOutline
+    });
   }
 
   ngOnInit() {
@@ -92,14 +99,22 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   configurarFecha() {
     const hoy = new Date();
+
     this.fechaActual =
-      this.datePipe.transform(hoy, "EEEE, d 'de' MMMM 'de' yyyy", '', 'es-PE') || 'Hoy';
+      this.datePipe.transform(
+        hoy,
+        "EEEE, d 'de' MMMM 'de' yyyy",
+        '',
+        'es-PE'
+      ) || 'Hoy';
   }
 
   cargarDashboardFirebase() {
     const pedidosRef = collection(this.firestore, 'pedidos');
 
     this.subPedidos = collectionData(pedidosRef, { idField: 'id' }).subscribe((pedidos: any[]) => {
+      this.pedidosGlobales = pedidos;
+
       const hoy = new Date().toDateString();
 
       const pedidosDeHoy = pedidos.filter(p => {
@@ -109,28 +124,45 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
       this.pedidosHoy = pedidosDeHoy.length;
 
-      this.pedidosPendientes = pedidos.filter(p => p.estado === 'pendiente_cocina').length;
-      this.pedidosCocina = pedidos.filter(p => p.estado === 'preparando').length;
+      this.pedidosPendientes = pedidos.filter(p =>
+        this.normalizarEstado(p.estado) === 'pendiente_cocina'
+      ).length;
+
+      this.pedidosCocina = pedidos.filter(p =>
+        this.normalizarEstado(p.estado) === 'preparando'
+      ).length;
 
       this.pedidosActivos = pedidos.filter(p =>
-        ['pendiente_cocina', 'preparando', 'listo', 'entregado_mesa', 'cuenta'].includes(p.estado)
+        [
+          'pendiente_cocina',
+          'preparando',
+          'listo',
+          'entregado_mesa',
+          'cuenta'
+        ].includes(this.normalizarEstado(p.estado))
       ).length;
 
       this.ultimosPedidos = pedidos
-        .slice(-5)
-        .reverse()
+        .filter(p => p.fecha)
+        .sort((a, b) =>
+          this.convertirFecha(b.fecha).getTime() - this.convertirFecha(a.fecha).getTime()
+        )
+        .slice(0, 5)
         .map(p => ({
           id: p.id || '---',
-          mesa: p.mesa || '-',
+          mesa: p.tipoPedido === 'para_llevar'
+            ? 'Para llevar'
+            : (p.mesa ? `Mesa ${p.mesa}` : '-'),
           descripcion: (p.productos || p.items || [])
             .map((x: any) => x.nombre || x.producto || 'Producto')
             .join(' + '),
           total: Number(p.total) || 0,
-          estado: p.estado || 'pendiente_cocina',
+          estado: this.normalizarEstado(p.estado),
           hora: this.obtenerHoraPedido(p.fecha)
         }));
 
       this.pedidosCrecimiento = this.pedidosActivos;
+
       this.actualizarGraficoCategorias(pedidos);
     });
 
@@ -159,8 +191,16 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     const clientesRef = collection(this.firestore, 'clientes');
 
     this.subClientes = collectionData(clientesRef, { idField: 'id' }).subscribe((clientes: any[]) => {
-      this.clientesHoy = clientes.length;
-      this.clientesNuevos = clientes.slice(-5).length;
+      const hoy = new Date().toDateString();
+
+      const clientesDeHoy = clientes.filter(c => {
+        const fechaCliente = this.convertirFecha(c.fecha || c.fechaRegistro || c.createdAt);
+        return (c.fecha || c.fechaRegistro || c.createdAt) &&
+          fechaCliente.toDateString() === hoy;
+      });
+
+      this.clientesHoy = clientesDeHoy.length;
+      this.clientesNuevos = clientesDeHoy.length;
       this.clientesCrecimiento = this.clientesNuevos;
     });
 
@@ -168,8 +208,15 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     this.subMesas = collectionData(mesasRef, { idField: 'id' }).subscribe((mesas: any[]) => {
       this.mesasTotales = mesas.length;
-      this.mesasOcupadas = mesas.filter(m => m.estado === 'activa' || m.estado === 'listo').length;
-      this.mesasEsperandoCuenta = mesas.filter(m => m.estado === 'cuenta').length;
+
+      this.mesasOcupadas = mesas.filter(m =>
+        ['activa', 'listo', 'ocupada', 'cuenta'].includes(this.normalizarEstado(m.estado))
+      ).length;
+
+      this.mesasEsperandoCuenta = mesas.filter(m =>
+        this.normalizarEstado(m.estado) === 'cuenta'
+      ).length;
+
       this.mesasCrecimiento = this.mesasOcupadas;
     });
   }
@@ -219,6 +266,10 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.ventasGlobales.length > 0) {
       this.actualizarGraficoVentas7Dias(this.ventasGlobales);
+    }
+
+    if (this.pedidosGlobales.length > 0) {
+      this.actualizarGraficoCategorias(this.pedidosGlobales);
     }
   }
 
@@ -305,11 +356,19 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
   convertirFecha(fecha: any): Date {
     if (!fecha) return new Date(0);
 
+    if (fecha?.toDate) {
+      return fecha.toDate();
+    }
+
     if (fecha?.seconds) {
       return new Date(fecha.seconds * 1000);
     }
 
-    return new Date(fecha);
+    const fechaConvertida = new Date(fecha);
+
+    return isNaN(fechaConvertida.getTime())
+      ? new Date(0)
+      : fechaConvertida;
   }
 
   obtenerHoraPedido(fecha: any): string {
@@ -317,10 +376,28 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
     const fechaConvertida = this.convertirFecha(fecha);
 
+    if (isNaN(fechaConvertida.getTime())) {
+      return '--:--';
+    }
+
     return fechaConvertida.toLocaleTimeString('es-PE', {
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      hour12: false
     });
+  }
+
+  normalizarEstado(estado: any): string {
+    const e = String(estado || 'pendiente_cocina').toLowerCase().trim();
+
+    if (e === 'pendiente') return 'pendiente_cocina';
+    if (e === 'pendientes') return 'pendiente_cocina';
+    if (e === 'cocina') return 'preparando';
+    if (e === 'cancelado') return 'anulado';
+    if (e === 'cancelada') return 'anulado';
+    if (e === 'anulada') return 'anulado';
+
+    return e;
   }
 
   ngOnDestroy() {

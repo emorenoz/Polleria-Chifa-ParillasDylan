@@ -6,7 +6,7 @@
 
     <div class="header-content">
       <div class="breadcrumb">
-        <span class="muted">Pollería Dylan</span> / <strong>Caja</strong>
+        <span class="muted">Pollería Dylan</span> / <strong>Gestión de Caja</strong>
       </div>
       <div class="date-display">
         {{ fechaActual || 'sábado, 27 de junio de 2026' }}
@@ -18,23 +18,21 @@
 <ion-content class="page-bg">
   <div class="main-container">
 
-    <!-- BANNER CAJA -->
     <div class="shift-banner">
       <div class="banner-info">
         <ion-icon name="wallet-outline"></ion-icon>
         <div>
-          <h3>Caja actual</h3>
-          <p>Turno mañana – {{ usuarioCaja || 'Admin' }} · {{ horaApertura || '08:00' }}</p>
+          <h3>Gestión de caja</h3>
+          <p>Vista administrativa – {{ usuarioCaja || 'Admin' }} · {{ horaApertura || '08:00' }}</p>
         </div>
       </div>
 
       <button class="btn-shift-close" (click)="cerrarTurno()">
         <ion-icon name="print-outline"></ion-icon>
-        Cierre de turno
+        Imprimir reporte
       </button>
     </div>
 
-    <!-- KPI -->
     <div class="kpi-status-row">
       <div class="status-card">
         <div class="kpi-header">
@@ -66,7 +64,7 @@
         <div class="kpi-header">
           <span class="trend neutral">
             <ion-icon name="cash-outline"></ion-icon>
-            Efectivo en Caja
+            Saldo estimado
           </span>
         </div>
         <div class="kpi-amount text-purple">
@@ -76,12 +74,24 @@
           Fondo inicial S/ {{ fondoInicial || 0 | number:'1.2-2' }}
         </div>
       </div>
+
+      <div class="status-card">
+        <div class="kpi-header">
+          <span class="trend neutral">
+            <ion-icon name="wallet-outline"></ion-icon>
+            Pendiente de cobro
+          </span>
+        </div>
+        <div class="kpi-amount text-purple">
+          S/ {{ totalPendienteCobro | number:'1.2-2' }}
+        </div>
+        <div class="kpi-subtext">{{ pedidosPorCobrar.length || 0 }} pedidos en cuenta</div>
+      </div>
     </div>
 
-    <!-- GRÁFICOS -->
     <div class="charts-grid">
       <div class="chart-card">
-        <h4>Ingresos por hora</h4>
+        <h4>Resumen visual de ingresos</h4>
 
         <div class="mock-chart">
           <div class="bar-col">
@@ -150,9 +160,49 @@
       </div>
     </div>
 
-    <!-- FORMULARIO -->
+    <div class="table-card">
+      <div class="table-card-header">
+        <div class="table-title">Pedidos pendientes de cobro</div>
+        <span class="badge purple">{{ pedidosPorCobrar.length }} pendientes</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Hora</th>
+              <th>Mesa / Tipo</th>
+              <th>Cliente</th>
+              <th>Mesero</th>
+              <th>Descripción</th>
+              <th class="text-right">Total</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let pedido of pedidosPorCobrar">
+              <td class="time-cell">{{ pedido.horaTexto }}</td>
+              <td>{{ pedido.mesaTexto }}</td>
+              <td>{{ pedido.clienteTexto }}</td>
+              <td>{{ pedido.meseroTexto }}</td>
+              <td>{{ pedido.descripcion }}</td>
+              <td class="text-right font-weight-bold text-purple">
+                S/ {{ pedido.total | number:'1.2-2' }}
+              </td>
+            </tr>
+
+            <tr *ngIf="pedidosPorCobrar.length === 0">
+              <td colspan="6" class="text-center text-muted py-4">
+                No hay pedidos pendientes de cobro.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="form-card" *ngIf="mostrarFormulario">
-      <h4>Registrar Movimiento</h4>
+      <h4>Registrar Movimiento Administrativo</h4>
 
       <div class="form-row">
         <div class="input-group">
@@ -194,17 +244,16 @@
         <button
           class="btn-save"
           (click)="registrarMovimiento()"
-          [disabled]="!nuevoMovimiento.tipo || !nuevoMovimiento.monto || !nuevoMovimiento.descripcion"
+          [disabled]="!nuevoMovimiento.tipo || !nuevoMovimiento.monto"
         >
           Guardar
         </button>
       </div>
     </div>
 
-    <!-- TABLA -->
     <div class="table-card">
       <div class="table-card-header">
-        <div class="table-title">Movimientos del turno</div>
+        <div class="table-title">Movimientos de caja</div>
 
         <div class="actions">
           <button class="btn-outline green" (click)="prepararIngreso()">
@@ -226,6 +275,7 @@
               <th>Hora</th>
               <th>Descripción</th>
               <th>Método</th>
+              <th>Origen</th>
               <th class="text-right">Monto</th>
             </tr>
           </thead>
@@ -252,6 +302,12 @@
                 </span>
               </td>
 
+              <td>
+                <span class="badge purple" *ngIf="mov.origen === 'cobro_pos'">POS Cajero</span>
+                <span class="badge blue" *ngIf="mov.origen === 'manual' || mov.origen === 'manual_admin'">Manual Admin</span>
+                <span class="badge green" *ngIf="!mov.origen">Caja</span>
+              </td>
+
               <td
                 class="text-right font-weight-bold"
                 [ngClass]="mov.tipo === 'ingreso' ? 'text-green' : 'text-red'"
@@ -262,7 +318,7 @@
             </tr>
 
             <tr *ngIf="historial.length === 0">
-              <td colspan="4" class="text-center text-muted py-4">
+              <td colspan="5" class="text-center text-muted py-4">
                 No hay movimientos registrados hoy.
               </td>
             </tr>

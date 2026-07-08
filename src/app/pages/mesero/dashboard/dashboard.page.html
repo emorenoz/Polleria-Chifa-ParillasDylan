@@ -13,6 +13,7 @@
       <div class="stats">
         <span class="stat-item active"><span class="dot"></span> {{ totalActivas }} activas</span>
         <span class="stat-item ready"><span class="dot"></span> {{ totalListas }} listas</span>
+        <span class="stat-item received"><span class="dot"></span> {{ totalEntregadas }} entregadas</span>
         <span class="stat-item bill"><span class="dot"></span> {{ totalEnCuenta }} en cuenta</span>
         <span class="stat-item free"><span class="dot"></span> {{ totalLibres }} libres</span>
       </div>
@@ -24,13 +25,23 @@
     </div>
   </header>
 
-  <div class="ready-notification animated" *ngIf="mesaSeleccionada?.estado === 'listo'">
-    🔔 Pedido listo para recoger en cocina - Mesa {{ mesaSeleccionada?.numero }}
+  <div class="modo-pedido-tabs">
+    <button [class.active]="modoPedido === 'mesas'" (click)="cambiarModoPedido('mesas')">
+      🍽️ Mesas
+    </button>
+
+    <button [class.active]="modoPedido === 'para_llevar'" (click)="cambiarModoPedido('para_llevar')">
+      🥡 Para llevar
+    </button>
+  </div>
+
+  <div class="ready-notification animated" *ngIf="modoPedido === 'mesas' && mesaSeleccionada?.estado === 'listo'">
+    🔔 Pedido listo para entregar - Mesa {{ mesaSeleccionada?.numero }}
   </div>
 
   <div class="main-content">
 
-    <aside class="sidebar-mesas">
+    <aside class="sidebar-mesas" *ngIf="modoPedido === 'mesas'">
       <h3>MESAS DEL SALÓN</h3>
 
       <div class="grid-mesas">
@@ -39,9 +50,9 @@
           class="card-mesa"
           [ngClass]="{
             'libre': mesa.estado === 'libre',
-            'activa': mesa.estado === 'activa',
+            'activa': mesa.estado === 'activa' || mesa.estado === 'preparando',
             'listo': mesa.estado === 'listo',
-            'recogido': mesa.estado === 'recogido',
+            'entregado_mesa': mesa.estado === 'entregado_mesa',
             'cuenta': mesa.estado === 'cuenta',
             'selected': mesaSeleccionada?.id === mesa.id
           }"
@@ -50,7 +61,8 @@
           <span class="num-prefix">M</span>
           <span class="num-mesa">{{ mesa.numero }}</span>
           <span class="mesa-alert" *ngIf="mesa.estado === 'listo'">🍽️</span>
-          <span class="mesa-alert" *ngIf="mesa.estado === 'recogido'">✅</span>
+          <span class="mesa-alert" *ngIf="mesa.estado === 'entregado_mesa'">✅</span>
+          <span class="mesa-alert" *ngIf="mesa.estado === 'cuenta'">🧾</span>
         </button>
 
         <div class="empty-mesas" *ngIf="mesas.length === 0">
@@ -62,20 +74,45 @@
         <h4>LEYENDA</h4>
         <div class="leyenda-item"><span class="dot free"></span> Libre</div>
         <div class="leyenda-item"><span class="dot active"></span> Activa</div>
-        <div class="leyenda-item"><span class="dot ready"></span> Listo para recoger</div>
-        <div class="leyenda-item"><span class="dot received"></span> Recogido</div>
+        <div class="leyenda-item"><span class="dot ready"></span> Listo</div>
+        <div class="leyenda-item"><span class="dot received"></span> Entregado a mesa</div>
         <div class="leyenda-item"><span class="dot bill"></span> Cuenta</div>
+      </div>
+    </aside>
+
+    <aside class="sidebar-mesas" *ngIf="modoPedido === 'para_llevar'">
+      <h3>CLIENTE PARA LLEVAR</h3>
+
+      <div class="cliente-form">
+        <label>Nombre del cliente</label>
+        <input type="text" placeholder="Ej: Juan Pérez" [(ngModel)]="clienteNombre" />
+
+        <label>Teléfono</label>
+        <input type="tel" placeholder="Ej: 987654321" [(ngModel)]="clienteTelefono" />
+      </div>
+
+      <div class="leyenda">
+        <h4>DATOS DEL PEDIDO</h4>
+        <div class="leyenda-item">🥡 Tipo: Para llevar</div>
+        <div class="leyenda-item">📅 Caja: {{ obtenerFechaCaja() }}</div>
+        <div class="leyenda-item">🧾 Ítems: {{ pedidoParaLlevar.length }}</div>
+        <div class="leyenda-item">💰 Total: S/ {{ calcularTotalParaLlevar() | number:'1.2-2' }}</div>
       </div>
     </aside>
 
     <section class="menu-section">
 
-      <div class="info-helper-bar" [ngClass]="{ 'has-selected': mesaSeleccionada }">
-        <span *ngIf="!mesaSeleccionada">
+      <div class="info-helper-bar" [ngClass]="{ 'has-selected': mesaSeleccionada || modoPedido === 'para_llevar' }">
+
+        <span *ngIf="modoPedido === 'mesas' && !mesaSeleccionada">
           🛒 Selecciona una mesa para tomar el pedido
         </span>
 
-        <div class="selected-meta" *ngIf="mesaSeleccionada">
+        <span *ngIf="modoPedido === 'para_llevar'">
+          🥡 Pedido para llevar - completa nombre y teléfono del cliente
+        </span>
+
+        <div class="selected-meta" *ngIf="modoPedido === 'mesas' && mesaSeleccionada">
           <span class="table-tag">📍 Mesa {{ mesaSeleccionada.numero }}</span>
 
           <span class="status-badge" [ngClass]="mesaSeleccionada.estado">
@@ -83,34 +120,38 @@
           </span>
 
           <span class="status-badge listo" *ngIf="mesaSeleccionada.estado === 'listo'">
-            🍽️ Pedido listo para recoger
+            🍽️ Pedido listo
           </span>
 
-          <span class="status-badge recogido" *ngIf="mesaSeleccionada.estado === 'recogido'">
-            ✅ Plato recibido
+          <span class="status-badge entregado_mesa" *ngIf="mesaSeleccionada.estado === 'entregado_mesa'">
+            ✅ Entregado a mesa
+          </span>
+
+          <span class="status-badge cuenta" *ngIf="mesaSeleccionada.estado === 'cuenta'">
+            🧾 En cuenta
           </span>
         </div>
       </div>
 
-      <div class="pickup-panel compact" *ngIf="mesaSeleccionada?.estado === 'listo'">
+      <div class="pickup-panel compact" *ngIf="modoPedido === 'mesas' && mesaSeleccionada?.estado === 'listo'">
         <div class="pickup-info">
           <h3>🍽️ Pedido listo</h3>
-          <p>Mesa {{ mesaSeleccionada?.numero }} debe recoger el plato en cocina.</p>
-        </div>
-
-        <button class="btn-pickup" (click)="recibirPlato()">
-          ✅ Recibí el plato
-        </button>
-      </div>
-
-      <div class="deliver-panel compact" *ngIf="mesaSeleccionada?.estado === 'recogido'">
-        <div class="pickup-info">
-          <h3>✅ Plato recibido</h3>
           <p>Entrega el pedido a la mesa {{ mesaSeleccionada?.numero }}.</p>
         </div>
 
         <button class="btn-deliver" (click)="entregarAMesa()">
           🚀 Entregar a mesa
+        </button>
+      </div>
+
+      <div class="deliver-panel compact" *ngIf="modoPedido === 'mesas' && mesaSeleccionada?.estado === 'entregado_mesa'">
+        <div class="pickup-info">
+          <h3>✅ Pedido entregado</h3>
+          <p>Cuando el cliente pida la cuenta, márcalo como cuenta.</p>
+        </div>
+
+        <button class="btn-action-secondary bill" (click)="pedirCuenta()">
+          🧾 Pedir cuenta
         </button>
       </div>
 
@@ -129,11 +170,7 @@
           🍽️ No hay platos disponibles en esta categoría.
         </div>
 
-        <div
-          class="card-producto"
-          *ngFor="let prod of productosFiltrados"
-          [class.out-of-stock]="prod.stock === 0"
-        >
+        <div class="card-producto" *ngFor="let prod of productosFiltrados" [class.out-of-stock]="prod.stock === 0">
           <div class="prod-img-box">
             <span class="prod-emoji">{{ obtenerIcono(prod.categoriaId) }}</span>
           </div>
@@ -154,11 +191,16 @@
                 class="btn-add-item"
                 [disabled]="
                   enviandoCocina ||
-                  !mesaSeleccionada ||
                   prod.stock === 0 ||
-                  mesaSeleccionada.estado === 'listo' ||
-                  mesaSeleccionada.estado === 'recogido' ||
-                  mesaSeleccionada.estado === 'cuenta'
+                  (
+                    modoPedido === 'mesas' &&
+                    (
+                      !mesaSeleccionada ||
+                      mesaSeleccionada.estado === 'listo' ||
+                      mesaSeleccionada.estado === 'entregado_mesa' ||
+                      mesaSeleccionada.estado === 'cuenta'
+                    )
+                  )
                 "
                 (click)="agregarProducto(prod)"
               >
@@ -172,29 +214,33 @@
     </section>
 
     <aside class="sidebar-pedido">
-      <div class="sidebar-pedido-header">
-        <h3>Pedido actual</h3>
 
-        <span class="items-count-badge" *ngIf="mesaSeleccionada && mesaSeleccionada.pedido.length > 0">
+      <div class="sidebar-pedido-header">
+        <h3 *ngIf="modoPedido === 'mesas'">Pedido actual</h3>
+        <h3 *ngIf="modoPedido === 'para_llevar'">Pedido para llevar</h3>
+
+        <span class="items-count-badge" *ngIf="modoPedido === 'mesas' && mesaSeleccionada && mesaSeleccionada.pedido.length > 0">
           {{ mesaSeleccionada.pedido.length }} ítems
+        </span>
+
+        <span class="items-count-badge" *ngIf="modoPedido === 'para_llevar' && pedidoParaLlevar.length > 0">
+          {{ pedidoParaLlevar.length }} ítems
         </span>
       </div>
 
-      <div class="empty-cart" *ngIf="!mesaSeleccionada || mesaSeleccionada.pedido.length === 0">
+      <div class="empty-cart" *ngIf="modoPedido === 'mesas' && (!mesaSeleccionada || mesaSeleccionada.pedido.length === 0)">
         <div class="cart-icon">🛒</div>
         <p>Sin items aún</p>
         <span>Selecciona una mesa en el salón</span>
-
-        <div class="ready-message" *ngIf="mesaSeleccionada && mesaSeleccionada.estado === 'listo'">
-          🍽️ Este pedido ya está listo. Recógelo en cocina.
-        </div>
-
-        <div class="ready-message received" *ngIf="mesaSeleccionada && mesaSeleccionada.estado === 'recogido'">
-          ✅ Plato recibido. Entrégalo a la mesa.
-        </div>
       </div>
 
-      <div class="cart-content" *ngIf="mesaSeleccionada && mesaSeleccionada.pedido.length > 0">
+      <div class="empty-cart" *ngIf="modoPedido === 'para_llevar' && pedidoParaLlevar.length === 0">
+        <div class="cart-icon">🥡</div>
+        <p>Pedido para llevar vacío</p>
+        <span>Agrega platos o bebidas de la carta</span>
+      </div>
+
+      <div class="cart-content" *ngIf="modoPedido === 'mesas' && mesaSeleccionada && mesaSeleccionada.pedido.length > 0">
 
         <div class="cart-items-list">
           <div class="cart-item" *ngFor="let item of mesaSeleccionada.pedido">
@@ -221,7 +267,7 @@
                   [disabled]="
                     enviandoCocina ||
                     mesaSeleccionada.estado === 'listo' ||
-                    mesaSeleccionada.estado === 'recogido' ||
+                    mesaSeleccionada.estado === 'entregado_mesa' ||
                     mesaSeleccionada.estado === 'cuenta'
                   "
                   (click)="modificarCantidad(item, -1)"
@@ -236,7 +282,7 @@
                   [disabled]="
                     enviandoCocina ||
                     mesaSeleccionada.estado === 'listo' ||
-                    mesaSeleccionada.estado === 'recogido' ||
+                    mesaSeleccionada.estado === 'entregado_mesa' ||
                     mesaSeleccionada.estado === 'cuenta'
                   "
                   (click)="modificarCantidad(item, 1)"
@@ -250,7 +296,7 @@
                 [disabled]="
                   enviandoCocina ||
                   mesaSeleccionada.estado === 'listo' ||
-                  mesaSeleccionada.estado === 'recogido' ||
+                  mesaSeleccionada.estado === 'entregado_mesa' ||
                   mesaSeleccionada.estado === 'cuenta'
                 "
                 (click)="modificarCantidad(item, -item.cantidad)"
@@ -278,15 +324,12 @@
                 !mesaSeleccionada ||
                 mesaSeleccionada.pedido.length === 0 ||
                 mesaSeleccionada.estado === 'listo' ||
-                mesaSeleccionada.estado === 'recogido' ||
+                mesaSeleccionada.estado === 'entregado_mesa' ||
                 mesaSeleccionada.estado === 'cuenta'
               "
               (click)="procesarPago()"
             >
-              <span *ngIf="!enviandoCocina">
-                🚀 Enviar a Cocina
-              </span>
-
+              <span *ngIf="!enviandoCocina">🚀 Enviar a Cocina</span>
               <span *ngIf="enviandoCocina" class="loading-content">
                 <span class="spinner"></span>
                 Enviando...
@@ -297,17 +340,17 @@
               <button
                 class="btn-action-secondary pickup"
                 [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'listo'"
-                (click)="recibirPlato()"
+                (click)="entregarAMesa()"
               >
-                ✅ Recibí plato
+                🚀 Entregar a mesa
               </button>
 
               <button
                 class="btn-action-secondary bill"
-                [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'recogido'"
-                (click)="entregarAMesa()"
+                [disabled]="!mesaSeleccionada || mesaSeleccionada.estado !== 'entregado_mesa'"
+                (click)="pedirCuenta()"
               >
-                🚀 Entregar a mesa
+                🧾 Pedir cuenta
               </button>
 
               <button
@@ -322,6 +365,78 @@
         </div>
 
       </div>
+
+      <div class="cart-content" *ngIf="modoPedido === 'para_llevar' && pedidoParaLlevar.length > 0">
+
+        <div class="cart-items-list">
+          <div class="cart-item" *ngFor="let item of pedidoParaLlevar">
+
+            <div class="item-main-row">
+              <span class="item-emoji-prefix">🥡</span>
+
+              <div class="item-info">
+                <span class="item-name">{{ item.producto.nombre }}</span>
+                <span class="item-price-unit">
+                  S/ {{ item.producto.precio | number:'1.2-2' }} c/u
+                </span>
+              </div>
+
+              <span class="item-price-total">
+                S/ {{ (item.producto.precio * item.cantidad) | number:'1.2-2' }}
+              </span>
+            </div>
+
+            <div class="item-controls-row">
+              <div class="counter-box">
+                <button class="btn-qty decrease" [disabled]="enviandoCocina" (click)="modificarCantidadParaLlevar(item, -1)">-</button>
+                <span class="qty-number">{{ item.cantidad }}</span>
+                <button class="btn-qty increase" [disabled]="enviandoCocina" (click)="modificarCantidadParaLlevar(item, 1)">+</button>
+              </div>
+
+              <button class="btn-trash-item" [disabled]="enviandoCocina" (click)="modificarCantidadParaLlevar(item, -item.cantidad)">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="cart-summary">
+          <div class="total-row">
+            <span>Total:</span>
+            <strong class="total-amount">
+              S/ {{ calcularTotalParaLlevar() | number:'1.2-2' }}
+            </strong>
+          </div>
+
+          <div class="cart-actions-layout">
+            <button
+              class="btn-action-submit kitchen"
+              [class.sending]="enviandoCocina"
+              [disabled]="
+                enviandoCocina ||
+                clienteNombre.trim().length < 2 ||
+                clienteTelefono.trim().length < 6 ||
+                pedidoParaLlevar.length === 0
+              "
+              (click)="enviarParaLlevarACocina()"
+            >
+              <span *ngIf="!enviandoCocina">🚀 Enviar para llevar a Cocina</span>
+              <span *ngIf="enviandoCocina" class="loading-content">
+                <span class="spinner"></span>
+                Enviando...
+              </span>
+            </button>
+
+            <div class="secondary-actions-grid">
+              <button class="btn-action-secondary clear" [disabled]="enviandoCocina" (click)="limpiarPedidoParaLlevar()">
+                🗑️ Limpiar pedido
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
     </aside>
 
   </div>

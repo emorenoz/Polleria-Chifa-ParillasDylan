@@ -28,9 +28,21 @@ import {
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
-import { 
-  create, trash, arrowBack,
-  searchOutline, addOutline, closeOutline, pencilOutline, trashOutline, callOutline, mailOutline, cardOutline, cubeOutline, star
+import {
+  create,
+  trash,
+  arrowBack,
+  searchOutline,
+  addOutline,
+  closeOutline,
+  pencilOutline,
+  trashOutline,
+  callOutline,
+  mailOutline,
+  cardOutline,
+  cubeOutline,
+  star,
+  refreshOutline
 } from 'ionicons/icons';
 
 import {
@@ -79,15 +91,13 @@ export class ClientesPage implements OnInit {
 
   private firestore = inject(Firestore);
 
-  // --- VARIABLES DE INTERFAZ NUEVAS ---
   fechaActual: string = '';
   mostrarFormulario: boolean = false;
-  
-  // Variables de Filtrado superior
+  actualizando: boolean = false;
+
   filtroTipo: string = 'Todos';
   opcionesFiltro = ['Todos', 'Frecuente', 'Regular', 'Nuevo'];
 
-  // Variables KPI
   totalClientes: number = 0;
   totalFrecuentes: number = 0;
   totalNuevos: number = 0;
@@ -109,8 +119,20 @@ export class ClientesPage implements OnInit {
 
   constructor() {
     addIcons({
-      create, trash, arrowBack,
-      searchOutline, addOutline, closeOutline, pencilOutline, trashOutline, callOutline, mailOutline, cardOutline, cubeOutline, star
+      create,
+      trash,
+      arrowBack,
+      searchOutline,
+      addOutline,
+      closeOutline,
+      pencilOutline,
+      trashOutline,
+      callOutline,
+      mailOutline,
+      cardOutline,
+      cubeOutline,
+      star,
+      refreshOutline
     });
   }
 
@@ -120,11 +142,16 @@ export class ClientesPage implements OnInit {
   }
 
   configurarFecha() {
-    const opciones: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    const opciones: Intl.DateTimeFormatOptions = {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    };
+
     this.fechaActual = new Date().toLocaleDateString('es-PE', opciones);
   }
 
-  // --- CONTROL DE FORMULARIO ---
   abrirFormulario() {
     this.limpiarFormulario();
     this.editando = false;
@@ -138,32 +165,40 @@ export class ClientesPage implements OnInit {
     this.idClienteEditando = null;
   }
 
-  // --- LÓGICA VISUAL (AVATARES Y ESTADOS) ---
   obtenerInicial(nombre: string): string {
     return nombre ? nombre.charAt(0).toUpperCase() : '?';
   }
 
   obtenerColorAvatar(nombre: string): string {
     if (!nombre) return 'bg-gray';
-    // Genera un color consistente basado en la longitud o primera letra
+
     const code = nombre.charCodeAt(0);
+
     if (code % 5 === 0) return 'bg-purple';
     if (code % 5 === 1) return 'bg-blue';
     if (code % 5 === 2) return 'bg-pink';
     if (code % 5 === 3) return 'bg-green';
+
     return 'bg-orange';
   }
 
   obtenerTipoVisual(cliente: any): string {
-    // Como tu BD aún no tiene el campo "tipo", usaremos 'Nuevo' por defecto
-    // para mantener el diseño igual al prototipo.
-    return cliente.tipoMock || 'Nuevo';
+    if (cliente.tipo) return cliente.tipo;
+
+    const pedidos = Number(cliente.totalPedidos || 0);
+
+    if (pedidos >= 5) return 'Frecuente';
+    if (pedidos >= 2) return 'Regular';
+
+    return 'Nuevo';
   }
 
   obtenerClaseTipo(cliente: any): string {
     const tipo = this.obtenerTipoVisual(cliente);
+
     if (tipo === 'Frecuente') return 'badge-frecuente';
     if (tipo === 'Regular') return 'badge-regular';
+
     return 'badge-nuevo';
   }
 
@@ -174,42 +209,82 @@ export class ClientesPage implements OnInit {
 
   calcularKPIs() {
     this.totalClientes = this.listaClientes.length;
-    // Mock de métricas basándonos en la lista actual
-    this.totalNuevos = this.listaClientes.length; // Asumimos que todos son nuevos temporalmente
-    this.totalFrecuentes = 0;
-    this.gastoPromedio = 0; // Valor por defecto
+
+    this.totalFrecuentes = this.listaClientes.filter(c =>
+      this.obtenerTipoVisual(c) === 'Frecuente'
+    ).length;
+
+    this.totalNuevos = this.listaClientes.filter(c =>
+      this.obtenerTipoVisual(c) === 'Nuevo'
+    ).length;
+
+    const totalGastado = this.listaClientes.reduce((sum, c) => {
+      return sum + Number(c.totalGastado || 0);
+    }, 0);
+
+    this.gastoPromedio = this.totalClientes > 0
+      ? totalGastado / this.totalClientes
+      : 0;
   }
-
-
-  // --- LOGICA DE FIREBASE INTACTA ---
 
   async cargarClientesFirebase() {
     try {
       const querySnapshot = await getDocs(collection(this.firestore, 'clientes'));
+
       this.listaClientes = [];
 
       querySnapshot.forEach((documento) => {
+        const data: any = documento.data();
+
         this.listaClientes.push({
           id: documento.id,
-          ...documento.data()
+          documento: data.documento || '',
+          nombre: data.nombre || '',
+          telefono: data.telefono || '',
+          direccion: data.direccion || '',
+          totalPedidos: Number(data.totalPedidos || 0),
+          totalGastado: Number(data.totalGastado || 0),
+          tipo: data.tipo || '',
+          origen: data.origen || '',
+          ultimaCompra: data.ultimaCompra || '',
+          ultimaVisita: data.ultimaVisita || data.ultimaCompra || '',
+          fechaCaja: data.fechaCaja || '',
+          actualizadoEn: data.actualizadoEn || null
         });
       });
 
       this.calcularKPIs();
       this.buscar();
+
       console.log('✅ Clientes cargados:', this.listaClientes.length);
     } catch (error) {
       console.error('❌ Error cargando clientes:', error);
     }
   }
 
+  async actualizarClientes() {
+    if (this.actualizando) return;
+
+    this.actualizando = true;
+
+    try {
+      await this.cargarClientesFirebase();
+    } catch (error) {
+      console.error('❌ Error actualizando clientes:', error);
+    } finally {
+      setTimeout(() => {
+        this.actualizando = false;
+      }, 500);
+    }
+  }
+
   async guardarCliente() {
-    if (!this.nuevoCliente.documento.trim() || !this.nuevoCliente.nombre.trim()) return;
+    if (!this.nuevoCliente.nombre.trim()) return;
 
     try {
       if (this.editando && this.idClienteEditando !== null) {
         const clienteRef = doc(this.firestore, 'clientes', this.idClienteEditando);
-        
+
         await updateDoc(clienteRef, {
           documento: this.nuevoCliente.documento.trim(),
           nombre: this.nuevoCliente.nombre.trim(),
@@ -218,21 +293,30 @@ export class ClientesPage implements OnInit {
         });
 
         const index = this.listaClientes.findIndex(c => c.id === this.idClienteEditando);
+
         if (index !== -1) {
           this.listaClientes[index] = {
-            id: this.idClienteEditando,
+            ...this.listaClientes[index],
             documento: this.nuevoCliente.documento.trim(),
             nombre: this.nuevoCliente.nombre.trim(),
             telefono: this.nuevoCliente.telefono.trim(),
             direccion: this.nuevoCliente.direccion.trim()
           };
         }
+
       } else {
         const docRef = await addDoc(collection(this.firestore, 'clientes'), {
           documento: this.nuevoCliente.documento.trim(),
           nombre: this.nuevoCliente.nombre.trim(),
           telefono: this.nuevoCliente.telefono.trim(),
-          direccion: this.nuevoCliente.direccion.trim()
+          direccion: this.nuevoCliente.direccion.trim(),
+          totalPedidos: 0,
+          totalGastado: 0,
+          tipo: 'Nuevo',
+          origen: 'admin',
+          ultimaCompra: '',
+          ultimaVisita: '',
+          fechaRegistro: new Date().toISOString()
         });
 
         this.listaClientes.push({
@@ -240,13 +324,20 @@ export class ClientesPage implements OnInit {
           documento: this.nuevoCliente.documento.trim(),
           nombre: this.nuevoCliente.nombre.trim(),
           telefono: this.nuevoCliente.telefono.trim(),
-          direccion: this.nuevoCliente.direccion.trim()
+          direccion: this.nuevoCliente.direccion.trim(),
+          totalPedidos: 0,
+          totalGastado: 0,
+          tipo: 'Nuevo',
+          origen: 'admin',
+          ultimaCompra: '',
+          ultimaVisita: ''
         });
       }
 
       this.calcularKPIs();
       this.buscar();
       this.cerrarFormulario();
+
     } catch (error) {
       console.error('❌ Error guardando cliente:', error);
     }
@@ -255,21 +346,26 @@ export class ClientesPage implements OnInit {
   seleccionarCliente(cliente: any) {
     this.editando = true;
     this.idClienteEditando = cliente.id;
+
     this.nuevoCliente = {
-      documento: cliente.documento,
-      nombre: cliente.nombre,
+      documento: cliente.documento || '',
+      nombre: cliente.nombre || '',
       telefono: cliente.telefono || '',
       direccion: cliente.direccion || ''
     };
+
     this.mostrarFormulario = true;
   }
 
   async eliminarCliente(id: string) {
     try {
       await deleteDoc(doc(this.firestore, 'clientes', id));
+
       this.listaClientes = this.listaClientes.filter(cliente => cliente.id !== id);
+
       this.calcularKPIs();
       this.buscar();
+
     } catch (error) {
       console.error('❌ Error eliminando cliente:', error);
     }
@@ -279,13 +375,13 @@ export class ClientesPage implements OnInit {
     const q = this.textoBuscar.toLowerCase().trim();
 
     this.clientesFiltrados = this.listaClientes.filter(cliente => {
-      const matchTexto = !q || 
-                         cliente.nombre.toLowerCase().includes(q) || 
-                         cliente.documento.includes(q) || 
-                         (cliente.telefono && cliente.telefono.includes(q));
+      const matchTexto = !q ||
+        (cliente.nombre || '').toLowerCase().includes(q) ||
+        (cliente.documento || '').includes(q) ||
+        (cliente.telefono || '').includes(q);
 
-      const tipoMock = this.obtenerTipoVisual(cliente);
-      const matchTipo = this.filtroTipo === 'Todos' || tipoMock === this.filtroTipo;
+      const tipo = this.obtenerTipoVisual(cliente);
+      const matchTipo = this.filtroTipo === 'Todos' || tipo === this.filtroTipo;
 
       return matchTexto && matchTipo;
     });

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -45,6 +45,7 @@ import {
 import {
   Firestore,
   collection,
+  collectionData,
   addDoc,
   getDocs,
   updateDoc,
@@ -53,6 +54,27 @@ import {
   query,
   where
 } from '@angular/fire/firestore';
+
+import { Subscription } from 'rxjs';
+
+type EstadoMesa =
+  | 'libre'
+  | 'activa'
+  | 'preparando'
+  | 'listo'
+  | 'entregado_mesa'
+  | 'cuenta'
+  | 'pagado'
+  | 'reservada';
+
+type EstadoPedido =
+  | 'pendiente_cocina'
+  | 'preparando'
+  | 'listo'
+  | 'entregado_mesa'
+  | 'cuenta'
+  | 'pagado'
+  | 'anulado';
 
 @Component({
   selector: 'app-mesas',
@@ -87,9 +109,10 @@ import {
     IonMenuButton
   ]
 })
-export class MesasPage implements OnInit {
+export class MesasPage implements OnInit, OnDestroy {
 
   private firestore = inject(Firestore);
+  private mesasSub?: Subscription;
 
   fechaActual = '';
   mesaSeleccionada: any = null;
@@ -98,11 +121,13 @@ export class MesasPage implements OnInit {
   totalLibres = 0;
   totalActivas = 0;
   totalReservadas = 0;
+  totalListas = 0;
+  totalEnCuenta = 0;
 
   nuevaMesa = {
     numero: '',
     capacidad: null as number | null,
-    estado: 'disponible'
+    estado: 'libre' as EstadoMesa
   };
 
   editando = false;
@@ -110,11 +135,13 @@ export class MesasPage implements OnInit {
 
   listaMesas: any[] = [];
 
-  // Pedido completo de la mesa
   mostrarPedidoMesa = false;
   pedidoMesaActual: any[] = [];
   totalPedidoMesa = 0;
   horaInicioMesa = '';
+  estadoPedidoMesa = '';
+  meseroPedidoMesa = '';
+  clientePedidoMesa = '';
 
   constructor() {
     addIcons({
@@ -131,9 +158,13 @@ export class MesasPage implements OnInit {
     });
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.configurarFecha();
-    await this.cargarMesasFirebase();
+    this.cargarMesasFirebase();
+  }
+
+  ngOnDestroy() {
+    this.mesasSub?.unsubscribe();
   }
 
   configurarFecha() {
@@ -147,15 +178,48 @@ export class MesasPage implements OnInit {
     this.fechaActual = new Date().toLocaleDateString('es-PE', opciones);
   }
 
+  cargarMesasFirebase() {
+    const mesasRef = collection(this.firestore, 'mesas');
+
+    this.mesasSub = collectionData(mesasRef, { idField: 'id' }).subscribe({
+      next: (mesas: any[]) => {
+        this.listaMesas = mesas
+          .map(mesa => ({
+            ...mesa,
+            estado: this.normalizarEstadoMesa(mesa.estado),
+            pedido: mesa.pedido ?? [],
+            capacidad: Number(mesa.capacidad || 0),
+            numero: String(mesa.numero || '')
+          }))
+          .sort((a, b) => Number(a.numero) - Number(b.numero));
+
+        if (this.mesaSeleccionada?.id) {
+          const actualizada = this.listaMesas.find(m => m.id === this.mesaSeleccionada.id);
+
+          if (actualizada) {
+            this.mesaSeleccionada = actualizada;
+          }
+        }
+
+        this.calcularMetricas();
+      },
+      error: (error) => {
+        console.error('❌ Error cargando mesas en tiempo real:', error);
+      }
+    });
+  }
+
   seleccionarMesaVisual(mesa: any) {
-    this.mesaSeleccionada = mesa;
+    this.mesaSeleccionada = {
+      ...mesa,
+      estado: this.normalizarEstadoMesa(mesa.estado),
+      pedido: mesa.pedido ?? []
+    };
+
     this.mostrarFormulario = false;
     this.editando = false;
-
     this.mostrarPedidoMesa = false;
-    this.pedidoMesaActual = [];
-    this.totalPedidoMesa = 0;
-    this.horaInicioMesa = '';
+    this.limpiarPedidoMesa();
   }
 
   abrirFormularioNuevaMesa() {
@@ -163,10 +227,8 @@ export class MesasPage implements OnInit {
     this.editando = false;
     this.mostrarFormulario = true;
     this.mesaSeleccionada = null;
-
     this.mostrarPedidoMesa = false;
-    this.pedidoMesaActual = [];
-    this.totalPedidoMesa = 0;
+    this.limpiarPedidoMesa();
   }
 
   iniciarEdicion() {
@@ -177,9 +239,9 @@ export class MesasPage implements OnInit {
     this.idMesaEditando = this.mesaSeleccionada.id;
 
     this.nuevaMesa = {
-      numero: this.mesaSeleccionada.numero,
-      capacidad: this.mesaSeleccionada.capacidad,
-      estado: this.mesaSeleccionada.estado
+      numero: String(this.mesaSeleccionada.numero || ''),
+      capacidad: Number(this.mesaSeleccionada.capacidad || 0),
+      estado: this.normalizarEstadoMesa(this.mesaSeleccionada.estado)
     };
   }
 
@@ -191,9 +253,15 @@ export class MesasPage implements OnInit {
   }
 
   calcularMetricas() {
-    this.totalLibres = this.listaMesas.filter(m => m.estado === 'disponible').length;
-    this.totalActivas = this.listaMesas.filter(m => m.estado === 'ocupada').length;
+    this.totalLibres = this.listaMesas.filter(m => m.estado === 'libre').length;
+
+    this.totalActivas = this.listaMesas.filter(m =>
+      ['activa', 'preparando', 'entregado_mesa'].includes(m.estado)
+    ).length;
+
     this.totalReservadas = this.listaMesas.filter(m => m.estado === 'reservada').length;
+    this.totalListas = this.listaMesas.filter(m => m.estado === 'listo').length;
+    this.totalEnCuenta = this.listaMesas.filter(m => m.estado === 'cuenta').length;
   }
 
   async verPedidoCompleto(mesa: any) {
@@ -201,19 +269,21 @@ export class MesasPage implements OnInit {
 
     this.mostrarPedidoMesa = !this.mostrarPedidoMesa;
 
-    if (!this.mostrarPedidoMesa) {
-      return;
-    }
+    if (!this.mostrarPedidoMesa) return;
 
-    this.pedidoMesaActual = [];
-    this.totalPedidoMesa = 0;
-    this.horaInicioMesa = '';
+    this.limpiarPedidoMesa();
 
     try {
       const pedidosRef = query(
         collection(this.firestore, 'pedidos'),
         where('idMesa', '==', mesa.id),
-        where('estado', 'in', ['Cocina', 'Preparando', 'Listo', 'Entregado'])
+        where('estado', 'in', [
+          'pendiente_cocina',
+          'preparando',
+          'listo',
+          'entregado_mesa',
+          'cuenta'
+        ])
       );
 
       const querySnapshot = await getDocs(pedidosRef);
@@ -221,17 +291,34 @@ export class MesasPage implements OnInit {
       let pedidoEncontrado: any = null;
 
       querySnapshot.forEach((documento) => {
-        pedidoEncontrado = {
+        const data = documento.data();
+
+        const candidato: any = {
           id: documento.id,
-          ...documento.data()
+          ...data
         };
+
+        if (!pedidoEncontrado) {
+          pedidoEncontrado = candidato;
+        } else {
+          const fechaActual = this.convertirFecha(candidato.fecha || candidato.fechaPedido).getTime();
+          const fechaAnterior = this.convertirFecha(pedidoEncontrado.fecha || pedidoEncontrado.fechaPedido).getTime();
+
+          if (fechaActual > fechaAnterior) {
+            pedidoEncontrado = candidato;
+          }
+        }
       });
 
       if (!pedidoEncontrado) {
+        this.horaInicioMesa = 'Sin pedido activo';
         return;
       }
 
-      this.horaInicioMesa = this.convertirHora(pedidoEncontrado.fecha);
+      this.horaInicioMesa = this.convertirHora(pedidoEncontrado.fecha || pedidoEncontrado.fechaPedido);
+      this.estadoPedidoMesa = this.obtenerEstadoTextoPedido(pedidoEncontrado.estado);
+      this.meseroPedidoMesa = pedidoEncontrado.mesero || 'No asignado';
+      this.clientePedidoMesa = pedidoEncontrado.clienteNombre || 'Cliente general';
 
       const productos = pedidoEncontrado.productos || pedidoEncontrado.items || [];
 
@@ -258,126 +345,100 @@ export class MesasPage implements OnInit {
     }
   }
 
-  convertirHora(fecha: any): string {
-    if (!fecha) return '11:30';
-
-    if (fecha.seconds) {
-      return new Date(fecha.seconds * 1000).toLocaleTimeString('es-PE', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-
-    return new Date(fecha).toLocaleTimeString('es-PE', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-
   async liberarMesaRapida(mesa: any) {
     if (!mesa || !mesa.id) return;
 
-    try {
-      const mesaRef = doc(this.firestore, 'mesas', mesa.id);
-      await updateDoc(mesaRef, { estado: 'disponible' });
+    const confirmar = confirm(
+      '¿Deseas liberar esta mesa desde administración? Si tiene pedido activo, será marcado como anulado.'
+    );
 
+    if (!confirmar) return;
+
+    try {
       const q = query(
         collection(this.firestore, 'pedidos'),
         where('idMesa', '==', mesa.id),
-        where('estado', 'in', ['Cocina', 'Preparando', 'Listo', 'Entregado'])
+        where('estado', 'in', [
+          'pendiente_cocina',
+          'preparando',
+          'listo',
+          'entregado_mesa',
+          'cuenta'
+        ])
       );
 
       const querySnapshot = await getDocs(q);
 
       for (const documento of querySnapshot.docs) {
         const pedidoRef = doc(this.firestore, 'pedidos', documento.id);
-        await updateDoc(pedidoRef, { estado: 'Liberado Sin Pagar' });
-      }
 
-      mesa.estado = 'disponible';
-
-      if (this.mesaSeleccionada && this.mesaSeleccionada.id === mesa.id) {
-        this.mesaSeleccionada.estado = 'disponible';
-      }
-
-      this.mostrarPedidoMesa = false;
-      this.pedidoMesaActual = [];
-      this.totalPedidoMesa = 0;
-
-      this.calcularMetricas();
-
-    } catch (error) {
-      console.error('Error en flujo de liberación rápida:', error);
-    }
-  }
-
-  async cargarMesasFirebase() {
-    try {
-      const querySnapshot = await getDocs(collection(this.firestore, 'mesas'));
-
-      this.listaMesas = [];
-
-      querySnapshot.forEach((documento) => {
-        this.listaMesas.push({
-          id: documento.id,
-          ...documento.data()
+        await updateDoc(pedidoRef, {
+          estado: 'anulado',
+          motivoAnulacion: 'Mesa liberada desde administración',
+          fechaActualizacion: new Date()
         });
+      }
+
+      const mesaRef = doc(this.firestore, 'mesas', mesa.id);
+
+      await updateDoc(mesaRef, {
+        estado: 'libre',
+        pedido: [],
+        mesero: '',
+        pedidoEnCocina: false,
+        pedidoListo: false,
+        pedidoEntregadoMesa: false,
+        notificacionMesero: false,
+        fechaPedido: null,
+        fechaPedidoCocina: null,
+        fechaEntregadoMesa: null,
+        fechaCuenta: null
       });
 
+      this.mesaSeleccionada = {
+        ...mesa,
+        estado: 'libre',
+        pedido: []
+      };
+
+      this.mostrarPedidoMesa = false;
+      this.limpiarPedidoMesa();
       this.calcularMetricas();
 
+      console.log(`✅ Mesa ${mesa.numero} liberada desde administración.`);
+
     } catch (error) {
-      console.error('❌ Error cargando mesas:', error);
+      console.error('❌ Error en flujo de liberación rápida:', error);
     }
   }
 
   async guardarMesa() {
     if (!this.nuevaMesa.numero.trim() || !this.nuevaMesa.capacidad) return;
 
+    const mesaData = {
+      numero: this.nuevaMesa.numero.trim(),
+      capacidad: Number(this.nuevaMesa.capacidad),
+      estado: this.normalizarEstadoMesa(this.nuevaMesa.estado),
+      pedido: []
+    };
+
     try {
       if (this.editando && this.idMesaEditando !== null) {
         const mesaRef = doc(this.firestore, 'mesas', this.idMesaEditando);
 
         await updateDoc(mesaRef, {
-          numero: this.nuevaMesa.numero.trim(),
-          capacidad: Number(this.nuevaMesa.capacidad),
-          estado: this.nuevaMesa.estado
+          numero: mesaData.numero,
+          capacidad: mesaData.capacidad,
+          estado: mesaData.estado
         });
-
-        const index = this.listaMesas.findIndex(mesa => mesa.id === this.idMesaEditando);
-
-        if (index !== -1) {
-          this.listaMesas[index] = {
-            id: this.idMesaEditando,
-            numero: this.nuevaMesa.numero.trim(),
-            capacidad: Number(this.nuevaMesa.capacidad),
-            estado: this.nuevaMesa.estado
-          };
-
-          this.mesaSeleccionada = this.listaMesas[index];
-        }
 
       } else {
-        const docRef = await addDoc(collection(this.firestore, 'mesas'), {
-          numero: this.nuevaMesa.numero.trim(),
-          capacidad: Number(this.nuevaMesa.capacidad),
-          estado: this.nuevaMesa.estado
-        });
-
-        const nuevaMesaGuardada = {
-          id: docRef.id,
-          numero: this.nuevaMesa.numero.trim(),
-          capacidad: Number(this.nuevaMesa.capacidad),
-          estado: this.nuevaMesa.estado
-        };
-
-        this.listaMesas.push(nuevaMesaGuardada);
-        this.mesaSeleccionada = nuevaMesaGuardada;
+        await addDoc(collection(this.firestore, 'mesas'), mesaData);
       }
 
-      this.calcularMetricas();
       this.mostrarFormulario = false;
       this.editando = false;
+      this.idMesaEditando = null;
       this.limpiarFormulario();
 
     } catch (error) {
@@ -393,6 +454,13 @@ export class MesasPage implements OnInit {
       return;
     }
 
+    const mesa = this.listaMesas.find(m => m.id === idFinal);
+
+    if (mesa && mesa.estado !== 'libre') {
+      alert('No puedes eliminar una mesa ocupada, activa, lista o en cuenta. Primero libérala.');
+      return;
+    }
+
     const confirmar = confirm('¿Estás seguro de que deseas eliminar esta mesa permanentemente?');
 
     if (confirmar) {
@@ -404,22 +472,133 @@ export class MesasPage implements OnInit {
     try {
       await deleteDoc(doc(this.firestore, 'mesas', id));
 
-      this.listaMesas = this.listaMesas.filter(mesa => mesa.id !== id);
+      if (this.mesaSeleccionada?.id === id) {
+        this.mesaSeleccionada = null;
+      }
 
-      this.calcularMetricas();
       this.cerrarPanel();
-      this.mesaSeleccionada = null;
 
     } catch (error) {
       console.error('❌ Error eliminando mesa desde Firestore:', error);
     }
   }
 
+  normalizarEstadoMesa(estado: any): EstadoMesa {
+    const e = String(estado || 'libre').toLowerCase().trim();
+
+    if (e === 'disponible') return 'libre';
+    if (e === 'ocupada') return 'activa';
+    if (e === 'pendiente_cocina') return 'activa';
+    if (e === 'recogido') return 'entregado_mesa';
+    if (e === 'entregado') return 'entregado_mesa';
+
+    if (
+      e === 'libre' ||
+      e === 'activa' ||
+      e === 'preparando' ||
+      e === 'listo' ||
+      e === 'entregado_mesa' ||
+      e === 'cuenta' ||
+      e === 'pagado' ||
+      e === 'reservada'
+    ) {
+      return e;
+    }
+
+    return 'libre';
+  }
+
+  obtenerEstadoTextoMesa(estado: any): string {
+    const e = this.normalizarEstadoMesa(estado);
+
+    switch (e) {
+      case 'libre': return 'Libre';
+      case 'activa': return 'Activa';
+      case 'preparando': return 'Preparando';
+      case 'listo': return 'Listo';
+      case 'entregado_mesa': return 'Entregado';
+      case 'cuenta': return 'En cuenta';
+      case 'pagado': return 'Pagado';
+      case 'reservada': return 'Reservada';
+      default: return e;
+    }
+  }
+
+  obtenerEstadoTextoPedido(estado: any): string {
+    const e = this.normalizarEstadoPedido(estado);
+
+    switch (e) {
+      case 'pendiente_cocina': return 'Pendiente cocina';
+      case 'preparando': return 'Preparando';
+      case 'listo': return 'Listo';
+      case 'entregado_mesa': return 'Entregado mesa';
+      case 'cuenta': return 'En cuenta';
+      case 'pagado': return 'Pagado';
+      case 'anulado': return 'Anulado';
+      default: return e;
+    }
+  }
+
+  normalizarEstadoPedido(estado: any): EstadoPedido {
+    const e = String(estado || 'pendiente_cocina').toLowerCase().trim();
+
+    if (e === 'cocina') return 'preparando';
+    if (e === 'entregado' || e === 'recogido') return 'entregado_mesa';
+    if (e === 'cancelado' || e === 'liberado sin pagar') return 'anulado';
+
+    if (
+      e === 'pendiente_cocina' ||
+      e === 'preparando' ||
+      e === 'listo' ||
+      e === 'entregado_mesa' ||
+      e === 'cuenta' ||
+      e === 'pagado' ||
+      e === 'anulado'
+    ) {
+      return e;
+    }
+
+    return 'pendiente_cocina';
+  }
+
+  convertirFecha(fecha: any): Date {
+    if (!fecha) return new Date(0);
+
+    if (fecha?.toDate) return fecha.toDate();
+    if (fecha?.seconds) return new Date(fecha.seconds * 1000);
+
+    const fechaConvertida = new Date(fecha);
+
+    return isNaN(fechaConvertida.getTime())
+      ? new Date(0)
+      : fechaConvertida;
+  }
+
+  convertirHora(fecha: any): string {
+    const date = this.convertirFecha(fecha);
+
+    if (isNaN(date.getTime())) return '--:--';
+
+    return date.toLocaleTimeString('es-PE', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
   limpiarFormulario() {
     this.nuevaMesa = {
       numero: '',
       capacidad: null,
-      estado: 'disponible'
+      estado: 'libre'
     };
+  }
+
+  limpiarPedidoMesa() {
+    this.pedidoMesaActual = [];
+    this.totalPedidoMesa = 0;
+    this.horaInicioMesa = '';
+    this.estadoPedidoMesa = '';
+    this.meseroPedidoMesa = '';
+    this.clientePedidoMesa = '';
   }
 }

@@ -389,3 +389,43 @@
     }
   }
 }
+.filter-chips button,
+.filter-btn,
+.chip {
+  transition: 0.2s ease;
+}
+
+.filter-chips button:hover,
+.filter-btn:hover,
+.chip:hover {
+  background: #8b3dff !important;
+  color: #ffffff !important;
+  border-color: #8b3dff !important;
+  box-shadow: 0 6px 14px rgba(139, 61, 255, 0.25);
+}
+.filter-chips button,
+.filter-btn,
+.chip {
+  transition: all .25s ease;
+  background: #fff;
+  color: #555;
+  border: 1px solid #e5e7eb;
+}
+
+/* Solo cuando esté seleccionado */
+.filter-chips button.active,
+.filter-btn.active,
+.chip.active {
+  background: #8b3dff !important;
+  color: #fff !important;
+  border-color: #8b3dff !important;
+  box-shadow: 0 6px 14px rgba(139, 61, 255, .25);
+}
+
+/* Mantener el mismo color mientras el botón está presionado */
+.filter-chips button:active,
+.filter-btn:active,
+.chip:active {
+  background: #8b3dff;
+  color: #fff;
+}

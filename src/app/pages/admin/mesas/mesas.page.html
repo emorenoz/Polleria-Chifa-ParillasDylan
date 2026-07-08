@@ -6,7 +6,7 @@
 
     <div class="header-content">
       <div class="breadcrumb">
-        <span class="muted">Pollería Dylan</span> / <strong>Mesas</strong>
+        <span class="muted">Pollería Dylan</span> / <strong>Gestión de Mesas</strong>
       </div>
       <div class="date-display">{{ fechaActual }}</div>
     </div>
@@ -18,28 +18,28 @@
 
     <div class="kpi-status-row">
       <div class="status-card libre">
-        <div class="kpi-header"><span class="dot"></span> Libre</div>
+        <div class="kpi-header"><span class="dot"></span> Libres</div>
         <div class="kpi-amount">
           {{ totalLibres }} <span class="muted">/ {{ listaMesas.length }}</span>
         </div>
       </div>
 
       <div class="status-card activa">
-        <div class="kpi-header"><span class="dot"></span> Activa</div>
+        <div class="kpi-header"><span class="dot"></span> Activas</div>
         <div class="kpi-amount">
           {{ totalActivas }} <span class="muted">/ {{ listaMesas.length }}</span>
         </div>
       </div>
 
       <div class="status-card cuenta">
-        <div class="kpi-header"><span class="dot"></span> Cuenta</div>
+        <div class="kpi-header"><span class="dot"></span> En cuenta</div>
         <div class="kpi-amount">
-          0 <span class="muted">/ {{ listaMesas.length }}</span>
+          {{ totalEnCuenta }} <span class="muted">/ {{ listaMesas.length }}</span>
         </div>
       </div>
 
       <div class="status-card reservada">
-        <div class="kpi-header"><span class="dot"></span> Reservada</div>
+        <div class="kpi-header"><span class="dot"></span> Reservadas</div>
         <div class="kpi-amount">
           {{ totalReservadas }} <span class="muted">/ {{ listaMesas.length }}</span>
         </div>
@@ -63,20 +63,18 @@
             class="mesa-item"
             *ngFor="let mesa of listaMesas"
             [ngClass]="{
-              'estado-libre': mesa.estado === 'disponible',
-              'estado-activa': mesa.estado === 'ocupada',
+              'estado-libre': mesa.estado === 'libre',
+              'estado-activa': mesa.estado === 'activa' || mesa.estado === 'preparando',
+              'estado-listo': mesa.estado === 'listo',
+              'estado-entregado': mesa.estado === 'entregado_mesa',
+              'estado-cuenta': mesa.estado === 'cuenta',
               'estado-reservada': mesa.estado === 'reservada',
               'seleccionada': mesaSeleccionada?.id === mesa.id && !mostrarFormulario
             }"
             (click)="seleccionarMesaVisual(mesa)"
           >
-            <span class="mesa-nombre">{{ mesa.numero }}</span>
-
-            <span class="mesa-estado">
-              {{ mesa.estado === 'disponible'
-                ? 'Libre'
-                : (mesa.estado === 'ocupada' ? 'Activa' : 'Reservada') }}
-            </span>
+            <span class="mesa-nombre">Mesa {{ mesa.numero }}</span>
+            <span class="mesa-estado">{{ obtenerEstadoTextoMesa(mesa.estado) }}</span>
           </div>
 
           <div *ngIf="listaMesas.length === 0" class="empty-state">
@@ -87,7 +85,6 @@
 
       <div class="side-panel">
 
-        <!-- FORMULARIO -->
         <div class="side-card form-view" *ngIf="mostrarFormulario">
           <div class="side-header">
             <h4>{{ editando ? 'Modificar Mesa' : 'Nueva Mesa' }}</h4>
@@ -99,17 +96,17 @@
 
           <div class="form-body">
             <div class="form-group">
-              <label>Nombre / Número de Mesa</label>
+              <label>Número de Mesa</label>
               <input
                 type="text"
                 class="custom-input"
-                placeholder="Ej. Mesa 01"
+                placeholder="Ej. 01"
                 [(ngModel)]="nuevaMesa.numero"
               />
             </div>
 
             <div class="form-group">
-              <label>Capacidad (Personas)</label>
+              <label>Capacidad</label>
               <input
                 type="number"
                 class="custom-input"
@@ -119,10 +116,9 @@
             </div>
 
             <div class="form-group">
-              <label>Estado Inicial</label>
+              <label>Estado inicial</label>
               <select class="custom-input" [(ngModel)]="nuevaMesa.estado">
-                <option value="disponible">Libre / Disponible</option>
-                <option value="ocupada">Activa / Ocupada</option>
+                <option value="libre">Libre</option>
                 <option value="reservada">Reservada</option>
               </select>
             </div>
@@ -148,28 +144,17 @@
           </div>
         </div>
 
-        <!-- DETALLE DE MESA -->
         <div class="side-card detail-view" *ngIf="!mostrarFormulario && mesaSeleccionada">
           <div class="side-header">
-            <h4>{{ mesaSeleccionada.numero }}</h4>
+            <h4>Mesa {{ mesaSeleccionada.numero }}</h4>
 
-            <span
-              class="badge"
-              [ngClass]="{
-                'libre': mesaSeleccionada.estado === 'disponible',
-                'activa': mesaSeleccionada.estado === 'ocupada',
-                'reservada': mesaSeleccionada.estado === 'reservada'
-              }"
-            >
-              {{ mesaSeleccionada.estado === 'disponible'
-                ? 'Libre'
-                : (mesaSeleccionada.estado === 'ocupada' ? 'Activa' : 'Reservada') }}
+            <span class="badge" [ngClass]="mesaSeleccionada.estado">
+              {{ obtenerEstadoTextoMesa(mesaSeleccionada.estado) }}
             </span>
           </div>
 
-          <!-- MESA DISPONIBLE -->
-          <div class="detail-body text-center" *ngIf="mesaSeleccionada.estado === 'disponible'">
-            <div class="empty-mesa">Mesa disponible</div>
+          <div class="detail-body text-center" *ngIf="mesaSeleccionada.estado === 'libre'">
+            <div class="empty-mesa">Mesa libre</div>
 
             <p class="muted-text">
               Capacidad: {{ mesaSeleccionada.capacidad }} personas
@@ -177,7 +162,7 @@
 
             <div class="action-buttons mt-20" style="display: flex; flex-direction: column; gap: 10px;">
               <button class="btn-outline outline-dark full-width" (click)="iniciarEdicion()">
-                Editar Configuración
+                Editar configuración
               </button>
 
               <button
@@ -185,13 +170,12 @@
                 (click)="confirmarEliminacion(mesaSeleccionada.id)"
               >
                 <ion-icon name="trash-outline"></ion-icon>
-                Eliminar Mesa
+                Eliminar mesa
               </button>
             </div>
           </div>
 
-          <!-- MESA OCUPADA -->
-          <div class="detail-body" *ngIf="mesaSeleccionada.estado === 'ocupada'">
+          <div class="detail-body" *ngIf="mesaSeleccionada.estado !== 'libre' && mesaSeleccionada.estado !== 'reservada'">
             <div class="info-list">
               <div class="info-item">
                 <ion-icon name="people-outline"></ion-icon>
@@ -200,12 +184,17 @@
 
               <div class="info-item">
                 <ion-icon name="time-outline"></ion-icon>
-                Desde {{ horaInicioMesa || '11:30' }}
+                Desde {{ horaInicioMesa || '--:--' }}
               </div>
 
               <div class="info-item">
                 <ion-icon name="person-outline"></ion-icon>
-                Atiende: {{ mesaSeleccionada.mesero || 'Admin' }}
+                Atiende: {{ mesaSeleccionada.mesero || meseroPedidoMesa || 'No asignado' }}
+              </div>
+
+              <div class="info-item" *ngIf="estadoPedidoMesa">
+                <ion-icon name="document-text-outline"></ion-icon>
+                Pedido: {{ estadoPedidoMesa }}
               </div>
             </div>
 
@@ -229,13 +218,19 @@
                 class="btn-outline outline-red full-width"
                 (click)="liberarMesaRapida(mesaSeleccionada)"
               >
-                Liberar mesa
+                Liberar mesa como emergencia
               </button>
             </div>
 
-            <!-- PEDIDO COMPLETO -->
             <div class="pedido-box" *ngIf="mostrarPedidoMesa">
-              <h4>Pedido completo</h4>
+              <h4>Pedido activo</h4>
+
+              <div class="pedido-meta" *ngIf="pedidoMesaActual.length > 0">
+                <p><strong>Hora:</strong> {{ horaInicioMesa }}</p>
+                <p><strong>Estado:</strong> {{ estadoPedidoMesa }}</p>
+                <p><strong>Mesero:</strong> {{ meseroPedidoMesa }}</p>
+                <p><strong>Cliente:</strong> {{ clientePedidoMesa }}</p>
+              </div>
 
               <div *ngIf="pedidoMesaActual.length > 0; else sinPedido">
                 <div class="pedido-item" *ngFor="let item of pedidoMesaActual">
@@ -259,41 +254,43 @@
               </div>
 
               <ng-template #sinPedido>
-                <p class="muted-text">Esta mesa no tiene pedido registrado.</p>
+                <p class="muted-text">Esta mesa no tiene pedido activo registrado.</p>
               </ng-template>
             </div>
           </div>
 
-          <!-- MESA RESERVADA -->
           <div class="detail-body" *ngIf="mesaSeleccionada.estado === 'reservada'">
             <div class="info-list">
-              <div class="info-item">
-                <ion-icon name="time-outline"></ion-icon>
-                Reserva para las 13:00
-              </div>
-
               <div class="info-item">
                 <ion-icon name="people-outline"></ion-icon>
                 {{ mesaSeleccionada.capacidad }} personas
               </div>
+
+              <div class="info-item">
+                <ion-icon name="time-outline"></ion-icon>
+                Mesa reservada
+              </div>
             </div>
 
-            <div class="action-buttons mt-20">
+            <div class="action-buttons mt-20" style="display: flex; flex-direction: column; gap: 10px;">
+              <button class="btn-outline outline-dark full-width" (click)="iniciarEdicion()">
+                Editar configuración
+              </button>
+
               <button
                 class="btn-outline outline-red full-width"
                 (click)="liberarMesaRapida(mesaSeleccionada)"
               >
-                Cancelar reserva
+                Cancelar reserva / liberar
               </button>
             </div>
           </div>
         </div>
 
-        <!-- SIN SELECCIÓN -->
         <div class="side-card empty-view" *ngIf="!mostrarFormulario && !mesaSeleccionada">
           <ion-icon name="restaurant-outline"></ion-icon>
           <p>
-            Selecciona una mesa en el plano para ver sus detalles o gestionar sus pedidos.
+            Selecciona una mesa para ver sus detalles o agrega mesas para que el mesero pueda usarlas.
           </p>
         </div>
 
