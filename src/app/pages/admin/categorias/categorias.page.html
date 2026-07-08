@@ -22,38 +22,19 @@
 
   <div class="main-container">
 
-    <!-- ENCABEZADO -->
     <div class="action-header">
-
       <div class="stats-text text-muted">
-        {{ categoriasFiltradas.length }} activas •
-        {{ listaCategorias.length }} total
+        {{ categoriasFiltradas.length }} categorías •
+        {{ listaCategorias.length }} registradas
       </div>
-
-      <button
-        class="btn-primary"
-        (click)="abrirFormulario()">
-
-        <ion-icon name="add-outline"></ion-icon>
-        Nueva categoría
-      </button>
-
     </div>
 
-    <!-- FORMULARIO -->
-    <div
-      class="form-card"
-      *ngIf="mostrarFormulario">
+    <div class="form-card" *ngIf="mostrarFormulario">
 
       <div class="form-header">
-        <h4>
-          {{ editando ? 'Modificar Categoría' : 'Nueva Categoría' }}
-        </h4>
+        <h4>Modificar Categoría</h4>
 
-        <button
-          class="btn-icon"
-          (click)="cerrarFormulario()">
-
+        <button class="btn-icon" (click)="cerrarFormulario()">
           <ion-icon name="close-outline"></ion-icon>
         </button>
       </div>
@@ -66,7 +47,7 @@
           <input
             type="text"
             class="custom-input"
-            placeholder="Ej. Pollos a la Brasa, Bebidas..."
+            placeholder="Ej. Pollos, Bebidas..."
             [(ngModel)]="nuevaCategoria.nombre">
         </div>
 
@@ -87,22 +68,13 @@
         <button
           class="btn-primary"
           (click)="guardarCategoria()"
-          [disabled]="
-            !nuevaCategoria.nombre.trim() ||
-            !nuevaCategoria.emoji.trim()
-          ">
-
-          {{
-            editando
-              ? 'Actualizar Categoría'
-              : 'Registrar Categoría'
-          }}
+          [disabled]="!nuevaCategoria.nombre.trim() || !nuevaCategoria.emoji.trim()">
+          Actualizar Categoría
         </button>
 
         <button
           class="btn-outline outline-dark"
           (click)="cerrarFormulario()">
-
           Cancelar
         </button>
 
@@ -110,16 +82,12 @@
 
     </div>
 
-    <!-- GRID DE CATEGORÍAS -->
-    <div
-      class="categories-grid"
-      *ngIf="!mostrarFormulario">
+    <div class="categories-grid" *ngIf="!mostrarFormulario">
 
       <div
         class="category-card"
         *ngFor="let cat of categoriasFiltradas; let i = index">
 
-        <!-- CABECERA -->
         <div class="card-top">
 
           <div class="card-title-group">
@@ -145,21 +113,19 @@
           </div>
 
           <button class="btn-dots">
-            <ion-icon
-              name="ellipsis-vertical">
-            </ion-icon>
+            <ion-icon name="ellipsis-vertical"></ion-icon>
           </button>
 
         </div>
 
-        <!-- DIVISOR -->
         <div class="divider"></div>
 
-        <!-- PIE -->
         <div class="card-bottom">
 
-          <span class="badge active">
-            Activa
+          <span
+            class="badge"
+            [ngClass]="cat.activo !== false ? 'active' : 'inactive'">
+            {{ cat.activo !== false ? 'Activa' : 'Inactiva' }}
           </span>
 
           <div class="actions">
@@ -167,19 +133,21 @@
             <button
               class="action-btn edit"
               (click)="seleccionarCategoria(cat)">
-
-              <ion-icon
-                name="pencil-outline">
-              </ion-icon>
+              <ion-icon name="pencil-outline"></ion-icon>
             </button>
 
             <button
               class="action-btn delete"
+              *ngIf="cat.activo !== false"
               (click)="eliminarCategoria(cat.id)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </button>
 
-              <ion-icon
-                name="trash-outline">
-              </ion-icon>
+            <button
+              class="action-btn edit"
+              *ngIf="cat.activo === false"
+              (click)="activarCategoria(cat)">
+              Activar
             </button>
 
           </div>
@@ -188,21 +156,14 @@
 
       </div>
 
-      <!-- VACÍO -->
-      <div
-        class="empty-state"
-        *ngIf="listaCategorias.length === 0">
+      <div class="empty-state" *ngIf="categoriasFiltradas.length === 0">
 
-        <ion-icon
-          name="folder-open-outline">
-        </ion-icon>
+        <ion-icon name="folder-open-outline"></ion-icon>
 
-        <h3>
-          No hay categorías registradas
-        </h3>
+        <h3>No se encontraron categorías</h3>
 
         <p>
-          Presiona "Nueva categoría" para comenzar.
+          Las categorías maestras se sincronizarán automáticamente desde Firebase.
         </p>
 
       </div>

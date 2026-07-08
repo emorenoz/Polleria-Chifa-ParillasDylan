@@ -103,17 +103,17 @@ export class StockPage implements OnInit, OnDestroy {
 
   readonly usuarioActual = 'admin';
 
-  fechaActual: string = '';
-  mostrarFormulario: boolean = false;
-  soloAlertas: boolean = false;
+  fechaActual = '';
+  mostrarFormulario = false;
+  soloAlertas = false;
 
-  totalInsumos: number = 0;
-  totalOk: number = 0;
-  totalBajo: number = 0;
-  totalCritico: number = 0;
-  valorInventario: number = 0;
-  productosSinStock: number = 0;
-  productosValorizados: number = 0;
+  totalInsumos = 0;
+  totalOk = 0;
+  totalBajo = 0;
+  totalCritico = 0;
+  valorInventario = 0;
+  productosSinStock = 0;
+  productosValorizados = 0;
 
   nuevoInsumo = {
     nombre: '',
@@ -133,21 +133,73 @@ export class StockPage implements OnInit, OnDestroy {
   insumosFiltrados: any[] = [];
 
   inventarioCarta: any[] = [
-    { id: 'pollo-entero', nombre: 'Pollo entero', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'und', precio: 18 },
-    { id: 'pechuga-de-pollo', nombre: 'Pechuga de pollo', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'kg', precio: 16 },
-    { id: 'pierna-de-pollo', nombre: 'Pierna de pollo', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'kg', precio: 14 },
-    { id: 'alita-de-pollo', nombre: 'Alita de pollo', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'kg', precio: 12 },
-    { id: 'menudencia-de-pollo', nombre: 'Menudencia de pollo', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'kg', precio: 8 },
-    { id: 'chuleta-de-cerdo', nombre: 'Chuleta de cerdo', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'kg', precio: 18 },
-    { id: 'bistec-de-res', nombre: 'Bistec de res', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'kg', precio: 22 },
-    { id: 'carne-para-lomo', nombre: 'Carne para lomo saltado', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'kg', precio: 24 },
-    { id: 'carne-de-chancho', nombre: 'Carne de chancho', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'kg', precio: 18 },
-    { id: 'langostinos', nombre: 'Langostinos', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'kg', precio: 35 },
-    { id: 'anticucho', nombre: 'Anticucho', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'und', precio: 3 },
-    { id: 'mollejitas', nombre: 'Mollejitas', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'kg', precio: 12 },
-    { id: 'chorizo', nombre: 'Chorizo', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'und', precio: 3 },
-    { id: 'hot-dog', nombre: 'Hot Dog', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'und', precio: 1.2 },
-    { id: 'brocheta-de-pollo', nombre: 'Brocheta de pollo', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 10, stockMaximo: 200, unidad: 'und', precio: 5 }
+    { id: 'pollo-entero', nombre: 'Pollo entero', categoria: 'Carnes y Pollo', cantidad: 80, stockMinimo: 10, stockMaximo: 200, unidad: 'und', precio: 18 },
+    { id: 'pechuga-de-pollo', nombre: 'Pechuga de pollo', categoria: 'Carnes y Pollo', cantidad: 40, stockMinimo: 8, stockMaximo: 100, unidad: 'kg', precio: 16 },
+    { id: 'pierna-de-pollo', nombre: 'Pierna de pollo', categoria: 'Carnes y Pollo', cantidad: 40, stockMinimo: 8, stockMaximo: 100, unidad: 'kg', precio: 14 },
+    { id: 'pollo-trozos', nombre: 'Pollo en trozos', categoria: 'Carnes y Pollo', cantidad: 35, stockMinimo: 8, stockMaximo: 100, unidad: 'kg', precio: 14 },
+    { id: 'carne-res', nombre: 'Carne de res', categoria: 'Carnes y Pollo', cantidad: 35, stockMinimo: 6, stockMaximo: 80, unidad: 'kg', precio: 22 },
+    { id: 'carne-lomo', nombre: 'Carne para lomo saltado', categoria: 'Carnes y Pollo', cantidad: 30, stockMinimo: 6, stockMaximo: 80, unidad: 'kg', precio: 24 },
+    { id: 'carne-chancho', nombre: 'Carne de chancho', categoria: 'Carnes y Pollo', cantidad: 30, stockMinimo: 6, stockMaximo: 80, unidad: 'kg', precio: 18 },
+    { id: 'chuleta-cerdo', nombre: 'Chuleta de cerdo', categoria: 'Carnes y Pollo', cantidad: 35, stockMinimo: 6, stockMaximo: 80, unidad: 'kg', precio: 18 },
+    { id: 'bistec-res', nombre: 'Bistec de res', categoria: 'Carnes y Pollo', cantidad: 30, stockMinimo: 6, stockMaximo: 80, unidad: 'kg', precio: 22 },
+    { id: 'langostinos', nombre: 'Langostinos', categoria: 'Carnes y Pollo', cantidad: 20, stockMinimo: 4, stockMaximo: 50, unidad: 'kg', precio: 35 },
+    { id: 'anticucho-palito', nombre: 'Anticucho', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 20, stockMaximo: 250, unidad: 'und', precio: 3 },
+    { id: 'mollejitas', nombre: 'Mollejitas', categoria: 'Carnes y Pollo', cantidad: 25, stockMinimo: 5, stockMaximo: 60, unidad: 'kg', precio: 12 },
+    { id: 'chorizo', nombre: 'Chorizo', categoria: 'Carnes y Pollo', cantidad: 100, stockMinimo: 20, stockMaximo: 250, unidad: 'und', precio: 3 },
+    { id: 'hot-dog', nombre: 'Hot Dog', categoria: 'Carnes y Pollo', cantidad: 120, stockMinimo: 25, stockMaximo: 300, unidad: 'und', precio: 1.2 },
+    { id: 'brocheta-pollo', nombre: 'Brocheta de pollo', categoria: 'Carnes y Pollo', cantidad: 80, stockMinimo: 15, stockMaximo: 200, unidad: 'und', precio: 5 },
+
+    { id: 'papa-amarilla', nombre: 'Papa para fritura', categoria: 'Guarniciones', cantidad: 150, stockMinimo: 25, stockMaximo: 300, unidad: 'kg', precio: 3 },
+    { id: 'arroz', nombre: 'Arroz', categoria: 'Chifa y Arroz', cantidad: 120, stockMinimo: 20, stockMaximo: 300, unidad: 'kg', precio: 4 },
+    { id: 'fideo-tallarin', nombre: 'Fideo tallarín', categoria: 'Chifa y Arroz', cantidad: 50, stockMinimo: 10, stockMaximo: 120, unidad: 'kg', precio: 5 },
+    { id: 'wantan', nombre: 'Masa wantán', categoria: 'Chifa y Arroz', cantidad: 40, stockMinimo: 8, stockMaximo: 100, unidad: 'paq', precio: 8 },
+    { id: 'frijol-chino', nombre: 'Frijol chino', categoria: 'Chifa y Arroz', cantidad: 25, stockMinimo: 5, stockMaximo: 80, unidad: 'kg', precio: 6 },
+    { id: 'kion', nombre: 'Kion', categoria: 'Chifa y Arroz', cantidad: 10, stockMinimo: 2, stockMaximo: 30, unidad: 'kg', precio: 8 },
+    { id: 'sillao', nombre: 'Sillao', categoria: 'Condimentos y Salsas', cantidad: 25, stockMinimo: 5, stockMaximo: 60, unidad: 'lt', precio: 6 },
+    { id: 'salsa-ostion', nombre: 'Salsa de ostión', categoria: 'Condimentos y Salsas', cantidad: 15, stockMinimo: 3, stockMaximo: 40, unidad: 'lt', precio: 10 },
+    { id: 'aceite-ajonjoli', nombre: 'Aceite de ajonjolí', categoria: 'Condimentos y Salsas', cantidad: 10, stockMinimo: 2, stockMaximo: 25, unidad: 'lt', precio: 18 },
+
+    { id: 'lechuga', nombre: 'Lechuga', categoria: 'Verduras y Ensaladas', cantidad: 60, stockMinimo: 10, stockMaximo: 150, unidad: 'und', precio: 2 },
+    { id: 'tomate', nombre: 'Tomate', categoria: 'Verduras y Ensaladas', cantidad: 40, stockMinimo: 8, stockMaximo: 100, unidad: 'kg', precio: 3 },
+    { id: 'pepino', nombre: 'Pepino', categoria: 'Verduras y Ensaladas', cantidad: 25, stockMinimo: 5, stockMaximo: 80, unidad: 'kg', precio: 3 },
+    { id: 'zanahoria', nombre: 'Zanahoria', categoria: 'Verduras y Ensaladas', cantidad: 35, stockMinimo: 6, stockMaximo: 90, unidad: 'kg', precio: 3 },
+    { id: 'cebolla', nombre: 'Cebolla', categoria: 'Verduras y Ensaladas', cantidad: 40, stockMinimo: 8, stockMaximo: 100, unidad: 'kg', precio: 3 },
+    { id: 'cebolla-china', nombre: 'Cebolla china', categoria: 'Verduras y Ensaladas', cantidad: 20, stockMinimo: 4, stockMaximo: 60, unidad: 'kg', precio: 5 },
+    { id: 'pimiento', nombre: 'Pimiento', categoria: 'Verduras y Ensaladas', cantidad: 20, stockMinimo: 4, stockMaximo: 60, unidad: 'kg', precio: 6 },
+    { id: 'limon', nombre: 'Limón', categoria: 'Verduras y Ensaladas', cantidad: 40, stockMinimo: 8, stockMaximo: 120, unidad: 'kg', precio: 4 },
+    { id: 'platano', nombre: 'Plátano para freír', categoria: 'Guarniciones', cantidad: 80, stockMinimo: 15, stockMaximo: 180, unidad: 'und', precio: 1 },
+    { id: 'huevo', nombre: 'Huevo', categoria: 'Guarniciones', cantidad: 180, stockMinimo: 30, stockMaximo: 400, unidad: 'und', precio: 0.7 },
+
+    { id: 'aceite', nombre: 'Aceite vegetal', categoria: 'Condimentos y Salsas', cantidad: 80, stockMinimo: 15, stockMaximo: 180, unidad: 'lt', precio: 8 },
+    { id: 'sal', nombre: 'Sal', categoria: 'Condimentos y Salsas', cantidad: 25, stockMinimo: 5, stockMaximo: 60, unidad: 'kg', precio: 2 },
+    { id: 'pimienta', nombre: 'Pimienta', categoria: 'Condimentos y Salsas', cantidad: 8, stockMinimo: 2, stockMaximo: 20, unidad: 'kg', precio: 20 },
+    { id: 'comino', nombre: 'Comino', categoria: 'Condimentos y Salsas', cantidad: 8, stockMinimo: 2, stockMaximo: 20, unidad: 'kg', precio: 18 },
+    { id: 'aji-panca', nombre: 'Ají panca', categoria: 'Condimentos y Salsas', cantidad: 15, stockMinimo: 3, stockMaximo: 40, unidad: 'kg', precio: 10 },
+    { id: 'aji-amarillo', nombre: 'Ají amarillo', categoria: 'Condimentos y Salsas', cantidad: 15, stockMinimo: 3, stockMaximo: 40, unidad: 'kg', precio: 10 },
+    { id: 'mayonesa', nombre: 'Mayonesa / crema', categoria: 'Condimentos y Salsas', cantidad: 30, stockMinimo: 6, stockMaximo: 80, unidad: 'kg', precio: 9 },
+    { id: 'ketchup', nombre: 'Ketchup', categoria: 'Condimentos y Salsas', cantidad: 20, stockMinimo: 4, stockMaximo: 60, unidad: 'kg', precio: 8 },
+    { id: 'mostaza', nombre: 'Mostaza', categoria: 'Condimentos y Salsas', cantidad: 15, stockMinimo: 3, stockMaximo: 40, unidad: 'kg', precio: 8 },
+
+    { id: 'chicha-morada', nombre: 'Chicha morada preparada', categoria: 'Bebidas', cantidad: 60, stockMinimo: 10, stockMaximo: 150, unidad: 'lt', precio: 2 },
+    { id: 'maracuya', nombre: 'Maracuyá preparado', categoria: 'Bebidas', cantidad: 60, stockMinimo: 10, stockMaximo: 150, unidad: 'lt', precio: 2 },
+    { id: 'limonada-frozen', nombre: 'Limonada frozen preparada', categoria: 'Bebidas', cantidad: 50, stockMinimo: 10, stockMaximo: 120, unidad: 'lt', precio: 2 },
+    { id: 'gaseosa-3l', nombre: 'Gaseosa 3 L', categoria: 'Bebidas', cantidad: 30, stockMinimo: 6, stockMaximo: 80, unidad: 'und', precio: 8 },
+    { id: 'gaseosa-1-5l', nombre: 'Gaseosa 1.5 L', categoria: 'Bebidas', cantidad: 40, stockMinimo: 8, stockMaximo: 100, unidad: 'und', precio: 6 },
+    { id: 'gaseosa-1l', nombre: 'Gaseosa 1 L', categoria: 'Bebidas', cantidad: 40, stockMinimo: 8, stockMaximo: 100, unidad: 'und', precio: 4 },
+    { id: 'gaseosa-personal', nombre: 'Gaseosa personal', categoria: 'Bebidas', cantidad: 80, stockMinimo: 15, stockMaximo: 200, unidad: 'und', precio: 2 },
+    { id: 'agua-mineral', nombre: 'Agua mineral', categoria: 'Bebidas', cantidad: 80, stockMinimo: 15, stockMaximo: 200, unidad: 'und', precio: 1.5 },
+    { id: 'te', nombre: 'Té', categoria: 'Bebidas', cantidad: 50, stockMinimo: 10, stockMaximo: 120, unidad: 'und', precio: 0.5 },
+    { id: 'manzanilla', nombre: 'Manzanilla', categoria: 'Bebidas', cantidad: 50, stockMinimo: 10, stockMaximo: 120, unidad: 'und', precio: 0.5 },
+    { id: 'anis', nombre: 'Anís', categoria: 'Bebidas', cantidad: 50, stockMinimo: 10, stockMaximo: 120, unidad: 'und', precio: 0.5 },
+    { id: 'cafe', nombre: 'Café', categoria: 'Bebidas', cantidad: 30, stockMinimo: 6, stockMaximo: 80, unidad: 'kg', precio: 25 },
+    { id: 'vino-queirolo', nombre: 'Vino Santiago Queirolo', categoria: 'Bebidas', cantidad: 10, stockMinimo: 2, stockMaximo: 30, unidad: 'bot', precio: 25 },
+    { id: 'vino-tabernero', nombre: 'Vino Tabernero', categoria: 'Bebidas', cantidad: 10, stockMinimo: 2, stockMaximo: 30, unidad: 'bot', precio: 25 },
+
+    { id: 'envases-tecnopor', nombre: 'Envases para llevar', categoria: 'Descartables', cantidad: 300, stockMinimo: 50, stockMaximo: 800, unidad: 'und', precio: 0.4 },
+    { id: 'bolsas', nombre: 'Bolsas', categoria: 'Descartables', cantidad: 500, stockMinimo: 100, stockMaximo: 1000, unidad: 'und', precio: 0.1 },
+    { id: 'cubiertos-descartables', nombre: 'Cubiertos descartables', categoria: 'Descartables', cantidad: 300, stockMinimo: 50, stockMaximo: 800, unidad: 'und', precio: 0.15 },
+    { id: 'vasos-descartables', nombre: 'Vasos descartables', categoria: 'Descartables', cantidad: 300, stockMinimo: 50, stockMaximo: 800, unidad: 'und', precio: 0.12 },
+    { id: 'servilletas', nombre: 'Servilletas', categoria: 'Descartables', cantidad: 500, stockMinimo: 100, stockMaximo: 1200, unidad: 'und', precio: 0.05 }
   ];
 
   constructor() {
@@ -192,7 +244,7 @@ export class StockPage implements OnInit, OnDestroy {
     try {
       const snapshot = await getDocs(collection(this.firestore, 'inventario'));
 
-      if (snapshot.empty) {
+      if (snapshot.empty || snapshot.size < this.inventarioCarta.length) {
         await this.crearInventarioAutomatico();
       }
     } catch (error) {
@@ -203,10 +255,7 @@ export class StockPage implements OnInit, OnDestroy {
   cargarInventarioFirebase() {
     const inventarioRef = collection(this.firestore, 'inventario');
 
-    this.inventarioSub = collectionData(
-      inventarioRef,
-      { idField: 'id' }
-    ).subscribe({
+    this.inventarioSub = collectionData(inventarioRef, { idField: 'id' }).subscribe({
       next: (data: any[]) => {
         this.listaInsumos = (data || [])
           .filter(i => i.activo !== false)
@@ -223,9 +272,7 @@ export class StockPage implements OnInit, OnDestroy {
             fechaCreacion: i.fechaCreacion || null,
             fechaActualizacion: i.fechaActualizacion || null
           }))
-          .sort((a, b) =>
-            String(a.nombre || '').localeCompare(String(b.nombre || ''))
-          );
+          .sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || '')));
 
         this.calcularKPIs();
         this.buscar();
@@ -251,7 +298,7 @@ export class StockPage implements OnInit, OnDestroy {
 
       await Promise.all(promesas);
 
-      console.log('✅ Inventario inicial creado correctamente.');
+      console.log('✅ Inventario inicial sincronizado correctamente.');
 
     } catch (error) {
       console.error('Error creando inventario automático:', error);
@@ -259,6 +306,7 @@ export class StockPage implements OnInit, OnDestroy {
   }
 
   async actualizarInventario() {
+    await this.crearInventarioAutomatico();
     this.calcularKPIs();
     this.buscar();
   }
@@ -266,6 +314,7 @@ export class StockPage implements OnInit, OnDestroy {
   abrirFormulario() {
     this.limpiarFormulario();
     this.editando = false;
+    this.idInsumoEditando = null;
     this.mostrarFormulario = true;
   }
 
@@ -286,13 +335,13 @@ export class StockPage implements OnInit, OnDestroy {
 
     const c = cat.toLowerCase();
 
-    if (c.includes('carne') || c.includes('pollo') || c.includes('brasa') || c.includes('parrilla')) return '🍗';
-    if (c.includes('verdura') || c.includes('guarniciones')) return '🥬';
+    if (c.includes('carne') || c.includes('pollo')) return '🍗';
+    if (c.includes('verdura') || c.includes('ensalada')) return '🥬';
     if (c.includes('bebida') || c.includes('gaseosa') || c.includes('vino')) return '🥤';
-    if (c.includes('chifa')) return '🥡';
-    if (c.includes('sopa')) return '🍜';
-    if (c.includes('condimento')) return '🧂';
+    if (c.includes('chifa') || c.includes('arroz')) return '🥡';
+    if (c.includes('condimento') || c.includes('salsa')) return '🧂';
     if (c.includes('descartable')) return '🥡';
+    if (c.includes('guarnicion') || c.includes('guarniciones')) return '🍟';
 
     return '📦';
   }
@@ -340,14 +389,10 @@ export class StockPage implements OnInit, OnDestroy {
   calcularKPIs() {
     this.totalInsumos = this.listaInsumos.length;
 
-    this.totalCritico = this.listaInsumos.filter(
-      i => Number(i.cantidad) <= 0
-    ).length;
+    this.totalCritico = this.listaInsumos.filter(i => Number(i.cantidad) <= 0).length;
 
     this.totalBajo = this.listaInsumos.filter(
-      i =>
-        Number(i.cantidad) > 0 &&
-        Number(i.cantidad) <= Number(i.stockMinimo)
+      i => Number(i.cantidad) > 0 && Number(i.cantidad) <= Number(i.stockMinimo)
     ).length;
 
     this.totalOk = this.listaInsumos.filter(
@@ -355,18 +400,12 @@ export class StockPage implements OnInit, OnDestroy {
     ).length;
 
     this.valorInventario = this.listaInsumos.reduce(
-      (acc, i) =>
-        acc + ((Number(i.cantidad) || 0) * (Number(i.precio) || 0)),
+      (acc, i) => acc + ((Number(i.cantidad) || 0) * (Number(i.precio) || 0)),
       0
     );
 
-    this.productosSinStock = this.listaInsumos.filter(
-      i => Number(i.cantidad) <= 0
-    ).length;
-
-    this.productosValorizados = this.listaInsumos.filter(
-      i => Number(i.precio) > 0
-    ).length;
+    this.productosSinStock = this.listaInsumos.filter(i => Number(i.cantidad) <= 0).length;
+    this.productosValorizados = this.listaInsumos.filter(i => Number(i.precio) > 0).length;
   }
 
   async guardarInsumo() {
@@ -381,23 +420,8 @@ export class StockPage implements OnInit, OnDestroy {
       return;
     }
 
-    if (cantidad < 0) {
-      alert('La cantidad no puede ser negativa.');
-      return;
-    }
-
-    if (stockMinimo < 0) {
-      alert('El stock mínimo no puede ser negativo.');
-      return;
-    }
-
-    if (stockMaximo < 0) {
-      alert('El stock máximo no puede ser negativo.');
-      return;
-    }
-
-    if (precio < 0) {
-      alert('El precio no puede ser negativo.');
+    if (cantidad < 0 || stockMinimo < 0 || stockMaximo < 0 || precio < 0) {
+      alert('Los valores numéricos no pueden ser negativos.');
       return;
     }
 
@@ -415,21 +439,32 @@ export class StockPage implements OnInit, OnDestroy {
       };
 
       if (this.editando && this.idInsumoEditando) {
-        const ref = doc(this.firestore, 'inventario', this.idInsumoEditando);
+        const insumoAnterior = this.listaInsumos.find(i => i.id === this.idInsumoEditando);
+        const cantidadAnterior = Number(insumoAnterior?.cantidad || 0);
+        const diferencia = cantidad - cantidadAnterior;
 
+        const ref = doc(this.firestore, 'inventario', this.idInsumoEditando);
         await updateDoc(ref, dataToSave);
 
-        await this.registrarMovimientoInventario(
-          { id: this.idInsumoEditando, nombre },
-          'ajuste',
-          cantidad
-        );
+        if (diferencia !== 0) {
+          await this.registrarMovimientoInventario(
+            { id: this.idInsumoEditando, nombre },
+            'ajuste',
+            diferencia
+          );
+        }
 
       } else {
-        await addDoc(collection(this.firestore, 'inventario'), {
+        const docRef = await addDoc(collection(this.firestore, 'inventario'), {
           ...dataToSave,
           fechaCreacion: new Date()
         });
+
+        await this.registrarMovimientoInventario(
+          { id: docRef.id, nombre },
+          'entrada',
+          cantidad
+        );
       }
 
       this.cerrarFormulario();
@@ -456,15 +491,11 @@ export class StockPage implements OnInit, OnDestroy {
         fechaActualizacion: new Date()
       });
 
-      try {
-        await this.registrarMovimientoInventario(
-          insumo,
-          variacion > 0 ? 'entrada' : 'salida',
-          Math.abs(variacion)
-        );
-      } catch (error) {
-        console.warn('Stock actualizado, pero no se registró el movimiento:', error);
-      }
+      await this.registrarMovimientoInventario(
+        insumo,
+        variacion > 0 ? 'entrada' : 'salida',
+        Math.abs(variacion)
+      );
 
     } catch (error) {
       console.error('Error ajustando stock rápido:', error);
@@ -531,25 +562,15 @@ export class StockPage implements OnInit, OnDestroy {
       const nombre = String(i.nombre || '').toLowerCase();
       const categoria = String(i.categoria || '').toLowerCase();
 
-      const matchTexto =
-        !q ||
-        nombre.includes(q) ||
-        categoria.includes(q);
-
-      const matchAlerta =
-        !this.soloAlertas ||
-        Number(i.cantidad) <= Number(i.stockMinimo);
+      const matchTexto = !q || nombre.includes(q) || categoria.includes(q);
+      const matchAlerta = !this.soloAlertas || Number(i.cantidad) <= Number(i.stockMinimo);
 
       return matchTexto && matchAlerta;
     });
   }
 
   generarOrdenCompra() {
-    const faltantes = this.listaInsumos.filter(
-      i => Number(i.cantidad) <= Number(i.stockMinimo)
-    );
-
-    console.log('Orden de compra sugerida:', faltantes);
+    const faltantes = this.listaInsumos.filter(i => Number(i.cantidad) <= Number(i.stockMinimo));
 
     if (faltantes.length === 0) {
       alert('No hay insumos bajos o críticos.');
@@ -605,6 +626,8 @@ export class StockPage implements OnInit, OnDestroy {
   }
 
   aplicarEstilosExcel(worksheet: any) {
+    if (!worksheet['!ref']) return;
+
     const rango = XLSX.utils.decode_range(worksheet['!ref']);
 
     for (let row = rango.s.r; row <= rango.e.r; row++) {
@@ -614,16 +637,8 @@ export class StockPage implements OnInit, OnDestroy {
         if (!worksheet[cellAddress]) continue;
 
         worksheet[cellAddress].s = {
-          alignment: {
-            horizontal: 'center',
-            vertical: 'center',
-            wrapText: true
-          },
-          font: {
-            name: 'Calibri',
-            sz: 11,
-            color: { rgb: '111827' }
-          },
+          alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          font: { name: 'Calibri', sz: 11, color: { rgb: '111827' } },
           border: {
             top: { style: 'thin', color: { rgb: 'D1D5DB' } },
             bottom: { style: 'thin', color: { rgb: 'D1D5DB' } },
@@ -634,20 +649,9 @@ export class StockPage implements OnInit, OnDestroy {
 
         if (row === 0) {
           worksheet[cellAddress].s = {
-            alignment: {
-              horizontal: 'center',
-              vertical: 'center',
-              wrapText: true
-            },
-            font: {
-              name: 'Calibri',
-              sz: 12,
-              bold: true,
-              color: { rgb: 'FFFFFF' }
-            },
-            fill: {
-              fgColor: { rgb: '7C3AED' }
-            },
+            alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+            font: { name: 'Calibri', sz: 12, bold: true, color: { rgb: 'FFFFFF' } },
+            fill: { fgColor: { rgb: '7C3AED' } },
             border: {
               top: { style: 'thin', color: { rgb: '6D28D9' } },
               bottom: { style: 'thin', color: { rgb: '6D28D9' } },
@@ -675,12 +679,7 @@ export class StockPage implements OnInit, OnDestroy {
           worksheet[cellAddress].z = '"S/ "#,##0.00';
           worksheet[cellAddress].s = {
             ...worksheet[cellAddress].s,
-            font: {
-              name: 'Calibri',
-              sz: 11,
-              bold: true,
-              color: { rgb: '111827' }
-            }
+            font: { name: 'Calibri', sz: 11, bold: true, color: { rgb: '111827' } }
           };
         }
       });
@@ -689,10 +688,7 @@ export class StockPage implements OnInit, OnDestroy {
 
   async descargarExcelAndroid(workbook: XLSX.WorkBook, nombreArchivo: string) {
     try {
-      const excelBase64 = XLSX.write(workbook, {
-        bookType: 'xlsx',
-        type: 'base64'
-      });
+      const excelBase64 = XLSX.write(workbook, { bookType: 'xlsx', type: 'base64' });
 
       const resultado = await Filesystem.writeFile({
         path: nombreArchivo,
@@ -708,19 +704,14 @@ export class StockPage implements OnInit, OnDestroy {
         dialogTitle: 'Guardar o compartir Excel'
       });
 
-      console.log('✅ Excel exportado en Android:', resultado.uri);
-
     } catch (error) {
-      console.error('❌ Error exportando en Android:', error);
+      console.error('❌ Error exportando Excel en Android:', error);
       this.descargarExcelWeb(workbook, nombreArchivo);
     }
   }
 
   descargarExcelWeb(workbook: XLSX.WorkBook, nombreArchivo: string) {
-    const excelBuffer = XLSX.write(workbook, {
-      bookType: 'xlsx',
-      type: 'array'
-    });
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
 
     const blob = new Blob([excelBuffer], {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
@@ -732,11 +723,9 @@ export class StockPage implements OnInit, OnDestroy {
     document.body.appendChild(enlace);
     enlace.click();
     document.body.removeChild(enlace);
-
-    console.log('✅ Excel descargado en PC/navegador:', nombreArchivo);
   }
 
-  exportarInventarioPDF() {
+  async exportarInventarioPDF() {
     const docPdf = new jsPDF('landscape', 'mm', 'a4');
 
     docPdf.setFontSize(16);
@@ -776,18 +765,44 @@ export class StockPage implements OnInit, OnDestroy {
         'Estado'
       ]],
       body: filas,
-      styles: {
-        fontSize: 8
-      },
+      styles: { fontSize: 8 },
       headStyles: {
         fillColor: [126, 58, 242],
         textColor: [255, 255, 255]
       }
     });
 
-    docPdf.save(
-      `inventario_${new Date().toISOString().slice(0, 10)}.pdf`
-    );
+    const nombreArchivo = `inventario_${new Date().toISOString().slice(0, 10)}.pdf`;
+
+    if (Capacitor.isNativePlatform()) {
+      await this.descargarPDFAndroid(docPdf, nombreArchivo);
+    } else {
+      docPdf.save(nombreArchivo);
+    }
+  }
+
+  async descargarPDFAndroid(docPdf: jsPDF, nombreArchivo: string) {
+    try {
+      const pdfBase64 = docPdf.output('datauristring').split(',')[1];
+
+      const resultado = await Filesystem.writeFile({
+        path: nombreArchivo,
+        data: pdfBase64,
+        directory: Directory.Documents,
+        recursive: true
+      });
+
+      await Share.share({
+        title: 'Reporte de inventario',
+        text: 'Reporte PDF generado desde Pollería Dylan.',
+        url: resultado.uri,
+        dialogTitle: 'Guardar o compartir PDF'
+      });
+
+    } catch (error) {
+      console.error('❌ Error exportando PDF en Android:', error);
+      alert('No se pudo exportar el PDF en Android.');
+    }
   }
 
   limpiarFormulario() {

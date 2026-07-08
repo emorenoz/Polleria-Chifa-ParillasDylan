@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -29,20 +29,29 @@ import {
 
 import { addIcons } from 'ionicons';
 import {
-  create, trash, arrowBack,
-  addOutline, closeOutline, pencilOutline, trashOutline, ellipsisVertical, folderOpenOutline
+  create,
+  trash,
+  arrowBack,
+  addOutline,
+  closeOutline,
+  pencilOutline,
+  trashOutline,
+  ellipsisVertical,
+  folderOpenOutline
 } from 'ionicons/icons';
 
 import {
   Firestore,
   collection,
-  addDoc,
   getDocs,
   updateDoc,
   deleteDoc,
   doc,
-  setDoc
+  setDoc,
+  collectionData
 } from '@angular/fire/firestore';
+
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-categorias',
@@ -76,52 +85,82 @@ import {
     IonMenuButton
   ]
 })
-export class CategoriasPage implements OnInit {
+export class CategoriasPage implements OnInit, OnDestroy {
 
   private firestore = inject(Firestore);
 
-  fechaActual: string = '';
-  mostrarFormulario: boolean = false;
+  private categoriasSub?: Subscription;
+  private productosSub?: Subscription;
+
+  fechaActual = '';
+  mostrarFormulario = false;
 
   nuevaCategoria = {
     nombre: '',
-    emoji: ''
+    emoji: '',
+    activo: true
   };
 
-  editando: boolean = false;
+  editando = false;
   idCategoriaEditando: string | null = null;
-  textoBuscar: string = '';
+  textoBuscar = '';
 
   listaCategorias: any[] = [];
   categoriasFiltradas: any[] = [];
+  listaProductos: any[] = [];
+
+  totalCategorias = 0;
+  totalActivas = 0;
+  totalInactivas = 0;
+  totalProductosCarta = 0;
+
+  categoriasPermitidas = [
+    'cat_chifa',
+    'cat_pollos',
+    'cat_parrillas',
+    'cat_criollos',
+    'cat_guarniciones',
+    'cat_bebidas'
+  ];
 
   categoriasCarta: any[] = [
-    { id: 'sopas-chifa', nombre: 'Sopas Chifa', emoji: '🍜', cantidadProductos: 3, activo: true },
-    { id: 'chifa-a-la-carta', nombre: 'Chifa a la Carta', emoji: '🥡', cantidadProductos: 33, activo: true },
-    { id: 'pollo-a-la-brasa', nombre: 'Pollo a la Brasa', emoji: '🍗', cantidadProductos: 10, activo: true },
-    { id: 'ofertas-familiares', nombre: 'Ofertas Familiares', emoji: '🎉', cantidadProductos: 7, activo: true },
-    { id: 'mostros-brasa', nombre: 'Mostros Brasa', emoji: '🍛', cantidadProductos: 9, activo: true },
-    { id: 'mas-ofertas', nombre: 'Más Ofertas', emoji: '🔥', cantidadProductos: 6, activo: true },
-    { id: 'brasa-a-lo-pobre', nombre: 'Brasa a lo Pobre', emoji: '🍳', cantidadProductos: 7, activo: true },
-    { id: 'parrillas', nombre: 'Parrillas', emoji: '🥩', cantidadProductos: 12, activo: true },
-    { id: 'ofertas-parrilleras', nombre: 'Ofertas Parrilleras', emoji: '🍖', cantidadProductos: 7, activo: true },
-    { id: 'platos-criollos', nombre: 'Platos Criollos', emoji: '🍽️', cantidadProductos: 13, activo: true },
-    { id: 'guarniciones', nombre: 'Guarniciones', emoji: '🍟', cantidadProductos: 11, activo: true },
-    { id: 'bebidas-frias', nombre: 'Bebidas Frías', emoji: '🥤', cantidadProductos: 17, activo: true },
-    { id: 'bebidas-calientes', nombre: 'Bebidas Calientes', emoji: '☕', cantidadProductos: 4, activo: true },
-    { id: 'vinos', nombre: 'Vinos', emoji: '🍷', cantidadProductos: 2, activo: true }
+    { id: 'cat_chifa', nombre: 'Chifa', emoji: '🥡', cantidadProductos: 0, activo: true, orden: 1 },
+    { id: 'cat_pollos', nombre: 'Pollos', emoji: '🍗', cantidadProductos: 0, activo: true, orden: 2 },
+    { id: 'cat_parrillas', nombre: 'Parrillas', emoji: '🥩', cantidadProductos: 0, activo: true, orden: 3 },
+    { id: 'cat_criollos', nombre: 'Criollos', emoji: '🍽️', cantidadProductos: 0, activo: true, orden: 4 },
+    { id: 'cat_guarniciones', nombre: 'Guarniciones', emoji: '🍟', cantidadProductos: 0, activo: true, orden: 5 },
+    { id: 'cat_bebidas', nombre: 'Bebidas', emoji: '🥤', cantidadProductos: 0, activo: true, orden: 6 }
   ];
 
   constructor() {
     addIcons({
-      create, trash, arrowBack,
-      addOutline, closeOutline, pencilOutline, trashOutline, ellipsisVertical, folderOpenOutline
+      create,
+      trash,
+      arrowBack,
+      addOutline,
+      closeOutline,
+      pencilOutline,
+      trashOutline,
+      ellipsisVertical,
+      folderOpenOutline
     });
   }
 
   async ngOnInit() {
     this.configurarFecha();
+
     await this.cargarCategoriasFirebase();
+    await this.migrarProductosCategoriasAntiguas();
+    await this.limpiarCategoriasObsoletas();
+    await this.actualizarCantidadProductos();
+
+    this.escucharCategoriasTiempoReal();
+    this.escucharProductosTiempoReal();
+  }
+
+  ngOnDestroy() {
+    this.categoriasSub?.unsubscribe();
+    this.productosSub?.unsubscribe();
   }
 
   configurarFecha() {
@@ -136,9 +175,7 @@ export class CategoriasPage implements OnInit {
   }
 
   abrirFormulario() {
-    this.limpiarFormulario();
-    this.editando = false;
-    this.mostrarFormulario = true;
+    alert('En producción solo se editan las categorías principales. No se pueden crear categorías nuevas.');
   }
 
   cerrarFormulario() {
@@ -150,9 +187,7 @@ export class CategoriasPage implements OnInit {
 
   async cargarCategoriasFirebase() {
     try {
-      const querySnapshot = await getDocs(
-        collection(this.firestore, 'categorias')
-      );
+      const querySnapshot = await getDocs(collection(this.firestore, 'categorias'));
 
       this.listaCategorias = [];
 
@@ -163,17 +198,156 @@ export class CategoriasPage implements OnInit {
         });
       });
 
-      if (this.listaCategorias.length === 0) {
-        await this.crearCategoriasAutomaticas();
-        return;
-      }
+      await this.sincronizarCategoriasBase();
 
-      this.categoriasFiltradas = [...this.listaCategorias];
+      this.listaCategorias = this.listaCategorias.filter(categoria =>
+        this.categoriasPermitidas.includes(categoria.id)
+      );
+
+      this.ordenarCategorias();
+      this.buscar();
+      this.calcularKPIs();
 
       console.log('✅ Categorías cargadas:', this.listaCategorias.length);
 
     } catch (error) {
       console.error('❌ Error cargando categorías:', error);
+    }
+  }
+
+  escucharCategoriasTiempoReal() {
+    const categoriasRef = collection(this.firestore, 'categorias');
+
+    this.categoriasSub = collectionData(categoriasRef, { idField: 'id' }).subscribe({
+      next: (categorias: any[]) => {
+        this.listaCategorias = categorias
+          .filter(categoria => this.categoriasPermitidas.includes(categoria.id))
+          .map(categoria => ({
+            ...categoria,
+            nombre: categoria.nombre || 'Sin nombre',
+            emoji: categoria.emoji || '📁',
+            cantidadProductos: Number(categoria.cantidadProductos || 0),
+            activo: categoria.activo !== false,
+            orden: Number(categoria.orden || this.obtenerOrdenCategoria(categoria.id))
+          }));
+
+        this.actualizarCantidadProductosLocal();
+        this.ordenarCategorias();
+        this.buscar();
+        this.calcularKPIs();
+      },
+      error: (error) => {
+        console.error('❌ Error escuchando categorías:', error);
+      }
+    });
+  }
+
+  escucharProductosTiempoReal() {
+    const productosRef = collection(this.firestore, 'productos');
+
+    this.productosSub = collectionData(productosRef, { idField: 'id' }).subscribe({
+      next: async (productos: any[]) => {
+        this.listaProductos = productos.map(producto => ({
+          ...producto,
+          categoriaId: this.normalizarCategoriaProducto(producto.categoriaId),
+          activo: producto.activo !== false
+        }));
+
+        this.actualizarCantidadProductosLocal();
+        this.ordenarCategorias();
+        this.buscar();
+        this.calcularKPIs();
+
+        await this.actualizarCantidadProductosFirebase();
+      },
+      error: (error) => {
+        console.error('❌ Error escuchando productos:', error);
+      }
+    });
+  }
+
+  async sincronizarCategoriasBase() {
+    try {
+      for (const categoria of this.categoriasCarta) {
+        const existe = this.listaCategorias.some(c => c.id === categoria.id);
+        const categoriaRef = doc(this.firestore, 'categorias', categoria.id);
+
+        if (!existe) {
+          await setDoc(categoriaRef, {
+            nombre: categoria.nombre,
+            emoji: categoria.emoji,
+            cantidadProductos: 0,
+            activo: true,
+            orden: categoria.orden,
+            creadoEn: new Date(),
+            actualizadoEn: new Date()
+          });
+
+          this.listaCategorias.push({ ...categoria });
+        } else {
+          await setDoc(categoriaRef, {
+            nombre: categoria.nombre,
+            emoji: categoria.emoji,
+            orden: categoria.orden,
+            actualizadoEn: new Date()
+          }, { merge: true });
+        }
+      }
+
+      console.log('✅ Categorías base sincronizadas.');
+
+    } catch (error) {
+      console.error('❌ Error sincronizando categorías base:', error);
+    }
+  }
+
+  async migrarProductosCategoriasAntiguas() {
+    try {
+      const productosSnapshot = await getDocs(collection(this.firestore, 'productos'));
+
+      for (const documento of productosSnapshot.docs) {
+        const producto: any = documento.data();
+        const categoriaActual = producto.categoriaId;
+        const nuevaCategoriaId = this.normalizarCategoriaProducto(categoriaActual);
+
+        if (categoriaActual !== nuevaCategoriaId) {
+          await updateDoc(doc(this.firestore, 'productos', documento.id), {
+            categoriaId: nuevaCategoriaId,
+            categoria: this.obtenerNombreCategoria(nuevaCategoriaId),
+            actualizadoEn: new Date()
+          });
+
+          console.log(`🔁 Producto migrado: ${producto.nombre || documento.id} → ${nuevaCategoriaId}`);
+        }
+      }
+
+      console.log('✅ Migración de productos finalizada.');
+
+    } catch (error) {
+      console.error('❌ Error migrando productos antiguos:', error);
+    }
+  }
+
+  async limpiarCategoriasObsoletas() {
+    try {
+      const snapshot = await getDocs(collection(this.firestore, 'categorias'));
+
+      for (const documento of snapshot.docs) {
+        if (!this.categoriasPermitidas.includes(documento.id)) {
+          await deleteDoc(doc(this.firestore, 'categorias', documento.id));
+          console.log('🗑 Categoría antigua eliminada:', documento.id);
+        }
+      }
+
+      this.listaCategorias = this.listaCategorias.filter(categoria =>
+        this.categoriasPermitidas.includes(categoria.id)
+      );
+
+      this.buscar();
+      this.calcularKPIs();
+
+    } catch (error) {
+      console.error('❌ Error limpiando categorías obsoletas:', error);
     }
   }
 
@@ -185,13 +359,19 @@ export class CategoriasPage implements OnInit {
         await setDoc(categoriaRef, {
           nombre: categoria.nombre,
           emoji: categoria.emoji,
-          cantidadProductos: categoria.cantidadProductos,
-          activo: categoria.activo
-        });
+          cantidadProductos: 0,
+          activo: true,
+          orden: categoria.orden,
+          creadoEn: new Date(),
+          actualizadoEn: new Date()
+        }, { merge: true });
       }
 
       this.listaCategorias = [...this.categoriasCarta];
-      this.categoriasFiltradas = [...this.listaCategorias];
+      this.actualizarCantidadProductosLocal();
+      this.ordenarCategorias();
+      this.buscar();
+      this.calcularKPIs();
 
       console.log('✅ Categorías automáticas creadas:', this.listaCategorias.length);
 
@@ -200,43 +380,106 @@ export class CategoriasPage implements OnInit {
     }
   }
 
-  async guardarCategoria() {
-    if (!this.nuevaCategoria.nombre.trim() || !this.nuevaCategoria.emoji.trim()) return;
+  actualizarCantidadProductosLocal() {
+    this.listaCategorias = this.listaCategorias.map(categoria => {
+      const cantidad = this.listaProductos.filter(producto =>
+        this.normalizarCategoriaProducto(producto.categoriaId) === categoria.id &&
+        producto.activo !== false
+      ).length;
 
+      return {
+        ...categoria,
+        cantidadProductos: cantidad
+      };
+    });
+
+    this.totalProductosCarta = this.listaProductos.filter(producto =>
+      producto.activo !== false
+    ).length;
+  }
+
+  async actualizarCantidadProductos() {
     try {
-      if (this.editando && this.idCategoriaEditando !== null) {
-        const categoriaRef = doc(this.firestore, 'categorias', this.idCategoriaEditando);
+      const productosSnapshot = await getDocs(collection(this.firestore, 'productos'));
+
+      this.listaProductos = [];
+
+      productosSnapshot.forEach((documento) => {
+        const producto: any = documento.data();
+
+        this.listaProductos.push({
+          id: documento.id,
+          ...producto,
+          categoriaId: this.normalizarCategoriaProducto(producto.categoriaId),
+          activo: producto.activo !== false
+        });
+      });
+
+      this.actualizarCantidadProductosLocal();
+      await this.actualizarCantidadProductosFirebase();
+
+      console.log('✅ Cantidad de productos actualizada.');
+
+    } catch (error) {
+      console.error('❌ Error actualizando cantidad de productos:', error);
+    }
+  }
+
+  async actualizarCantidadProductosFirebase() {
+    try {
+      for (const categoria of this.listaCategorias) {
+        if (!this.categoriasPermitidas.includes(categoria.id)) continue;
+
+        const categoriaRef = doc(this.firestore, 'categorias', categoria.id);
 
         await updateDoc(categoriaRef, {
-          nombre: this.nuevaCategoria.nombre.trim(),
-          emoji: this.nuevaCategoria.emoji.trim()
-        });
-
-        const index = this.listaCategorias.findIndex(c => c.id === this.idCategoriaEditando);
-
-        if (index !== -1) {
-          this.listaCategorias[index].nombre = this.nuevaCategoria.nombre.trim();
-          this.listaCategorias[index].emoji = this.nuevaCategoria.emoji.trim();
-        }
-
-      } else {
-        const docRef = await addDoc(collection(this.firestore, 'categorias'), {
-          nombre: this.nuevaCategoria.nombre.trim(),
-          emoji: this.nuevaCategoria.emoji.trim(),
-          cantidadProductos: 0,
-          activo: true
-        });
-
-        this.listaCategorias.push({
-          id: docRef.id,
-          nombre: this.nuevaCategoria.nombre.trim(),
-          emoji: this.nuevaCategoria.emoji.trim(),
-          cantidadProductos: 0,
-          activo: true
+          cantidadProductos: Number(categoria.cantidadProductos || 0),
+          actualizadoEn: new Date()
         });
       }
+    } catch (error) {
+      console.error('❌ Error guardando cantidad de productos en categorías:', error);
+    }
+  }
 
+  calcularKPIs() {
+    const categoriasBase = this.listaCategorias.filter(categoria =>
+      this.categoriasPermitidas.includes(categoria.id)
+    );
+
+    this.totalCategorias = categoriasBase.length;
+    this.totalActivas = categoriasBase.filter(categoria => categoria.activo !== false).length;
+    this.totalInactivas = categoriasBase.filter(categoria => categoria.activo === false).length;
+    this.totalProductosCarta = this.listaProductos.filter(producto => producto.activo !== false).length;
+  }
+
+  async guardarCategoria() {
+    if (!this.editando || this.idCategoriaEditando === null) {
+      alert('En producción solo se editan las categorías principales. No se pueden crear categorías nuevas.');
+      return;
+    }
+
+    if (!this.nuevaCategoria.nombre.trim() || !this.nuevaCategoria.emoji.trim()) return;
+
+    if (!this.categoriasPermitidas.includes(this.idCategoriaEditando)) {
+      alert('Esta categoría no pertenece a las categorías principales del sistema.');
+      return;
+    }
+
+    try {
+      const dataCategoria = {
+        nombre: this.nuevaCategoria.nombre.trim(),
+        emoji: this.nuevaCategoria.emoji.trim(),
+        activo: this.nuevaCategoria.activo !== false,
+        actualizadoEn: new Date()
+      };
+
+      const categoriaRef = doc(this.firestore, 'categorias', this.idCategoriaEditando);
+      await updateDoc(categoriaRef, dataCategoria);
+
+      this.ordenarCategorias();
       this.buscar();
+      this.calcularKPIs();
       this.cerrarFormulario();
 
     } catch (error) {
@@ -245,12 +488,18 @@ export class CategoriasPage implements OnInit {
   }
 
   seleccionarCategoria(categoria: any) {
+    if (!this.categoriasPermitidas.includes(categoria.id)) {
+      alert('Esta categoría no pertenece a las categorías principales.');
+      return;
+    }
+
     this.editando = true;
     this.idCategoriaEditando = categoria.id;
 
     this.nuevaCategoria = {
       nombre: categoria.nombre,
-      emoji: categoria.emoji
+      emoji: categoria.emoji,
+      activo: categoria.activo !== false
     };
 
     this.mostrarFormulario = true;
@@ -263,35 +512,146 @@ export class CategoriasPage implements OnInit {
   }
 
   async eliminarCategoria(id: string) {
+    if (!this.categoriasPermitidas.includes(id)) return;
+
+    const confirmar = confirm('¿Deseas desactivar esta categoría? No se eliminará definitivamente.');
+
+    if (!confirmar) return;
+
     try {
-      await deleteDoc(doc(this.firestore, 'categorias', id));
+      const categoriaRef = doc(this.firestore, 'categorias', id);
 
-      this.listaCategorias = this.listaCategorias.filter(categoria => categoria.id !== id);
-
-      this.buscar();
+      await updateDoc(categoriaRef, {
+        activo: false,
+        actualizadoEn: new Date()
+      });
 
     } catch (error) {
-      console.error('❌ Error eliminando categoría:', error);
+      console.error('❌ Error desactivando categoría:', error);
+    }
+  }
+
+  async activarCategoria(categoria: any) {
+    if (!this.categoriasPermitidas.includes(categoria.id)) return;
+
+    try {
+      const categoriaRef = doc(this.firestore, 'categorias', categoria.id);
+
+      await updateDoc(categoriaRef, {
+        activo: true,
+        actualizadoEn: new Date()
+      });
+
+    } catch (error) {
+      console.error('❌ Error activando categoría:', error);
+    }
+  }
+
+  async cambiarEstadoCategoria(categoria: any) {
+    if (!this.categoriasPermitidas.includes(categoria.id)) return;
+
+    try {
+      const nuevoEstado = categoria.activo === false;
+      const categoriaRef = doc(this.firestore, 'categorias', categoria.id);
+
+      await updateDoc(categoriaRef, {
+        activo: nuevoEstado,
+        actualizadoEn: new Date()
+      });
+
+    } catch (error) {
+      console.error('❌ Error cambiando estado de categoría:', error);
     }
   }
 
   buscar() {
     const q = this.textoBuscar.toLowerCase().trim();
 
+    const categoriasBase = this.listaCategorias.filter(categoria =>
+      this.categoriasPermitidas.includes(categoria.id)
+    );
+
     if (!q) {
-      this.categoriasFiltradas = [...this.listaCategorias];
-    } else {
-      this.categoriasFiltradas = this.listaCategorias.filter(
-        categoria => categoria.nombre.toLowerCase().includes(q)
-      );
+      this.categoriasFiltradas = [...categoriasBase];
+      return;
     }
+
+    this.categoriasFiltradas = categoriasBase.filter(categoria =>
+      String(categoria.nombre || '').toLowerCase().includes(q) ||
+      String(categoria.id || '').toLowerCase().includes(q)
+    );
+  }
+
+  ordenarCategorias() {
+    this.listaCategorias.sort((a, b) => {
+      const indexA = this.categoriasPermitidas.indexOf(a.id);
+      const indexB = this.categoriasPermitidas.indexOf(b.id);
+
+      if (indexA === -1 && indexB === -1) {
+        return String(a.nombre || '').localeCompare(String(b.nombre || ''));
+      }
+
+      if (indexA === -1) return 1;
+      if (indexB === -1) return -1;
+
+      return indexA - indexB;
+    });
+  }
+
+  obtenerOrdenCategoria(id: string): number {
+    const index = this.categoriasPermitidas.indexOf(id);
+    return index === -1 ? 999 : index + 1;
+  }
+
+  obtenerNombreCategoria(id: string): string {
+    switch (id) {
+      case 'cat_chifa': return 'Chifa';
+      case 'cat_pollos': return 'Pollos';
+      case 'cat_parrillas': return 'Parrillas';
+      case 'cat_criollos': return 'Criollos';
+      case 'cat_guarniciones': return 'Guarniciones';
+      case 'cat_bebidas': return 'Bebidas';
+      default: return 'Extras';
+    }
+  }
+
+  normalizarCategoriaProducto(categoriaId: any): string {
+    const id = String(categoriaId || '').trim();
+
+    const mapaCategoriasAntiguas: any = {
+      'sopas-chifa': 'cat_chifa',
+      'chifa-a-la-carta': 'cat_chifa',
+      'mostros-brasa': 'cat_chifa',
+
+      'pollo-a-la-brasa': 'cat_pollos',
+      'ofertas-familiares': 'cat_pollos',
+      'mas-ofertas': 'cat_pollos',
+      'brasa-a-lo-pobre': 'cat_pollos',
+
+      'parrillas': 'cat_parrillas',
+      'ofertas-parrilleras': 'cat_parrillas',
+
+      'platos-criollos': 'cat_criollos',
+
+      'guarniciones': 'cat_guarniciones',
+
+      'bebidas-frias': 'cat_bebidas',
+      'bebidas-calientes': 'cat_bebidas',
+      'vinos': 'cat_bebidas'
+    };
+
+    if (this.categoriasPermitidas.includes(id)) {
+      return id;
+    }
+
+    return mapaCategoriasAntiguas[id] || 'cat_chifa';
   }
 
   limpiarFormulario() {
     this.nuevaCategoria = {
       nombre: '',
-      emoji: ''
+      emoji: '',
+      activo: true
     };
   }
-
 }

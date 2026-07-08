@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -31,8 +31,15 @@ import {
 
 import { addIcons } from 'ionicons';
 import {
-  fastFood, create, trash, arrowBack,
-  searchOutline, addOutline, closeOutline, pencilOutline, trashOutline
+  fastFood,
+  create,
+  trash,
+  arrowBack,
+  searchOutline,
+  addOutline,
+  closeOutline,
+  pencilOutline,
+  trashOutline
 } from 'ionicons/icons';
 
 import {
@@ -41,10 +48,12 @@ import {
   addDoc,
   getDocs,
   updateDoc,
-  deleteDoc,
   doc,
-  setDoc
+  setDoc,
+  collectionData
 } from '@angular/fire/firestore';
+
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-productos',
@@ -81,9 +90,10 @@ import {
     IonMenuButton
   ]
 })
-export class ProductosPage implements OnInit {
+export class ProductosPage implements OnInit, OnDestroy {
 
   private firestore = inject(Firestore);
+  private productosSub?: Subscription;
 
   fechaActual: string = '';
   mostrarFormulario: boolean = false;
@@ -100,7 +110,8 @@ export class ProductosPage implements OnInit {
     nombre: '',
     precio: null as number | null,
     stock: null as number | null,
-    categoriaId: ''
+    categoriaId: '',
+    activo: true
   };
 
   editando: boolean = false;
@@ -256,14 +267,26 @@ export class ProductosPage implements OnInit {
 
   constructor() {
     addIcons({
-      fastFood, create, trash, arrowBack,
-      searchOutline, addOutline, closeOutline, pencilOutline, trashOutline
+      fastFood,
+      create,
+      trash,
+      arrowBack,
+      searchOutline,
+      addOutline,
+      closeOutline,
+      pencilOutline,
+      trashOutline
     });
   }
 
   async ngOnInit() {
     this.configurarFecha();
-    await this.cargarProductosFirebase();
+    await this.completarCartaSemilla();
+    this.escucharProductosTiempoReal();
+  }
+
+  ngOnDestroy() {
+    this.productosSub?.unsubscribe();
   }
 
   configurarFecha() {
@@ -273,6 +296,7 @@ export class ProductosPage implements OnInit {
       month: 'long',
       day: 'numeric'
     };
+
     this.fechaActual = new Date().toLocaleDateString('es-PE', opciones);
   }
 
@@ -331,78 +355,110 @@ export class ProductosPage implements OnInit {
     }
   }
 
-  calcularKPIs() {
-    this.totalProductos = this.listaProductos.length;
-    this.totalDisponibles = this.listaProductos.filter(p => p.stock === null || p.stock > 0).length;
-    this.totalNoDisponibles = this.listaProductos.filter(p => p.stock === 0).length;
-    this.totalStockBajo = this.listaProductos.filter(p => p.stock !== null && p.stock > 0 && p.stock <= 10).length;
-  }
-
-  async cargarProductosFirebase() {
+  async completarCartaSemilla() {
     try {
       const snapshot = await getDocs(collection(this.firestore, 'productos'));
-      this.listaProductos = [];
 
-      snapshot.forEach(docSnap => {
-        this.listaProductos.push({
-          id: docSnap.id,
-          ...docSnap.data()
-        });
-      });
-
-      if (this.listaProductos.length < this.cartaSemilla.length) {
+      if (snapshot.size < this.cartaSemilla.length) {
         console.log('🚚 Completando productos faltantes de la carta oficial...');
 
         for (const prod of this.cartaSemilla) {
           const productoRef = doc(this.firestore, 'productos', prod.id);
           const { id, ...dataProducto } = prod;
 
-          await setDoc(productoRef, dataProducto, { merge: true });
+          await setDoc(productoRef, {
+            ...dataProducto,
+            categoria: this.obtenerNombreCategoria(dataProducto.categoriaId),
+            activo: dataProducto.activo ?? true,
+            actualizadoEn: new Date()
+          }, { merge: true });
         }
-
-        const snapshotActualizado = await getDocs(collection(this.firestore, 'productos'));
-        this.listaProductos = [];
-
-        snapshotActualizado.forEach(docSnap => {
-          this.listaProductos.push({
-            id: docSnap.id,
-            ...docSnap.data()
-          });
-        });
       }
 
-      this.buscar();
-
     } catch (error) {
-      console.error('❌ Error cargando productos:', error);
+      console.error('❌ Error completando carta semilla:', error);
     }
   }
 
+  escucharProductosTiempoReal() {
+    const productosRef = collection(this.firestore, 'productos');
+
+    this.productosSub = collectionData(productosRef, { idField: 'id' }).subscribe({
+      next: (productos: any[]) => {
+        this.listaProductos = productos
+          .map(p => ({
+            ...p,
+            nombre: p.nombre || '',
+            precio: Number(p.precio ?? 0),
+            stock: p.stock === undefined ? null : p.stock,
+            categoriaId: p.categoriaId || 'cat_extras',
+            categoria: p.categoria || this.obtenerNombreCategoria(p.categoriaId),
+            activo: p.activo !== false
+          }))
+          .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+        this.buscar();
+      },
+      error: (error) => {
+        console.error('❌ Error escuchando productos:', error);
+      }
+    });
+  }
+
+  calcularKPIs() {
+    this.totalProductos = this.listaProductos.length;
+
+    this.totalDisponibles = this.listaProductos.filter(p =>
+      p.activo !== false && (p.stock === null || p.stock > 0)
+    ).length;
+
+    this.totalNoDisponibles = this.listaProductos.filter(p =>
+      p.activo === false || p.stock === 0
+    ).length;
+
+    this.totalStockBajo = this.listaProductos.filter(p =>
+      p.activo !== false &&
+      p.stock !== null &&
+      p.stock > 0 &&
+      p.stock <= 10
+    ).length;
+  }
+
   async guardarProducto() {
-    if (!this.nuevoProducto.nombre.trim() || !this.nuevoProducto.precio || !this.nuevoProducto.categoriaId) return;
+    const precioValido =
+      this.nuevoProducto.precio !== null &&
+      this.nuevoProducto.precio !== undefined &&
+      Number(this.nuevoProducto.precio) >= 0;
+
+    if (!this.nuevoProducto.nombre.trim() || !precioValido || !this.nuevoProducto.categoriaId) {
+      return;
+    }
 
     try {
       const dataPayload = {
         nombre: this.nuevoProducto.nombre.trim(),
         precio: Number(this.nuevoProducto.precio),
-        stock: (this.nuevoProducto.stock !== null && this.nuevoProducto.stock !== undefined && String(this.nuevoProducto.stock).trim() !== '') ? Number(this.nuevoProducto.stock) : null,
-        categoriaId: this.nuevoProducto.categoriaId
+        stock: (
+          this.nuevoProducto.stock !== null &&
+          this.nuevoProducto.stock !== undefined &&
+          String(this.nuevoProducto.stock).trim() !== ''
+        ) ? Number(this.nuevoProducto.stock) : null,
+        categoriaId: this.nuevoProducto.categoriaId,
+        categoria: this.obtenerNombreCategoria(this.nuevoProducto.categoriaId),
+        activo: this.nuevoProducto.activo !== false,
+        actualizadoEn: new Date()
       };
 
       if (this.editando && this.idProductoEditando) {
         const ref = doc(this.firestore, 'productos', this.idProductoEditando);
         await updateDoc(ref, dataPayload);
-
-        const index = this.listaProductos.findIndex(p => p.id === this.idProductoEditando);
-        if (index !== -1) {
-          this.listaProductos[index] = { id: this.idProductoEditando, ...dataPayload };
-        }
       } else {
-        const docRef = await addDoc(collection(this.firestore, 'productos'), dataPayload);
-        this.listaProductos.unshift({ id: docRef.id, ...dataPayload });
+        await addDoc(collection(this.firestore, 'productos'), {
+          ...dataPayload,
+          creadoEn: new Date()
+        });
       }
 
-      this.buscar();
       this.cerrarFormulario();
 
     } catch (error) {
@@ -413,22 +469,47 @@ export class ProductosPage implements OnInit {
   seleccionarProducto(producto: any) {
     this.editando = true;
     this.idProductoEditando = producto.id;
+
     this.nuevoProducto = {
       nombre: producto.nombre,
       precio: producto.precio,
       stock: producto.stock,
-      categoriaId: producto.categoriaId
+      categoriaId: producto.categoriaId,
+      activo: producto.activo !== false
     };
+
     this.mostrarFormulario = true;
   }
 
   async eliminarProducto(id: string) {
+    const confirmar = confirm('¿Deseas desactivar este producto? No se eliminará del historial.');
+
+    if (!confirmar) return;
+
     try {
-      await deleteDoc(doc(this.firestore, 'productos', id));
-      this.listaProductos = this.listaProductos.filter(p => p.id !== id);
-      this.buscar();
+      const ref = doc(this.firestore, 'productos', id);
+
+      await updateDoc(ref, {
+        activo: false,
+        actualizadoEn: new Date()
+      });
+
     } catch (error) {
-      console.error('❌ Error eliminando producto:', error);
+      console.error('❌ Error desactivando producto:', error);
+    }
+  }
+
+  async cambiarEstadoProducto(producto: any) {
+    try {
+      const ref = doc(this.firestore, 'productos', producto.id);
+
+      await updateDoc(ref, {
+        activo: producto.activo === false,
+        actualizadoEn: new Date()
+      });
+
+    } catch (error) {
+      console.error('❌ Error cambiando estado:', error);
     }
   }
 
@@ -436,20 +517,21 @@ export class ProductosPage implements OnInit {
     const q = this.textoBuscar.toLowerCase().trim();
 
     this.productosFiltrados = this.listaProductos.filter(p => {
-      const matchText = !q || p.nombre.toLowerCase().includes(q);
+      const nombre = String(p.nombre || '').toLowerCase();
+      const matchText = !q || nombre.includes(q);
 
       let matchCat = true;
+
       if (this.filtroCategoria !== 'Todos') {
         const catId = p.categoriaId;
-        const nombreBajo = p.nombre.toLowerCase();
+        const nombreBajo = nombre;
 
-        if (this.filtroCategoria === 'Pollos') matchCat = (catId === 'cat_pollos');
-        else if (this.filtroCategoria === 'Chifa') matchCat = (catId === 'cat_chifa');
-        else if (this.filtroCategoria === 'Bebidas') matchCat = (catId === 'cat_bebidas');
-        else if (this.filtroCategoria === 'Guarniciones') matchCat = (catId === 'cat_guarniciones' || nombreBajo.includes('porc') || nombreBajo.includes('porción') || nombreBajo.includes('wantan'));
-        else if (this.filtroCategoria === 'Parrillas') matchCat = (catId === 'cat_parrillas' || nombreBajo.includes('parrilla') || nombreBajo.includes('anticucho') || nombreBajo.includes('churrasco') || nombreBajo.includes('chuleta') || nombreBajo.includes('bistec'));
-        else if (this.filtroCategoria === 'Criollos') matchCat = (catId === 'cat_criollos' || nombreBajo.includes('lomo') || nombreBajo.includes('saltado') || nombreBajo.includes('tallarín') || nombreBajo.includes('tallarin') || nombreBajo.includes('chicharrón'));
-        else if (this.filtroCategoria === 'Postres') matchCat = (catId === 'cat_postres');
+        if (this.filtroCategoria === 'Pollos') matchCat = catId === 'cat_pollos';
+        else if (this.filtroCategoria === 'Chifa') matchCat = catId === 'cat_chifa';
+        else if (this.filtroCategoria === 'Bebidas') matchCat = catId === 'cat_bebidas';
+        else if (this.filtroCategoria === 'Guarniciones') matchCat = catId === 'cat_guarniciones' || nombreBajo.includes('porc') || nombreBajo.includes('porción') || nombreBajo.includes('wantan');
+        else if (this.filtroCategoria === 'Parrillas') matchCat = catId === 'cat_parrillas' || nombreBajo.includes('parrilla') || nombreBajo.includes('anticucho') || nombreBajo.includes('churrasco') || nombreBajo.includes('chuleta') || nombreBajo.includes('bistec');
+        else if (this.filtroCategoria === 'Criollos') matchCat = catId === 'cat_criollos' || nombreBajo.includes('lomo') || nombreBajo.includes('saltado') || nombreBajo.includes('tallarín') || nombreBajo.includes('tallarin') || nombreBajo.includes('chicharrón');
       }
 
       return matchText && matchCat;
@@ -463,7 +545,8 @@ export class ProductosPage implements OnInit {
       nombre: '',
       precio: null,
       stock: null,
-      categoriaId: ''
+      categoriaId: '',
+      activo: true
     };
   }
 }

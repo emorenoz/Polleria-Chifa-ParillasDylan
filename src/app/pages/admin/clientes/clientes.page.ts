@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -51,9 +51,11 @@ import {
   addDoc,
   getDocs,
   updateDoc,
-  deleteDoc,
-  doc
+  doc,
+  collectionData
 } from '@angular/fire/firestore';
+
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-clientes',
@@ -87,21 +89,22 @@ import {
     IonMenuButton
   ]
 })
-export class ClientesPage implements OnInit {
+export class ClientesPage implements OnInit, OnDestroy {
 
   private firestore = inject(Firestore);
+  private clientesSub?: Subscription;
 
-  fechaActual: string = '';
-  mostrarFormulario: boolean = false;
-  actualizando: boolean = false;
+  fechaActual = '';
+  mostrarFormulario = false;
+  actualizando = false;
 
-  filtroTipo: string = 'Todos';
+  filtroTipo = 'Todos';
   opcionesFiltro = ['Todos', 'Frecuente', 'Regular', 'Nuevo'];
 
-  totalClientes: number = 0;
-  totalFrecuentes: number = 0;
-  totalNuevos: number = 0;
-  gastoPromedio: number = 0;
+  totalClientes = 0;
+  totalFrecuentes = 0;
+  totalNuevos = 0;
+  gastoPromedio = 0;
 
   nuevoCliente = {
     documento: '',
@@ -110,9 +113,9 @@ export class ClientesPage implements OnInit {
     direccion: ''
   };
 
-  editando: boolean = false;
+  editando = false;
   idClienteEditando: string | null = null;
-  textoBuscar: string = '';
+  textoBuscar = '';
 
   listaClientes: any[] = [];
   clientesFiltrados: any[] = [];
@@ -136,9 +139,13 @@ export class ClientesPage implements OnInit {
     });
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.configurarFecha();
-    await this.cargarClientesFirebase();
+    this.escucharClientesTiempoReal();
+  }
+
+  ngOnDestroy() {
+    this.clientesSub?.unsubscribe();
   }
 
   configurarFecha() {
@@ -155,6 +162,7 @@ export class ClientesPage implements OnInit {
   abrirFormulario() {
     this.limpiarFormulario();
     this.editando = false;
+    this.idClienteEditando = null;
     this.mostrarFormulario = true;
   }
 
@@ -183,7 +191,11 @@ export class ClientesPage implements OnInit {
   }
 
   obtenerTipoVisual(cliente: any): string {
-    if (cliente.tipo) return cliente.tipo;
+    const tipoManual = String(cliente.tipo || '').trim();
+
+    if (tipoManual === 'Frecuente' || tipoManual === 'Regular' || tipoManual === 'Nuevo') {
+      return tipoManual;
+    }
 
     const pedidos = Number(cliente.totalPedidos || 0);
 
@@ -227,6 +239,27 @@ export class ClientesPage implements OnInit {
       : 0;
   }
 
+  escucharClientesTiempoReal() {
+    const clientesRef = collection(this.firestore, 'clientes');
+
+    this.clientesSub = collectionData(clientesRef, { idField: 'id' }).subscribe({
+      next: (clientes: any[]) => {
+        this.listaClientes = (clientes || [])
+          .filter(cliente => cliente.activo !== false)
+          .map(cliente => this.normalizarCliente(cliente))
+          .sort((a, b) => String(a.nombre || '').localeCompare(String(b.nombre || '')));
+
+        this.calcularKPIs();
+        this.buscar();
+
+        console.log('✅ Clientes en tiempo real:', this.listaClientes.length);
+      },
+      error: (error) => {
+        console.error('❌ Error escuchando clientes:', error);
+      }
+    });
+  }
+
   async cargarClientesFirebase() {
     try {
       const querySnapshot = await getDocs(collection(this.firestore, 'clientes'));
@@ -236,27 +269,19 @@ export class ClientesPage implements OnInit {
       querySnapshot.forEach((documento) => {
         const data: any = documento.data();
 
-        this.listaClientes.push({
+        if (data.activo === false) return;
+
+        this.listaClientes.push(this.normalizarCliente({
           id: documento.id,
-          documento: data.documento || '',
-          nombre: data.nombre || '',
-          telefono: data.telefono || '',
-          direccion: data.direccion || '',
-          totalPedidos: Number(data.totalPedidos || 0),
-          totalGastado: Number(data.totalGastado || 0),
-          tipo: data.tipo || '',
-          origen: data.origen || '',
-          ultimaCompra: data.ultimaCompra || '',
-          ultimaVisita: data.ultimaVisita || data.ultimaCompra || '',
-          fechaCaja: data.fechaCaja || '',
-          actualizadoEn: data.actualizadoEn || null
-        });
+          ...data
+        }));
       });
 
       this.calcularKPIs();
       this.buscar();
 
       console.log('✅ Clientes cargados:', this.listaClientes.length);
+
     } catch (error) {
       console.error('❌ Error cargando clientes:', error);
     }
@@ -279,58 +304,61 @@ export class ClientesPage implements OnInit {
   }
 
   async guardarCliente() {
-    if (!this.nuevoCliente.nombre.trim()) return;
+    const documento = this.normalizarDocumento(this.nuevoCliente.documento);
+    const nombre = this.formatearNombre(this.nuevoCliente.nombre);
+    const telefono = this.normalizarTelefono(this.nuevoCliente.telefono);
+    const direccion = String(this.nuevoCliente.direccion || '').trim();
+
+    if (!nombre) {
+      alert('Ingresa el nombre del cliente.');
+      return;
+    }
+
+    if (documento && documento.length < 8) {
+      alert('El documento debe tener al menos 8 dígitos.');
+      return;
+    }
+
+    if (telefono && telefono.length < 9) {
+      alert('El teléfono debe tener al menos 9 dígitos.');
+      return;
+    }
+
+    const duplicado = this.existeClienteDuplicado(documento, telefono);
+
+    if (duplicado) {
+      alert('Ya existe un cliente con el mismo documento o teléfono.');
+      return;
+    }
 
     try {
       if (this.editando && this.idClienteEditando !== null) {
         const clienteRef = doc(this.firestore, 'clientes', this.idClienteEditando);
 
         await updateDoc(clienteRef, {
-          documento: this.nuevoCliente.documento.trim(),
-          nombre: this.nuevoCliente.nombre.trim(),
-          telefono: this.nuevoCliente.telefono.trim(),
-          direccion: this.nuevoCliente.direccion.trim()
+          documento,
+          nombre,
+          telefono,
+          direccion,
+          activo: true,
+          actualizadoEn: new Date()
         });
 
-        const index = this.listaClientes.findIndex(c => c.id === this.idClienteEditando);
-
-        if (index !== -1) {
-          this.listaClientes[index] = {
-            ...this.listaClientes[index],
-            documento: this.nuevoCliente.documento.trim(),
-            nombre: this.nuevoCliente.nombre.trim(),
-            telefono: this.nuevoCliente.telefono.trim(),
-            direccion: this.nuevoCliente.direccion.trim()
-          };
-        }
-
       } else {
-        const docRef = await addDoc(collection(this.firestore, 'clientes'), {
-          documento: this.nuevoCliente.documento.trim(),
-          nombre: this.nuevoCliente.nombre.trim(),
-          telefono: this.nuevoCliente.telefono.trim(),
-          direccion: this.nuevoCliente.direccion.trim(),
+        await addDoc(collection(this.firestore, 'clientes'), {
+          documento,
+          nombre,
+          telefono,
+          direccion,
           totalPedidos: 0,
           totalGastado: 0,
           tipo: 'Nuevo',
           origen: 'admin',
           ultimaCompra: '',
           ultimaVisita: '',
-          fechaRegistro: new Date().toISOString()
-        });
-
-        this.listaClientes.push({
-          id: docRef.id,
-          documento: this.nuevoCliente.documento.trim(),
-          nombre: this.nuevoCliente.nombre.trim(),
-          telefono: this.nuevoCliente.telefono.trim(),
-          direccion: this.nuevoCliente.direccion.trim(),
-          totalPedidos: 0,
-          totalGastado: 0,
-          tipo: 'Nuevo',
-          origen: 'admin',
-          ultimaCompra: '',
-          ultimaVisita: ''
+          fechaRegistro: new Date(),
+          actualizadoEn: new Date(),
+          activo: true
         });
       }
 
@@ -359,7 +387,13 @@ export class ClientesPage implements OnInit {
 
   async eliminarCliente(id: string) {
     try {
-      await deleteDoc(doc(this.firestore, 'clientes', id));
+      const clienteRef = doc(this.firestore, 'clientes', id);
+
+      await updateDoc(clienteRef, {
+        activo: false,
+        eliminadoEn: new Date(),
+        actualizadoEn: new Date()
+      });
 
       this.listaClientes = this.listaClientes.filter(cliente => cliente.id !== id);
 
@@ -367,7 +401,21 @@ export class ClientesPage implements OnInit {
       this.buscar();
 
     } catch (error) {
-      console.error('❌ Error eliminando cliente:', error);
+      console.error('❌ Error desactivando cliente:', error);
+    }
+  }
+
+  async activarCliente(cliente: any) {
+    try {
+      const clienteRef = doc(this.firestore, 'clientes', cliente.id);
+
+      await updateDoc(clienteRef, {
+        activo: true,
+        actualizadoEn: new Date()
+      });
+
+    } catch (error) {
+      console.error('❌ Error activando cliente:', error);
     }
   }
 
@@ -375,16 +423,84 @@ export class ClientesPage implements OnInit {
     const q = this.textoBuscar.toLowerCase().trim();
 
     this.clientesFiltrados = this.listaClientes.filter(cliente => {
-      const matchTexto = !q ||
-        (cliente.nombre || '').toLowerCase().includes(q) ||
-        (cliente.documento || '').includes(q) ||
-        (cliente.telefono || '').includes(q);
+      const nombre = String(cliente.nombre || '').toLowerCase();
+      const documento = String(cliente.documento || '').toLowerCase();
+      const telefono = String(cliente.telefono || '').toLowerCase();
+      const direccion = String(cliente.direccion || '').toLowerCase();
+      const origen = String(cliente.origen || '').toLowerCase();
+
+      const matchTexto =
+        !q ||
+        nombre.includes(q) ||
+        documento.includes(q) ||
+        telefono.includes(q) ||
+        direccion.includes(q) ||
+        origen.includes(q);
 
       const tipo = this.obtenerTipoVisual(cliente);
       const matchTipo = this.filtroTipo === 'Todos' || tipo === this.filtroTipo;
 
       return matchTexto && matchTipo;
     });
+  }
+
+  existeClienteDuplicado(documento: string, telefono: string): boolean {
+    return this.listaClientes.some(cliente => {
+      const mismoCliente = this.editando && cliente.id === this.idClienteEditando;
+
+      if (mismoCliente) return false;
+
+      const docCliente = this.normalizarDocumento(cliente.documento || '');
+      const telCliente = this.normalizarTelefono(cliente.telefono || '');
+
+      const documentoDuplicado =
+        !!documento &&
+        !!docCliente &&
+        documento === docCliente;
+
+      const telefonoDuplicado =
+        !!telefono &&
+        !!telCliente &&
+        telefono === telCliente;
+
+      return documentoDuplicado || telefonoDuplicado;
+    });
+  }
+
+  normalizarCliente(cliente: any): any {
+    return {
+      id: cliente.id,
+      documento: this.normalizarDocumento(cliente.documento || ''),
+      nombre: this.formatearNombre(cliente.nombre || ''),
+      telefono: this.normalizarTelefono(cliente.telefono || ''),
+      direccion: String(cliente.direccion || '').trim(),
+      totalPedidos: Number(cliente.totalPedidos || 0),
+      totalGastado: Number(cliente.totalGastado || 0),
+      tipo: cliente.tipo || '',
+      origen: cliente.origen || '',
+      ultimaCompra: cliente.ultimaCompra || '',
+      ultimaVisita: cliente.ultimaVisita || cliente.ultimaCompra || '',
+      fechaCaja: cliente.fechaCaja || '',
+      fechaRegistro: cliente.fechaRegistro || '',
+      actualizadoEn: cliente.actualizadoEn || null,
+      activo: cliente.activo !== false
+    };
+  }
+
+  normalizarDocumento(documento: any): string {
+    return String(documento || '').replace(/\D/g, '').trim();
+  }
+
+  normalizarTelefono(telefono: any): string {
+    return String(telefono || '').replace(/\D/g, '').trim();
+  }
+
+  formatearNombre(nombre: any): string {
+    return String(nombre || '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, letra => letra.toUpperCase());
   }
 
   limpiarFormulario() {
@@ -395,5 +511,4 @@ export class ClientesPage implements OnInit {
       direccion: ''
     };
   }
-
 }
