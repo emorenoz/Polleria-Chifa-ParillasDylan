@@ -1,0 +1,97 @@
+<ion-content [fullscreen]="true" class="role-content">
+
+  <!-- BOTÓN VOLVER -->
+  <div class="header-action">
+    <ion-button
+      fill="clear"
+      (click)="volver()">
+
+      <ion-icon
+        name="arrow-back-outline"
+        slot="start">
+      </ion-icon>
+
+      Volver
+    </ion-button>
+  </div>
+
+  <div class="overlay"></div>
+
+  <div class="role-container">
+
+    <div class="title-section">
+
+      <img
+        src="https://i.ibb.co/6Mpnz0d/logo-dylan.png"
+        alt="Logo Pollería Dylan">
+
+      <h1>Seleccionar Cocina</h1>
+
+      <p>
+        Selecciona tu nombre para comenzar la preparación de pedidos.
+      </p>
+
+    </div>
+
+    <div class="roles-grid">
+
+      <ion-card
+        class="role-card cocina-card"
+        button
+        *ngFor="let cocinero of cocineros"
+        [class.seleccionado]="cocineroSeleccionado?.id === cocinero.id"
+        (click)="seleccionarCocinero(cocinero)">
+
+        <div class="icon-container">
+
+          <div class="avatar">
+            {{ obtenerInicial(cocinero.nombre) }}
+          </div>
+
+        </div>
+
+        <h2>{{ cocinero.nombre }}</h2>
+
+        <p>Cocina</p>
+
+        <span class="access-type">
+          Disponible
+        </span>
+
+      </ion-card>
+
+    </div>
+
+    <div
+      class="empty-state"
+      *ngIf="!cargando && cocineros.length === 0">
+
+      <h2>No hay personal de cocina disponible</h2>
+
+      <p>
+        El administrador debe registrar y activar un usuario con rol Cocina.
+      </p>
+
+    </div>
+
+    <p
+      class="error-message"
+      *ngIf="mensajeError">
+
+      {{ mensajeError }}
+
+    </p>
+
+    <ion-button
+      expand="block"
+      class="btn-ingresar"
+      [disabled]="!cocineroSeleccionado || ingresando"
+      (click)="ingresarComoCocinero()">
+
+      {{ ingresando ? 'Ingresando...' : 'Ingresar' }}
+
+    </ion-button>
+
+  </div>
+
+</ion-content>

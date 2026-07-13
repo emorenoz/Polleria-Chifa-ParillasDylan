@@ -1,0 +1,354 @@
+.role-content {
+  --background: none;
+
+  background:
+    linear-gradient(
+      rgba(15, 23, 42, 0.75),
+      rgba(15, 23, 42, 0.75)
+    ),
+    url('https://i.ibb.co/Z67TYz2T/foto-polleria-editado.jpg');
+
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* =========================
+   BOTÓN VOLVER
+========================= */
+.header-action {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 100;
+}
+
+.header-action ion-button {
+  --color: #ffffff;
+  --background: rgba(255, 255, 255, 0.08);
+  --background-hover: rgba(255, 255, 255, 0.14);
+  --background-activated: rgba(255, 255, 255, 0.18);
+  --border-radius: 12px;
+
+  min-height: 42px;
+
+  font-weight: 600;
+  text-transform: none;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.header-action ion-icon {
+  font-size: 20px;
+}
+
+/* =========================
+   OVERLAY
+========================= */
+.overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* =========================
+   CONTENEDOR PRINCIPAL
+========================= */
+.role-container {
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  padding: 25px;
+}
+
+/* =========================
+   TÍTULO
+========================= */
+.title-section {
+  text-align: center;
+  color: white;
+
+  margin-bottom: 45px;
+}
+
+.title-section img {
+  width: 90px;
+  margin-bottom: 15px;
+}
+
+.title-section h1 {
+  margin: 0;
+
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.title-section p {
+  margin-top: 10px;
+
+  color: #cbd5e1;
+
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* =========================
+   GRID DE MESEROS
+========================= */
+.roles-grid {
+  width: 100%;
+  max-width: 1200px;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px;
+
+  margin: auto;
+}
+
+/* =========================
+   TARJETA
+========================= */
+.role-card {
+  margin: 0;
+
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+
+  border-radius: 22px;
+  padding: 25px;
+
+  text-align: center;
+  color: white;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease,
+    background 0.25s ease;
+}
+
+.role-card:hover {
+  transform: translateY(-6px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.role-card.seleccionado {
+  border: 2px solid #9620f5;
+
+  background: rgba(150, 32, 245, 0.1);
+
+  box-shadow:
+    0 0 25px rgba(150, 32, 245, 0.45),
+    0 12px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* =========================
+   AVATAR
+========================= */
+.icon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+
+  margin: auto;
+
+  border-radius: 50%;
+
+  background: #9620f5;
+  color: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 34px;
+  font-weight: bold;
+
+  box-shadow: 0 8px 22px rgba(150, 32, 245, 0.3);
+}
+
+.role-card.seleccionado .avatar {
+  box-shadow:
+    0 0 0 5px rgba(150, 32, 245, 0.18),
+    0 10px 26px rgba(150, 32, 245, 0.45);
+}
+
+/* =========================
+   INFORMACIÓN DEL MESERO
+========================= */
+.role-card h2 {
+  margin-top: 18px;
+  margin-bottom: 6px;
+
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.role-card p {
+  margin: 0;
+
+  color: #cbd5e1;
+
+  font-size: 14px;
+}
+
+.access-type {
+  display: inline-block;
+
+  margin-top: 18px;
+  padding: 8px 18px;
+
+  background: rgba(150, 32, 245, 0.18);
+  color: #d7b5ff;
+
+  border: 1px solid rgba(150, 32, 245, 0.3);
+  border-radius: 25px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* =========================
+   BOTÓN INGRESAR
+========================= */
+.btn-ingresar {
+  width: 100%;
+  max-width: 420px;
+
+  margin: 35px auto 0;
+
+  --background: #9620f5;
+  --background-hover: #8112db;
+  --background-activated: #8112db;
+  --border-radius: 12px;
+  --box-shadow: 0 10px 25px rgba(150, 32, 245, 0.3);
+
+  height: 54px;
+
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: none;
+}
+
+.btn-ingresar[disabled] {
+  opacity: 0.45;
+}
+
+/* =========================
+   ESTADO VACÍO
+========================= */
+.empty-state {
+  width: 100%;
+  max-width: 520px;
+
+  margin: 0 auto;
+  padding: 28px;
+
+  text-align: center;
+  color: white;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+
+  border-radius: 22px;
+}
+
+.empty-state h2 {
+  margin-top: 0;
+  margin-bottom: 10px;
+
+  font-size: 21px;
+}
+
+.empty-state p {
+  margin-bottom: 0;
+
+  color: #cbd5e1;
+
+  line-height: 1.5;
+}
+
+/* =========================
+   ERROR
+========================= */
+.error-message {
+  max-width: 520px;
+
+  margin: 22px auto 0;
+
+  color: #fecaca;
+
+  text-align: center;
+  font-weight: 500;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 768px) {
+  .header-action {
+    top: 10px;
+    left: 8px;
+  }
+
+  .role-container {
+    justify-content: flex-start;
+    padding: 80px 18px 28px;
+  }
+
+  .title-section {
+    margin-bottom: 30px;
+  }
+
+  .title-section h1 {
+    font-size: 27px;
+  }
+
+  .roles-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .role-card {
+    padding: 22px;
+  }
+
+  .btn-ingresar {
+    margin-top: 25px;
+  }
+}
+
+@media (max-width: 420px) {
+  .title-section img {
+    width: 78px;
+  }
+
+  .avatar {
+    width: 72px;
+    height: 72px;
+
+    font-size: 30px;
+  }
+
+  .role-card {
+    border-radius: 18px;
+  }
+}

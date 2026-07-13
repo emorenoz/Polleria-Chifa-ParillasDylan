@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -48,12 +48,13 @@ import {
 import {
   Firestore,
   collection,
-  getDocs,
   addDoc,
   updateDoc,
-  deleteDoc,
-  doc
+  doc,
+  collectionData
 } from '@angular/fire/firestore';
+
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-usuarios',
@@ -88,15 +89,20 @@ import {
     IonMenuButton
   ]
 })
-export class UsuariosPage implements OnInit {
+export class UsuariosPage implements OnInit, OnDestroy {
 
   private firestore = inject(Firestore);
+  private usuariosSub?: Subscription;
 
   fechaActual = '';
   mostrarFormulario = false;
 
   filtroRol = 'Todos';
-  opcionesFiltro = ['Todos', 'Mesero', 'Cocina', 'Caja'];
+  opcionesFiltro = ['Todos', 'Admin', 'Mesero', 'Cocina', 'Caja'];
+
+  totalUsuarios = 0;
+  totalActivos = 0;
+  totalInactivos = 0;
 
   totalAdmins = 0;
   totalMeseros = 0;
@@ -136,9 +142,13 @@ export class UsuariosPage implements OnInit {
     });
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.configurarFecha();
-    await this.cargarUsuariosFirebase();
+    this.escucharUsuariosTiempoReal();
+  }
+
+  ngOnDestroy() {
+    this.usuariosSub?.unsubscribe();
   }
 
   configurarFecha() {
@@ -155,6 +165,7 @@ export class UsuariosPage implements OnInit {
   abrirFormulario() {
     this.limpiarFormulario();
     this.editando = false;
+    this.idUsuarioEditando = null;
     this.mostrarFormulario = true;
   }
 
@@ -163,6 +174,50 @@ export class UsuariosPage implements OnInit {
     this.limpiarFormulario();
     this.editando = false;
     this.idUsuarioEditando = null;
+  }
+
+  escucharUsuariosTiempoReal() {
+    const usuariosRef = collection(this.firestore, 'usuarios');
+
+    this.usuariosSub = collectionData(usuariosRef, { idField: 'id' }).subscribe({
+      next: (usuarios: any[]) => {
+        this.listaUsuarios = (usuarios || [])
+          .filter(usuario => usuario.activo !== false)
+          .map(usuario => ({
+            id: usuario.id,
+            nombre: this.formatearNombre(usuario.nombre || ''),
+            email: this.normalizarEmail(usuario.email || ''),
+            password: usuario.password || '',
+            rol: this.normalizarRol(usuario.rol || 'mesero'),
+            estadoActivo: usuario.estadoActivo !== false,
+            activo: usuario.activo !== false,
+            createdAt: usuario.createdAt || null,
+            updatedAt: usuario.updatedAt || null,
+            ultimoAcceso: usuario.ultimoAcceso || null
+          }))
+          .sort((a, b) => {
+            const ordenRol: any = {
+              admin: 1,
+              mesero: 2,
+              caja: 3,
+              cocina: 4
+            };
+
+            const ordenA = ordenRol[a.rol] || 99;
+            const ordenB = ordenRol[b.rol] || 99;
+
+            if (ordenA !== ordenB) return ordenA - ordenB;
+
+            return String(a.nombre || '').localeCompare(String(b.nombre || ''));
+          });
+
+        this.calcularKPIs();
+        this.buscar();
+      },
+      error: (error) => {
+        console.error('Error escuchando usuarios:', error);
+      }
+    });
   }
 
   obtenerInicial(nombre: string): string {
@@ -222,44 +277,27 @@ export class UsuariosPage implements OnInit {
   }
 
   calcularKPIs() {
+    this.totalUsuarios = this.listaUsuarios.length;
+
+    this.totalActivos = this.listaUsuarios.filter(u =>
+      u.estadoActivo !== false
+    ).length;
+
+    this.totalInactivos = this.listaUsuarios.filter(u =>
+      u.estadoActivo === false
+    ).length;
+
     this.totalAdmins = this.listaUsuarios.filter(u => u.rol === 'admin').length;
     this.totalMeseros = this.listaUsuarios.filter(u => u.rol === 'mesero').length;
     this.totalCocinas = this.listaUsuarios.filter(u => u.rol === 'cocina').length;
     this.totalCajas = this.listaUsuarios.filter(u => u.rol === 'caja').length;
   }
 
-  async cargarUsuariosFirebase() {
-    try {
-      const snapshot = await getDocs(collection(this.firestore, 'usuarios'));
-
-      this.listaUsuarios = [];
-
-      snapshot.forEach(docSnap => {
-        const data: any = docSnap.data();
-
-        this.listaUsuarios.push({
-          id: docSnap.id,
-          nombre: data.nombre || '',
-          email: data.email || '',
-          password: data.password || '',
-          rol: data.rol || 'mesero',
-          estadoActivo: data.estadoActivo !== false
-        });
-      });
-
-      this.calcularKPIs();
-      this.buscar();
-
-    } catch (error) {
-      console.error('Error cargando usuarios:', error);
-    }
-  }
-
   async guardarUsuario() {
-    const nombre = this.nuevoUsuario.nombre.trim();
-    const email = this.nuevoUsuario.email.trim().toLowerCase();
-    const password = this.nuevoUsuario.password.trim();
-    const rol = this.nuevoUsuario.rol;
+    const nombre = this.formatearNombre(this.nuevoUsuario.nombre);
+    const email = this.normalizarEmail(this.nuevoUsuario.email);
+    const password = String(this.nuevoUsuario.password || '').trim();
+    const rol = this.normalizarRol(this.nuevoUsuario.rol);
 
     if (!nombre || !rol) {
       alert('Completa nombre y rol.');
@@ -271,14 +309,34 @@ export class UsuariosPage implements OnInit {
       return;
     }
 
+    if (this.existeNombreDuplicado(nombre)) {
+      alert('Ya existe un usuario con ese nombre.');
+      return;
+    }
+
     if (rol === 'caja') {
-      if (!email || !password) {
-        alert('El cajero necesita usuario/correo y contraseña.');
+      if (!email) {
+        alert('El cajero necesita correo/usuario.');
         return;
       }
 
-      if (password.length < 6) {
+      if (!this.validarEmail(email)) {
+        alert('Ingresa un correo válido.');
+        return;
+      }
+
+      if (this.existeEmailDuplicado(email)) {
+        alert('Ya existe un usuario con ese correo.');
+        return;
+      }
+
+      if (!this.editando && password.length < 6) {
         alert('La contraseña debe tener mínimo 6 caracteres.');
+        return;
+      }
+
+      if (this.editando && password && password.length < 6) {
+        alert('La nueva contraseña debe tener mínimo 6 caracteres.');
         return;
       }
     }
@@ -287,13 +345,20 @@ export class UsuariosPage implements OnInit {
       const dataGuardar: any = {
         nombre,
         rol,
-        estadoActivo: this.nuevoUsuario.estadoActivo,
+        estadoActivo: this.nuevoUsuario.estadoActivo !== false,
+        activo: true,
         updatedAt: new Date()
       };
 
       if (rol === 'caja') {
         dataGuardar.email = email;
-        dataGuardar.password = password;
+
+        if (password) {
+          dataGuardar.password = password;
+        } else if (this.editando && this.idUsuarioEditando) {
+          const usuarioActual = this.listaUsuarios.find(u => u.id === this.idUsuarioEditando);
+          dataGuardar.password = usuarioActual?.password || '';
+        }
       } else {
         dataGuardar.email = '';
         dataGuardar.password = '';
@@ -302,15 +367,30 @@ export class UsuariosPage implements OnInit {
       if (this.editando && this.idUsuarioEditando) {
         const ref = doc(this.firestore, 'usuarios', this.idUsuarioEditando);
         await updateDoc(ref, dataGuardar);
+
+        await this.registrarHistorialUsuario('editó usuario', {
+          idUsuario: this.idUsuarioEditando,
+          nombre,
+          rol
+        });
+
       } else {
-        await addDoc(collection(this.firestore, 'usuarios'), {
+        const docRef = await addDoc(collection(this.firestore, 'usuarios'), {
           ...dataGuardar,
           estadoActivo: true,
-          createdAt: new Date()
+          activo: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          ultimoAcceso: null
+        });
+
+        await this.registrarHistorialUsuario('creó usuario', {
+          idUsuario: docRef.id,
+          nombre,
+          rol
         });
       }
 
-      await this.cargarUsuariosFirebase();
       this.cerrarFormulario();
 
     } catch (error) {
@@ -332,7 +412,7 @@ export class UsuariosPage implements OnInit {
       email: usuario.email || '',
       password: '',
       rol: usuario.rol,
-      estadoActivo: usuario.estadoActivo
+      estadoActivo: usuario.estadoActivo !== false
     };
 
     this.mostrarFormulario = true;
@@ -346,20 +426,24 @@ export class UsuariosPage implements OnInit {
       return;
     }
 
-    const confirmar = confirm('¿Seguro que deseas eliminar este usuario?');
-
-    if (!confirmar) return;
-
     try {
-      await deleteDoc(doc(this.firestore, 'usuarios', id));
+      const ref = doc(this.firestore, 'usuarios', id);
 
-      this.listaUsuarios = this.listaUsuarios.filter(u => u.id !== id);
+      await updateDoc(ref, {
+        activo: false,
+        estadoActivo: false,
+        deletedAt: new Date(),
+        updatedAt: new Date()
+      });
 
-      this.calcularKPIs();
-      this.buscar();
+      await this.registrarHistorialUsuario('desactivó usuario', {
+        idUsuario: id,
+        nombre: usuario?.nombre || '',
+        rol: usuario?.rol || ''
+      });
 
     } catch (error) {
-      console.error('Error eliminando usuario:', error);
+      console.error('Error desactivando usuario:', error);
     }
   }
 
@@ -380,9 +464,48 @@ export class UsuariosPage implements OnInit {
         updatedAt: new Date()
       });
 
+      await this.registrarHistorialUsuario(
+        nuevoEstado ? 'activó usuario' : 'desactivó usuario',
+        {
+          idUsuario: usuario.id,
+          nombre: usuario.nombre || '',
+          rol: usuario.rol || ''
+        }
+      );
+
     } catch (error) {
       usuario.estadoActivo = !nuevoEstado;
       console.error('Error cambiando estado de usuario:', error);
+    }
+  }
+
+  async restablecerPassword(usuario: any) {
+    if (usuario.rol !== 'caja') {
+      alert('Solo el usuario de caja maneja contraseña desde este módulo.');
+      return;
+    }
+
+    if (!usuario.id) return;
+
+    try {
+      const nuevaPassword = '123456';
+      const ref = doc(this.firestore, 'usuarios', usuario.id);
+
+      await updateDoc(ref, {
+        password: nuevaPassword,
+        updatedAt: new Date()
+      });
+
+      await this.registrarHistorialUsuario('restableció contraseña', {
+        idUsuario: usuario.id,
+        nombre: usuario.nombre || '',
+        rol: usuario.rol || ''
+      });
+
+      alert('Contraseña restablecida a: 123456');
+
+    } catch (error) {
+      console.error('Error restableciendo contraseña:', error);
     }
   }
 
@@ -392,11 +515,15 @@ export class UsuariosPage implements OnInit {
     this.usuariosFiltrados = this.listaUsuarios.filter(usuario => {
       const nombre = String(usuario.nombre || '').toLowerCase();
       const email = String(usuario.email || '').toLowerCase();
+      const rol = this.obtenerNombreRol(usuario.rol).toLowerCase();
+      const estado = usuario.estadoActivo !== false ? 'activo' : 'inactivo';
 
       const matchTexto =
         !q ||
         nombre.includes(q) ||
-        email.includes(q);
+        email.includes(q) ||
+        rol.includes(q) ||
+        estado.includes(q);
 
       const rolVisual = this.obtenerNombreRol(usuario.rol);
 
@@ -406,6 +533,75 @@ export class UsuariosPage implements OnInit {
 
       return matchTexto && matchRol;
     });
+  }
+
+  async registrarHistorialUsuario(accion: string, detalle: any) {
+    try {
+      await addDoc(collection(this.firestore, 'historial_usuarios'), {
+        accion,
+        detalle,
+        fecha: new Date(),
+        usuarioAdmin: 'Admin'
+      });
+    } catch (error) {
+      console.warn('No se pudo registrar historial de usuario:', error);
+    }
+  }
+
+  existeEmailDuplicado(email: string): boolean {
+    if (!email) return false;
+
+    return this.listaUsuarios.some(usuario => {
+      const mismoUsuario = this.editando && usuario.id === this.idUsuarioEditando;
+
+      if (mismoUsuario) return false;
+
+      return this.normalizarEmail(usuario.email || '') === email;
+    });
+  }
+
+  existeNombreDuplicado(nombre: string): boolean {
+    if (!nombre) return false;
+
+    return this.listaUsuarios.some(usuario => {
+      const mismoUsuario = this.editando && usuario.id === this.idUsuarioEditando;
+
+      if (mismoUsuario) return false;
+
+      return this.formatearNombre(usuario.nombre || '') === nombre;
+    });
+  }
+
+  validarEmail(email: string): boolean {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  }
+
+  normalizarEmail(email: any): string {
+    return String(email || '').trim().toLowerCase();
+  }
+
+  normalizarRol(rol: any): string {
+    const r = String(rol || '').trim().toLowerCase();
+
+    if (r === 'administrador') return 'admin';
+    if (r === 'admin') return 'admin';
+    if (r === 'mesera') return 'mesero';
+    if (r === 'mesero') return 'mesero';
+    if (r === 'cocinero') return 'cocina';
+    if (r === 'cocina') return 'cocina';
+    if (r === 'cajero') return 'caja';
+    if (r === 'caja') return 'caja';
+
+    return 'mesero';
+  }
+
+  formatearNombre(nombre: any): string {
+    return String(nombre || '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .toLowerCase()
+      .replace(/\b\w/g, letra => letra.toUpperCase());
   }
 
   limpiarFormulario() {

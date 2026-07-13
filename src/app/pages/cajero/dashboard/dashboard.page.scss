@@ -1,60 +1,250 @@
-$caja-primary: #004d40;     // Verde azulado oscuro (Identidad Financiera / Caja)
-$bg-main: #f1f5f9;
-$border-color: #cbd5e1;
+$caja-primary: #35e51e;
+$caja-primary-dark: #168c12;
+$caja-primary-soft: rgba(53, 229, 30, 0.14);
+
+$sidebar-dark: #102c20;
+$sidebar-darker: #0b2117;
+
+$bg-main: #f3f6f4;
+$bg-soft: #edf7ef;
+
+$card-bg: #ffffff;
+$text-main: #17211b;
+$text-muted: #718078;
+$border-color: #e2e9e4;
+
+$success: #22c55e;
+$success-dark: #16a34a;
+$danger: #ef4444;
+$warning: #f59e0b;
+
+/* =====================================================
+   HOST
+===================================================== */
+
+:host {
+  display: block;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 100%;
+
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+/* =====================================================
+   ELEMENTOS GENERALES
+===================================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+/* =====================================================
+   CONTENEDOR GENERAL
+===================================================== */
 
 .panel-cajero-container {
   display: flex;
   flex-direction: column;
+
+  width: 100%;
   height: 100vh;
-  background-color: $bg-main;
-  font-family: system-ui, -apple-system, sans-serif;
+  height: 100dvh;
+
+  min-width: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+
   overflow: hidden;
+
+  background:
+    linear-gradient(
+      180deg,
+      $bg-soft 0%,
+      $bg-main 260px
+    );
 }
 
-// NAVBAR DE CAJA
+/* =====================================================
+   NAVBAR DEL CAJERO
+===================================================== */
+
 .navbar-cajero {
+  position: relative;
+  z-index: 50;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: $caja-primary;
-  color: white;
+
+  min-height: 72px;
+
   padding: 12px 24px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      $sidebar-dark 0%,
+      $sidebar-darker 100%
+    );
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 4px 18px rgba(15, 41, 29, 0.2);
 
   .brand-info {
     display: flex;
     align-items: center;
-    gap: 12px;
-    .icon-cash { font-size: 28px; }
+
+    min-width: 0;
+
+    gap: 13px;
+
+    .icon-cash {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 46px;
+      height: 46px;
+
+      flex-shrink: 0;
+
+      border-radius: 14px;
+
+      color: #ffffff;
+
+      background:
+        linear-gradient(
+          135deg,
+          #4cff39,
+          $caja-primary-dark
+        );
+
+      font-size: 27px;
+
+      box-shadow:
+        0 8px 22px rgba(53, 229, 30, 0.25);
+    }
+
     .brand-text {
       display: flex;
       flex-direction: column;
-      .title { font-weight: bold; font-size: 18px; }
-      .restaurant { font-size: 13px; opacity: 0.8; }
+
+      min-width: 0;
+
+      .title {
+        overflow: hidden;
+
+        color: #ffffff;
+
+        font-size: 18px;
+        font-weight: 750;
+
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .restaurant {
+        overflow: hidden;
+
+        margin-top: 2px;
+
+        color: #a9b8af;
+
+        font-size: 13px;
+
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
     }
   }
 
   .stats-and-actions {
     display: flex;
     align-items: center;
+
     gap: 24px;
 
     .stats {
       display: flex;
-      gap: 15px;
+
+      gap: 12px;
+
       .stat-item {
-        background-color: rgba(255,255,255,0.15);
-        padding: 6px 14px;
+        display: flex;
+        align-items: center;
+
+        min-height: 36px;
+
+        padding: 7px 14px;
+
+        border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px;
-        font-size: 14px;
-        font-weight: 500;
+
+        background: rgba(255, 255, 255, 0.07);
+        color: #ffffff;
+
+        font-size: 13px;
+        font-weight: 600;
+
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
 
         .badge-count {
-          font-weight: bold;
-          padding: 2px 6px;
-          border-radius: 4px;
-          &.font-total { color: #2cc55e; }
-          &.font-pending { background-color: #ef4444; color: white; border-radius: 50%; }
+          margin-left: 4px;
+
+          font-weight: 800;
+
+          &.font-total {
+            color: $caja-primary;
+          }
+
+          &.font-pending {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            min-width: 22px;
+            height: 22px;
+
+            padding: 0 6px;
+
+            border-radius: 999px;
+
+            background: $danger;
+            color: #ffffff;
+          }
         }
       }
     }
@@ -62,234 +252,539 @@ $border-color: #cbd5e1;
     .time-exit {
       display: flex;
       align-items: center;
+
       gap: 15px;
+
+      color: #ffffff;
+
+      .time {
+        white-space: nowrap;
+      }
+
       .btn-exit {
-        background-color: rgba(255,255,255,0.2);
-        color: white;
-        border: none;
-        padding: 6px 14px;
-        border-radius: 6px;
+        min-height: 42px;
+
+        padding: 8px 15px;
+
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 11px;
+
+        background: rgba(255, 255, 255, 0.07);
+        color: #ffffff;
+
+        font-weight: 600;
+
         cursor: pointer;
-        &:hover { background-color: rgba(255,255,255,0.3); }
+
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease,
+          transform 0.2s ease;
+
+        &:hover {
+          transform: translateY(-1px);
+
+          border-color: rgba(53, 229, 30, 0.35);
+
+          background: rgba(53, 229, 30, 0.14);
+        }
+
+        &:active {
+          transform: scale(0.97);
+        }
       }
     }
   }
 }
 
-// COMPONENTE SPLIT SCREEN
+/* =====================================================
+   CONTENIDO PRINCIPAL
+===================================================== */
+
 .main-content-cajero {
   display: flex;
   flex: 1;
-  overflow: hidden;
-  padding: 20px;
+
+  min-width: 0;
+  min-height: 0;
+
   gap: 20px;
+
+  padding: 20px;
+
+  overflow: hidden;
 }
+
+/* =====================================================
+   PANEL IZQUIERDO
+===================================================== */
 
 .left-panel {
   flex: 1;
-  background: white;
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid $border-color;
+
+  min-width: 0;
+  min-height: 0;
+
+  padding: 18px;
+
   overflow-y: auto;
+
+  border: 1px solid $border-color;
+  border-radius: 18px;
+
+  background: $card-bg;
+
+  box-shadow:
+    0 7px 22px rgba(15, 41, 29, 0.07);
 }
+
+/* =====================================================
+   PANEL DERECHO
+===================================================== */
 
 .right-panel {
-  width: 450px;
-  background: white;
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid $border-color;
   display: flex;
   flex-direction: column;
+
+  width: 450px;
+  min-width: 350px;
+  min-height: 0;
+
+  padding: 18px;
+
   overflow-y: auto;
+
+  border: 1px solid $border-color;
+  border-radius: 18px;
+
+  background: $card-bg;
+
+  box-shadow:
+    0 7px 22px rgba(15, 41, 29, 0.07);
 }
+
+/* =====================================================
+   TÍTULOS
+===================================================== */
 
 .section-title {
-  font-size: 18px;
-  color: #334155;
   margin-top: 0;
-  margin-bottom: 16px;
-  border-bottom: 2px solid #f1f5f9;
-  padding-bottom: 8px;
+  margin-bottom: 18px;
+  padding-bottom: 10px;
+
+  border-bottom: 2px solid $bg-soft;
+
+  color: $text-main;
+
+  font-size: 18px;
+  font-weight: 750;
 }
 
+/* =====================================================
+   ESTADO VACÍO
+===================================================== */
+
 .empty-state {
-  text-align: center;
-  color: #94a3b8;
   margin-top: 40px;
+  padding: 24px 10px;
+
+  color: $text-muted;
+
+  text-align: center;
+
+  font-size: 14px;
   font-style: italic;
 }
 
-// GRID DE MESAS ESPERANDO COBRO
+/* =====================================================
+   GRID DE MESAS POR COBRAR
+===================================================== */
+
 .grid-mesas-cobro {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+
+  grid-template-columns:
+    repeat(auto-fill, minmax(180px, 1fr));
+
   gap: 14px;
 }
 
-.card-mesa-cobro {
-  background: #fff5f5;
-  border: 2px solid #feb2b2;
-  border-radius: 10px;
-  padding: 14px;
-  cursor: pointer;
-  transition: all 0.2s;
+/* =====================================================
+   TARJETAS DE MESA
+===================================================== */
 
-  &:hover { transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-  &.selected { background: #e6fffa; border-color: #4fd1c5; }
+.card-mesa-cobro {
+  min-width: 0;
+  min-height: 110px;
+
+  padding: 15px;
+
+  border: 1px solid rgba(34, 197, 94, 0.28);
+  border-radius: 14px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f9fff9 0%,
+      #f0fff2 100%
+    );
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+
+    border-color: rgba(53, 229, 30, 0.5);
+
+    box-shadow:
+      0 8px 20px rgba(15, 41, 29, 0.09);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &.selected {
+    border: 2px solid $caja-primary;
+
+    background:
+      linear-gradient(
+        180deg,
+        #edffeb 0%,
+        #e4ffe0 100%
+      );
+
+    box-shadow:
+      0 0 0 4px $caja-primary-soft,
+      0 10px 24px rgba(53, 229, 30, 0.16);
+  }
 
   .mesa-badge {
-    font-weight: bold;
+    overflow: hidden;
+
+    margin-bottom: 7px;
+
+    color: $text-main;
+
     font-size: 16px;
-    color: #2d3748;
-    margin-bottom: 6px;
+    font-weight: 750;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
+
   .total-pago {
-    font-size: 14px;
-    font-weight: 600;
-    color: #4a5568;
     display: block;
+
+    color: $success-dark;
+
+    font-size: 14px;
+    font-weight: 700;
   }
+
   .alert-blink {
+    display: inline-block;
+
+    margin-top: 7px;
+
+    color: $danger;
+
     font-size: 11px;
-    color: #e53e3e;
-    font-weight: bold;
+    font-weight: 750;
+
     animation: blinker 1.5s linear infinite;
+  }
+
+  .alert-ready {
+    color: $success-dark;
+  }
+
+  .alert-bill {
+    color: $danger;
   }
 }
 
-// TICKET DE DETALLE
+/* =====================================================
+   TICKET
+===================================================== */
+
 .ticket-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
 
-  .divider { border: none; border-top: 1px dashed $border-color; margin: 12px 0; }
+  height: 100%;
+  min-height: 0;
+
+  .divider {
+    margin: 12px 0;
+
+    border: none;
+    border-top: 1px dashed $border-color;
+  }
 
   .ticket-row {
     display: flex;
     justify-content: space-between;
-    padding: 6px 0;
-    font-size: 14px;
+    align-items: flex-start;
+
+    gap: 12px;
+
+    padding: 7px 0;
+
     color: #475569;
-    &.header-row { font-weight: bold; color: #1e293b; }
+
+    font-size: 14px;
+
+    span:first-child {
+      min-width: 0;
+
+      overflow-wrap: anywhere;
+    }
+
+    span:last-child {
+      flex-shrink: 0;
+
+      text-align: right;
+    }
+
+    &.header-row {
+      color: $text-main;
+
+      font-weight: 750;
+    }
   }
 
   .ticket-totals {
-    background: #f8fafc;
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
+    padding: 14px;
+
+    border: 1px solid $border-color;
+    border-radius: 12px;
+
+    background: $bg-soft;
 
     .total-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+
+      gap: 12px;
+
+      margin-bottom: 9px;
+
+      color: $text-main;
+
       font-size: 14px;
 
       input {
-        width: 80px;
-        padding: 4px;
+        width: 92px;
+        min-height: 40px;
+
+        padding: 7px 9px;
+
         border: 1px solid $border-color;
-        border-radius: 4px;
+        border-radius: 8px;
+        outline: none;
+
+        background: #ffffff;
+        color: $text-main;
+
         text-align: right;
+
+        transition:
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
+
+        &:focus {
+          border-color: $caja-primary;
+
+          box-shadow:
+            0 0 0 3px $caja-primary-soft;
+        }
       }
+
       &.net-total {
-        font-size: 18px;
-        font-weight: bold;
-        color: $caja-primary;
-        margin-top: 8px;
+        margin-top: 10px;
+        margin-bottom: 0;
+        padding-top: 10px;
+
         border-top: 1px solid $border-color;
-        padding-top: 8px;
+
+        color: $success-dark;
+
+        font-size: 19px;
+        font-weight: 800;
       }
     }
   }
 
   .payment-methods {
     margin-bottom: 20px;
-    .method-title { font-weight: 600; font-size: 13px; color: #64748b; margin-bottom: 8px; }
+
+    .method-title {
+      margin-bottom: 9px;
+
+      color: $text-muted;
+
+      font-size: 13px;
+      font-weight: 700;
+    }
+
     .methods-grid {
       display: grid;
+
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
+
+      gap: 9px;
 
       button {
-        background: #f1f5f9;
-        border: 1px solid $border-color;
+        min-width: 0;
+        min-height: 48px;
+
         padding: 10px;
-        border-radius: 6px;
+
+        border: 1px solid $border-color;
+        border-radius: 10px;
+
+        background: #f7faf8;
+        color: $text-main;
+
+        font-weight: 600;
+
         cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s;
-        &:hover { background: #e2e8f0; }
-        &.active { background: $caja-primary; color: white; border-color: $caja-primary; }
+
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease,
+          color 0.2s ease,
+          transform 0.2s ease;
+
+        &:hover {
+          transform: translateY(-1px);
+
+          border-color: rgba(53, 229, 30, 0.4);
+
+          background: #effced;
+        }
+
+        &:active {
+          transform: scale(0.97);
+        }
+
+        &.active {
+          border-color: $caja-primary;
+
+          background:
+            linear-gradient(
+              90deg,
+              #47f73a,
+              #2dd51d
+            );
+
+          color: #ffffff;
+
+          box-shadow:
+            0 7px 18px rgba(53, 229, 30, 0.22);
+        }
       }
     }
   }
 
   .btn-liquidar {
     width: 100%;
-    background-color: #22c55e;
-    color: white;
-    border: none;
+    min-height: 52px;
+
+    margin-top: auto;
     padding: 14px;
-    font-weight: bold;
+
+    border: none;
+    border-radius: 12px;
+
+    background:
+      linear-gradient(
+        90deg,
+        #47f73a,
+        #2dd51d
+      );
+
+    color: #ffffff;
+
     font-size: 16px;
-    border-radius: 8px;
+    font-weight: 750;
+
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(34, 197, 94, 0.2);
-    &:hover { background-color: #16a34a; }
+
+    box-shadow:
+      0 9px 22px rgba(53, 229, 30, 0.28);
+
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      opacity 0.2s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+
+      box-shadow:
+        0 12px 26px rgba(53, 229, 30, 0.32);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    &:disabled {
+      background: #94a3b8 !important;
+
+      cursor: not-allowed;
+
+      box-shadow: none !important;
+
+      opacity: 0.7;
+    }
   }
 }
 
-@keyframes blinker {
-  50% { opacity: 0; }
-}
 /* =====================================================
-   MEJORAS FLUJO CAJA: LISTO / CUENTA / RESUMEN
+   ESTADO EN TICKET
 ===================================================== */
 
-.card-mesa-cobro {
-  .alert-ready {
-    color: #16a34a;
-  }
-
-  .alert-bill {
-    color: #e53e3e;
-  }
-}
-
 .estado-mesa-ticket {
-  font-size: 13px;
-  color: #64748b;
   margin: 4px 0;
 
+  color: $text-muted;
+
+  font-size: 13px;
+
   strong {
-    color: $caja-primary;
+    color: $success-dark;
   }
 }
+
+/* =====================================================
+   RESUMEN DE COBRO
+===================================================== */
 
 .resumen-cobro {
   margin-top: 10px;
-  padding: 10px;
+  padding: 12px;
+
+  border: 1px solid rgba(34, 197, 94, 0.25);
+  border-radius: 10px;
+
   background: #ecfdf5;
-  border: 1px solid #bbf7d0;
-  border-radius: 8px;
-  font-size: 13px;
   color: #065f46;
+
+  font-size: 13px;
 
   p {
     margin: 4px 0;
-  }
-}
-
-.btn-liquidar {
-  &:disabled {
-    background: #94a3b8 !important;
-    cursor: not-allowed;
-    box-shadow: none !important;
   }
 }
 
@@ -299,152 +794,171 @@ $border-color: #cbd5e1;
 
 .modal-qr-overlay {
   position: fixed;
+
   inset: 0;
-  background: rgba(15, 23, 42, 0.65);
+
+  z-index: 999;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 999;
-  padding: 20px;
+
+  padding:
+    calc(20px + env(safe-area-inset-top))
+    20px
+    calc(20px + env(safe-area-inset-bottom));
+
+  background: rgba(11, 33, 23, 0.72);
+
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .modal-qr-card {
-  background: white;
-  border-radius: 16px;
-  padding: 22px;
   width: 100%;
   max-width: 360px;
+  max-height: 90dvh;
+
+  padding: 24px;
+
+  overflow-y: auto;
+
+  border: 1px solid rgba(53, 229, 30, 0.2);
+  border-radius: 20px;
+
+  background: #ffffff;
+
   text-align: center;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.28);
 
   h3 {
     margin-top: 0;
-    color: $caja-primary;
+
+    color: $success-dark;
+
+    font-size: 21px;
   }
 
   .monto-pagar {
-    color: #475569;
+    color: $text-muted;
+
     font-size: 14px;
 
     strong {
-      color: #16a34a;
-      font-size: 18px;
+      color: $success-dark;
+
+      font-size: 19px;
     }
   }
 
   .qr-container {
-    margin: 16px auto;
-    padding: 14px;
-    border: 2px dashed #cbd5e1;
-    border-radius: 12px;
-    width: 220px;
-    height: 220px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f8fafc;
+
+    width: 220px;
+    height: 220px;
+
+    margin: 18px auto;
+    padding: 14px;
+
+    border: 2px dashed rgba(53, 229, 30, 0.35);
+    border-radius: 14px;
+
+    background: $bg-soft;
   }
 
   .img-qr {
     width: 190px;
     height: 190px;
+
     object-fit: contain;
   }
 
   .txt-yapeo {
+    color: $text-main;
+
     font-size: 13px;
-    font-weight: 700;
-    color: #334155;
+    font-weight: 750;
   }
 
   .modal-actions {
     display: grid;
+
     grid-template-columns: 1fr 1fr;
+
     gap: 10px;
-    margin-top: 16px;
+
+    margin-top: 18px;
 
     button {
-      border: none;
+      min-height: 46px;
+
       padding: 10px;
-      border-radius: 8px;
+
+      border: none;
+      border-radius: 10px;
+
       font-weight: 700;
+
       cursor: pointer;
+
+      &:active {
+        transform: scale(0.98);
+      }
     }
 
     .btn-cancelar-modal {
       background: #f1f5f9;
-      color: #334155;
+      color: $text-main;
     }
 
     .btn-confirmar-modal {
-      background: #22c55e;
-      color: white;
+      background:
+        linear-gradient(
+          90deg,
+          #47f73a,
+          #2dd51d
+        );
+
+      color: #ffffff;
     }
   }
 }
 
 /* =====================================================
-   RESPONSIVE CAJERO
+   HISTORIAL DE COBROS
 ===================================================== */
 
-@media (max-width: 900px) {
-  .main-content-cajero {
-    flex-direction: column;
-    overflow-y: auto;
-  }
-
-  .right-panel {
-    width: 100%;
-  }
-
-  .panel-cajero-container {
-    overflow-y: auto;
-  }
-}
-
-@media (max-width: 600px) {
-  .navbar-cajero {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 12px;
-
-    .stats-and-actions {
-      width: 100%;
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .stats {
-      flex-wrap: wrap;
-    }
-  }
-
-  .main-content-cajero {
-    padding: 10px;
-  }
-
-  .methods-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
 .historial-cobros {
   display: flex;
   flex-direction: column;
+
   gap: 10px;
 }
 
 .card-historial-cobro {
   display: grid;
+
   grid-template-columns: 1fr auto auto;
   align-items: center;
+
   gap: 12px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-left: 5px solid #22c55e;
-  border-radius: 12px;
-  padding: 12px;
+
+  padding: 13px;
+
+  border: 1px solid $border-color;
+  border-left: 5px solid $caja-primary;
+  border-radius: 13px;
+
+  background: #ffffff;
+
   font-size: 13px;
+
+  box-shadow:
+    0 5px 16px rgba(15, 41, 29, 0.05);
 }
 
 .historial-left,
@@ -452,18 +966,27 @@ $border-color: #cbd5e1;
 .historial-right {
   display: flex;
   flex-direction: column;
+
+  min-width: 0;
+
   gap: 4px;
 }
 
 .historial-left strong {
-  color: #0f172a;
+  overflow: hidden;
+
+  color: $text-main;
+
   font-size: 15px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .historial-left span,
 .historial-center span,
 .historial-center small {
-  color: #64748b;
+  color: $text-muted;
 }
 
 .historial-right {
@@ -471,11 +994,602 @@ $border-color: #cbd5e1;
 }
 
 .historial-right strong {
-  color: #16a34a;
+  color: $success-dark;
+
   font-size: 15px;
 }
 
 .historial-right span {
-  color: #22c55e;
+  color: $success;
+
   font-size: 12px;
+}
+
+/* =====================================================
+   ANIMACIONES
+===================================================== */
+
+@keyframes blinker {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* =====================================================
+   SCROLL PERSONALIZADO
+===================================================== */
+
+.left-panel::-webkit-scrollbar,
+.right-panel::-webkit-scrollbar,
+.modal-qr-card::-webkit-scrollbar {
+  width: 6px;
+}
+
+.left-panel::-webkit-scrollbar-thumb,
+.right-panel::-webkit-scrollbar-thumb,
+.modal-qr-card::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+
+  background: #cbd6ce;
+}
+
+.left-panel::-webkit-scrollbar-track,
+.right-panel::-webkit-scrollbar-track,
+.modal-qr-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* =====================================================
+   RESPONSIVE TABLET
+===================================================== */
+
+@media (max-width: 1000px) {
+  .panel-cajero-container {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    overflow: visible;
+  }
+
+  .navbar-cajero {
+    position: sticky;
+    top: 0;
+
+    padding: 10px 16px;
+
+    .stats-and-actions {
+      gap: 12px;
+
+      .stats {
+        gap: 8px;
+
+        .stat-item {
+          padding: 7px 10px;
+
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  .main-content-cajero {
+    flex-direction: column;
+
+    min-height: auto;
+
+    padding: 14px;
+
+    gap: 14px;
+
+    overflow: visible;
+  }
+
+  .left-panel,
+  .right-panel {
+    width: 100%;
+    min-width: 0;
+    max-height: none;
+
+    overflow: visible;
+  }
+
+  .grid-mesas-cobro {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* =====================================================
+   RESPONSIVE CELULAR / ANDROID
+===================================================== */
+
+@media (max-width: 600px) {
+  .panel-cajero-container {
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  /* -----------------------------------------------------
+     NAVBAR COMPACTO
+  ----------------------------------------------------- */
+
+  .navbar-cajero {
+    position: sticky;
+    top: 0;
+
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+
+    gap: 9px;
+
+    min-height: auto;
+
+    padding:
+      calc(9px + env(safe-area-inset-top))
+      12px
+      9px;
+
+    .brand-info {
+      min-width: 0;
+
+      gap: 9px;
+
+      .icon-cash {
+        width: 40px;
+        height: 40px;
+
+        border-radius: 12px;
+
+        font-size: 22px;
+      }
+
+      .brand-text {
+        min-width: 0;
+
+        .title {
+          font-size: 15px;
+          line-height: 1.15;
+        }
+
+        .restaurant {
+          font-size: 11px;
+        }
+      }
+    }
+
+    .stats-and-actions {
+      display: contents;
+
+      .stats {
+        grid-column: 1 / -1;
+
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+
+        width: 100%;
+
+        gap: 7px;
+
+        .stat-item {
+          display: flex;
+          justify-content: space-between;
+
+          min-width: 0;
+          min-height: 38px;
+
+          padding: 7px 10px;
+
+          border-radius: 10px;
+
+          font-size: 11px;
+
+          .badge-count {
+            margin-left: 5px;
+          }
+        }
+      }
+
+      .time-exit {
+        width: auto;
+
+        gap: 7px;
+
+        .time {
+          display: none;
+        }
+
+        .btn-exit {
+          min-width: 48px;
+          min-height: 42px;
+
+          padding: 8px 10px;
+
+          border-radius: 11px;
+
+          font-size: 12px;
+        }
+      }
+    }
+  }
+
+  /* -----------------------------------------------------
+     CONTENIDO PRINCIPAL
+  ----------------------------------------------------- */
+
+  .main-content-cajero {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+
+    gap: 12px;
+
+    padding:
+      10px
+      10px
+      calc(18px + env(safe-area-inset-bottom));
+
+    overflow: visible;
+  }
+
+  .left-panel,
+  .right-panel {
+    width: 100%;
+    min-width: 0;
+    max-height: none;
+
+    padding: 13px;
+
+    overflow: visible;
+
+    border-radius: 15px;
+  }
+
+  .section-title {
+    margin-bottom: 13px;
+    padding-bottom: 8px;
+
+    font-size: 16px;
+  }
+
+  /* -----------------------------------------------------
+     TARJETAS
+  ----------------------------------------------------- */
+
+  .grid-mesas-cobro {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+    gap: 9px;
+  }
+
+  .card-mesa-cobro {
+    min-width: 0;
+    min-height: 112px;
+
+    padding: 12px;
+
+    border-radius: 12px;
+
+    &:hover {
+      transform: none;
+    }
+
+    &:active {
+      transform: scale(0.98);
+
+      background: #eaffea;
+    }
+
+    .mesa-badge {
+      margin-bottom: 5px;
+
+      font-size: 14px;
+    }
+
+    .total-pago {
+      font-size: 13px;
+    }
+
+    .alert-blink {
+      margin-top: 6px;
+
+      font-size: 10px;
+      line-height: 1.25;
+    }
+  }
+
+  /* -----------------------------------------------------
+     TICKET
+  ----------------------------------------------------- */
+
+  .ticket-container {
+    height: auto;
+
+    .ticket-row {
+      font-size: 13px;
+    }
+
+    .ticket-totals {
+      margin-bottom: 14px;
+      padding: 12px;
+
+      .total-row {
+        font-size: 13px;
+
+        input {
+          width: 105px;
+          min-height: 44px;
+
+          font-size: 16px;
+        }
+
+        &.net-total {
+          font-size: 18px;
+        }
+      }
+    }
+
+    .payment-methods {
+      margin-bottom: 14px;
+
+      .methods-grid {
+        grid-template-columns:
+          repeat(2, minmax(0, 1fr)) !important;
+
+        gap: 8px;
+
+        button {
+          min-width: 0;
+          min-height: 50px;
+
+          padding: 9px 6px;
+
+          font-size: 13px;
+
+          &:hover {
+            transform: none;
+          }
+        }
+      }
+    }
+
+    .btn-liquidar {
+      position: sticky;
+      bottom: calc(8px + env(safe-area-inset-bottom));
+
+      z-index: 20;
+
+      min-height: 54px;
+
+      padding: 13px;
+
+      border-radius: 13px;
+
+      font-size: 15px;
+
+      box-shadow:
+        0 10px 28px rgba(53, 229, 30, 0.36);
+    }
+  }
+
+  .estado-mesa-ticket {
+    font-size: 12px;
+  }
+
+  .resumen-cobro {
+    padding: 11px;
+
+    font-size: 12px;
+  }
+
+  /* -----------------------------------------------------
+     HISTORIAL
+  ----------------------------------------------------- */
+
+  .historial-cobros {
+    gap: 8px;
+  }
+
+  .card-historial-cobro {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    gap: 8px;
+
+    padding: 12px;
+
+    .historial-center {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    .historial-right {
+      align-items: flex-end;
+
+      text-align: right;
+    }
+  }
+
+  /* -----------------------------------------------------
+     MODAL QR
+  ----------------------------------------------------- */
+
+  .modal-qr-overlay {
+    align-items: flex-end;
+
+    padding:
+      12px
+      12px
+      calc(12px + env(safe-area-inset-bottom));
+  }
+
+  .modal-qr-card {
+    width: 100%;
+    max-width: none;
+    max-height: 92dvh;
+
+    padding: 18px;
+
+    border-radius: 22px 22px 14px 14px;
+
+    h3 {
+      font-size: 18px;
+    }
+
+    .qr-container {
+      width: min(190px, 55vw);
+      height: min(190px, 55vw);
+
+      margin: 14px auto;
+      padding: 10px;
+    }
+
+    .img-qr {
+      width: 100%;
+      height: 100%;
+    }
+
+    .modal-actions {
+      grid-template-columns: 1fr;
+
+      button {
+        min-height: 48px;
+      }
+    }
+  }
+
+  .empty-state {
+    margin: 25px 0;
+    padding: 22px 12px;
+
+    font-size: 13px;
+  }
+}
+
+/* =====================================================
+   CELULARES PEQUEÑOS
+===================================================== */
+
+@media (max-width: 380px) {
+  .navbar-cajero {
+    .stats-and-actions {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  .grid-mesas-cobro {
+    grid-template-columns: 1fr;
+  }
+
+  .ticket-container {
+    .payment-methods {
+      .methods-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  }
+
+  .card-historial-cobro {
+    grid-template-columns: 1fr;
+
+    .historial-center {
+      grid-column: auto;
+    }
+
+    .historial-right {
+      align-items: flex-start;
+
+      text-align: left;
+    }
+  }
+}
+
+/* =====================================================
+   ANDROID EN MODO HORIZONTAL
+===================================================== */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .panel-cajero-container {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .navbar-cajero {
+    position: static;
+
+    .stats-and-actions {
+      .stats {
+        display: none;
+      }
+    }
+  }
+
+  .main-content-cajero {
+    flex-direction: row;
+
+    padding: 10px;
+  }
+
+  .left-panel {
+    width: 52%;
+  }
+
+  .right-panel {
+    width: 48%;
+  }
+
+  .grid-mesas-cobro {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .modal-qr-overlay {
+    align-items: center;
+  }
+
+  .modal-qr-card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+
+    max-width: 700px;
+  }
+}
+
+/* =====================================================
+   DISPOSITIVOS SIN HOVER
+===================================================== */
+
+@media (hover: none) {
+  .card-mesa-cobro:hover,
+  .navbar-cajero .btn-exit:hover,
+  .ticket-container .payment-methods .methods-grid button:hover,
+  .ticket-container .btn-liquidar:hover {
+    transform: none;
+  }
+}
+
+/* =====================================================
+   REDUCIR ANIMACIONES
+===================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+  }
 }

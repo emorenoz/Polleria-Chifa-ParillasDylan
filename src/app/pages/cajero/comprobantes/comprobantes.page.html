@@ -1,13 +1,597 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>comprobantes</ion-title>
+<ion-header class="ion-no-border">
+
+  <ion-toolbar class="toolbar-page">
+
+    <ion-buttons slot="start">
+
+      <ion-button (click)="volverInicio()">
+
+        <ion-icon
+          slot="icon-only"
+          name="arrow-back-outline">
+        </ion-icon>
+
+      </ion-button>
+
+    </ion-buttons>
+
+    <ion-title>
+      Comprobantes
+    </ion-title>
+
   </ion-toolbar>
+
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">comprobantes</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="contenido-page">
+
+  <main class="contenedor">
+
+    <!-- ================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ================================================= -->
+
+    <section class="encabezado">
+
+      <div>
+
+        <span class="subtitulo">
+          Módulo de caja
+        </span>
+
+        <h1>
+          Comprobantes guardados
+        </h1>
+
+        <p>
+          Todos los comprobantes de todos los días agrupados por fecha.
+        </p>
+
+      </div>
+
+      <div class="resumen-principal">
+
+        <article>
+
+          <span>
+            Comprobantes
+          </span>
+
+          <strong>
+            {{ totalComprobantes }}
+          </strong>
+
+        </article>
+
+        <article>
+
+          <span>
+            Importe total
+          </span>
+
+          <strong>
+            S/ {{ totalImporte | number:'1.2-2' }}
+          </strong>
+
+        </article>
+
+      </div>
+
+    </section>
+
+    <!-- ================================================= -->
+    <!-- FILTROS -->
+    <!-- ================================================= -->
+
+    <section class="filtros">
+
+      <div class="campo buscador">
+
+        <ion-icon
+          name="search-outline">
+        </ion-icon>
+
+        <input
+          type="text"
+          [(ngModel)]="textoBusqueda"
+          (input)="aplicarFiltros()"
+          placeholder="Buscar código, cliente, mesa o teléfono">
+
+      </div>
+
+      <div class="campo">
+
+        <label>
+          Fecha
+        </label>
+
+        <input
+          type="date"
+          [(ngModel)]="fechaSeleccionada"
+          (change)="aplicarFiltros()">
+
+      </div>
+
+      <div class="campo">
+
+        <label>
+          Método de pago
+        </label>
+
+        <select
+          [(ngModel)]="metodoSeleccionado"
+          (change)="aplicarFiltros()">
+
+          <option value="todos">
+            Todos
+          </option>
+
+          <option value="Efectivo">
+            Efectivo
+          </option>
+
+          <option value="Yape">
+            Yape
+          </option>
+
+          <option value="Plin">
+            Plin
+          </option>
+
+          <option value="Tarjeta">
+            Tarjeta
+          </option>
+
+        </select>
+
+      </div>
+
+      <button
+        type="button"
+        class="btn-limpiar"
+        (click)="limpiarFiltros()">
+
+        <ion-icon
+          name="refresh-outline">
+        </ion-icon>
+
+        Limpiar
+
+      </button>
+
+    </section>
+
+    <!-- ================================================= -->
+    <!-- GRUPOS DE COMPROBANTES -->
+    <!-- ================================================= -->
+
+    <section
+      class="grupo-comprobantes"
+      *ngFor="
+        let grupo of comprobantesAgrupados;
+        trackBy: trackByGrupo
+      ">
+
+      <button
+        type="button"
+        class="grupo-header"
+        (click)="cambiarExpandido(grupo)">
+
+        <div class="grupo-fecha">
+
+          <div class="icono-fecha">
+
+            <ion-icon
+              name="calendar-outline">
+            </ion-icon>
+
+          </div>
+
+          <div>
+
+            <h2>
+              {{ formatearFechaGrupo(grupo.fecha) }}
+            </h2>
+
+            <span>
+              {{ grupo.cantidad }}
+              comprobantes guardados
+            </span>
+
+          </div>
+
+        </div>
+
+        <div class="grupo-total">
+
+          <div>
+
+            <span>
+              Total del día
+            </span>
+
+            <strong>
+              S/ {{ grupo.totalDia | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+          <ion-icon
+            [name]="
+              grupo.expandido
+                ? 'chevron-up-outline'
+                : 'chevron-down-outline'
+            ">
+          </ion-icon>
+
+        </div>
+
+      </button>
+
+      <div
+        *ngIf="grupo.expandido"
+        class="lista-comprobantes">
+
+        <article
+          class="comprobante"
+          *ngFor="
+            let comprobante of grupo.comprobantes;
+            trackBy: trackByComprobante
+          ">
+
+          <div class="icono-comprobante">
+
+            <ion-icon
+              name="receipt-outline">
+            </ion-icon>
+
+          </div>
+
+          <div class="datos-comprobante">
+
+            <div class="fila-principal">
+
+              <div>
+
+                <strong>
+                  {{ obtenerTituloComprobante(comprobante) }}
+                </strong>
+
+                <span>
+                  #{{ obtenerCodigo(comprobante) }}
+                </span>
+
+              </div>
+
+              <strong class="importe">
+
+                S/
+                {{
+                  comprobante.total
+                    | number:'1.2-2'
+                }}
+
+              </strong>
+
+            </div>
+
+            <div class="detalle-comprobante">
+
+              <span>
+                {{
+                  formatearFechaHora(
+                    comprobante.fecha
+                  )
+                }}
+              </span>
+
+              <span>
+                {{
+                  comprobante.clienteNombre ||
+                  'Cliente general'
+                }}
+              </span>
+
+              <span>
+                {{
+                  comprobante.metodoPago ||
+                  'Sin método'
+                }}
+              </span>
+
+              <span>
+                {{
+                  comprobante.cajero ||
+                  'Cajero'
+                }}
+              </span>
+
+            </div>
+
+          </div>
+
+          <div class="acciones">
+
+            <button
+              type="button"
+              class="btn-ver"
+              (click)="verDetalle(comprobante)">
+
+              <ion-icon
+                name="eye-outline">
+              </ion-icon>
+
+              Ver
+
+            </button>
+
+            <button
+              type="button"
+              class="btn-imprimir"
+              (click)="imprimirComprobante(comprobante)">
+
+              <ion-icon
+                name="print-outline">
+              </ion-icon>
+
+              Imprimir
+
+            </button>
+
+          </div>
+
+        </article>
+
+      </div>
+
+    </section>
+
+    <!-- ================================================= -->
+    <!-- SIN COMPROBANTES -->
+    <!-- ================================================= -->
+
+    <div
+      *ngIf="comprobantesAgrupados.length === 0"
+      class="estado-vacio">
+
+      <div class="estado-icono">
+
+        <ion-icon
+          name="document-text-outline">
+        </ion-icon>
+
+      </div>
+
+      <h3>
+        No hay comprobantes
+      </h3>
+
+      <p>
+        No se encontraron comprobantes con los filtros seleccionados.
+      </p>
+
+    </div>
+
+  </main>
+
+  <!-- ================================================= -->
+  <!-- MODAL DETALLE -->
+  <!-- ================================================= -->
+
+  <div
+    *ngIf="comprobanteSeleccionado"
+    class="modal-fondo"
+    (click)="cerrarDetalle()">
+
+    <section
+      class="modal-detalle"
+      (click)="$event.stopPropagation()">
+
+      <header>
+
+        <div>
+
+          <span>
+            Comprobante
+          </span>
+
+          <h2>
+            #{{ obtenerCodigo(comprobanteSeleccionado) }}
+          </h2>
+
+        </div>
+
+        <button
+          type="button"
+          class="btn-cerrar"
+          (click)="cerrarDetalle()">
+
+          ×
+
+        </button>
+
+      </header>
+
+      <div class="informacion-modal">
+
+        <p>
+
+          <span>
+            Fecha
+          </span>
+
+          <strong>
+            {{
+              formatearFechaHora(
+                comprobanteSeleccionado.fecha
+              )
+            }}
+          </strong>
+
+        </p>
+
+        <p>
+
+          <span>
+            Pedido
+          </span>
+
+          <strong>
+            {{
+              obtenerTituloComprobante(
+                comprobanteSeleccionado
+              )
+            }}
+          </strong>
+
+        </p>
+
+        <p>
+
+          <span>
+            Cliente
+          </span>
+
+          <strong>
+            {{
+              comprobanteSeleccionado.clienteNombre ||
+              'Cliente general'
+            }}
+          </strong>
+
+        </p>
+
+        <p>
+
+          <span>
+            Método de pago
+          </span>
+
+          <strong>
+            {{
+              comprobanteSeleccionado.metodoPago ||
+              'Sin método'
+            }}
+          </strong>
+
+        </p>
+
+      </div>
+
+      <div class="productos-modal">
+
+        <div
+          class="producto-modal"
+          *ngFor="
+            let item of obtenerItems(
+              comprobanteSeleccionado
+            )
+          ">
+
+          <span>
+
+            {{ obtenerCantidad(item) }}x
+
+            {{ obtenerNombreProducto(item) }}
+
+          </span>
+
+          <strong>
+
+            S/
+
+            {{
+              obtenerCantidad(item) *
+              obtenerPrecio(item)
+                | number:'1.2-2'
+            }}
+
+          </strong>
+
+        </div>
+
+      </div>
+
+      <div class="totales-modal">
+
+        <p>
+
+          <span>
+            Subtotal
+          </span>
+
+          <strong>
+
+            S/
+
+            {{
+              comprobanteSeleccionado.subtotal
+                | number:'1.2-2'
+            }}
+
+          </strong>
+
+        </p>
+
+        <p>
+
+          <span>
+            Descuento
+          </span>
+
+          <strong>
+
+            S/
+
+            {{
+              comprobanteSeleccionado.descuento
+                | number:'1.2-2'
+            }}
+
+          </strong>
+
+        </p>
+
+        <p class="total-modal">
+
+          <span>
+            Total
+          </span>
+
+          <strong>
+
+            S/
+
+            {{
+              comprobanteSeleccionado.total
+                | number:'1.2-2'
+            }}
+
+          </strong>
+
+        </p>
+
+      </div>
+
+      <button
+        type="button"
+        class="btn-imprimir-modal"
+        (click)="
+          imprimirComprobante(
+            comprobanteSeleccionado
+          )
+        ">
+
+        <ion-icon
+          name="print-outline">
+        </ion-icon>
+
+        Imprimir comprobante
+
+      </button>
+
+    </section>
+
+  </div>
+
 </ion-content>

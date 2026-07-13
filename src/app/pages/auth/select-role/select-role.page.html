@@ -1,54 +1,89 @@
 <ion-content [fullscreen]="true" class="role-content">
 
-  <!-- Overlay decorativo -->
   <div class="overlay"></div>
 
   <div class="role-container">
 
-    <!-- Sección de título -->
+    <!-- TÍTULO -->
     <div class="title-section">
-      <img src="https://i.ibb.co/6Mpnz0d/logo-dylan.png" alt="logo">
-      <h1>Polleria Dylan</h1>
-      <p>Selecciona el módulo al que deseas ingresar</p>
+
+      <img
+        src="https://i.ibb.co/6Mpnz0d/logo-dylan.png"
+        alt="Logo de Pollería Dylan">
+
+      <h1>Pollería Dylan</h1>
+
+      <p>
+        Selecciona el módulo al que deseas ingresar
+      </p>
+
     </div>
 
-    <!-- Grid de roles -->
+    <!-- ROLES -->
     <div class="roles-grid">
 
-      <!-- ADMIN -->
-      <ion-card class="role-card admin-card" button (click)="irAdmin()">
+      <!-- ADMINISTRADOR -->
+      <ion-card
+        class="role-card admin-card"
+        button
+        tabindex="0"
+        (click)="irAdmin()"
+        (keyup.enter)="irAdmin()">
+
         <div class="icon-container">
-          <ion-icon name="settings-outline"></ion-icon>
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
         </div>
+
         <h2>Administrador</h2>
-        <p>Control total del sistema</p>
+
       </ion-card>
 
       <!-- CAJERO -->
-      <ion-card class="role-card cajero-card" button (click)="irCajero()">
+      <ion-card
+        class="role-card cajero-card"
+        button
+        tabindex="0"
+        (click)="irCajero()"
+        (keyup.enter)="irCajero()">
+
         <div class="icon-container">
           <ion-icon name="cash-outline"></ion-icon>
         </div>
+
         <h2>Cajero</h2>
-        <p>Gestión de pagos y ventas</p>
+
       </ion-card>
 
-      <!-- MESERO/A -->
-      <ion-card class="role-card mesera-card" button (click)="irMesero()">
+      <!-- MESERO -->
+      <ion-card
+        class="role-card mesera-card"
+        button
+        tabindex="0"
+        (click)="irMesero()"
+        (keyup.enter)="irMesero()">
+
         <div class="icon-container">
           <ion-icon name="restaurant-outline"></ion-icon>
         </div>
-        <h2>Mesero/a</h2>
-        <p>Pedidos y mesas</p>
+
+        <h2>Mesero</h2>
+
       </ion-card>
 
       <!-- COCINA -->
-      <ion-card class="role-card cocina-card" button (click)="irCocina()">
+      <ion-card
+        class="role-card cocina-card"
+        button
+        tabindex="0"
+        (click)="irCocina()"
+        (keyup.enter)="irCocina()">
+
         <div class="icon-container">
           <ion-icon name="flame-outline"></ion-icon>
         </div>
+
         <h2>Cocina</h2>
-        <p>Preparación de pedidos</p>
+
       </ion-card>
 
     </div>

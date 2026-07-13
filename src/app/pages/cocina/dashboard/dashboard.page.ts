@@ -1,138 +1,302 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  inject
+} from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
+import { Router } from '@angular/router';
 
 import {
   Firestore,
   collection,
   collectionData,
   doc,
-  updateDoc
+  updateDoc,
+  serverTimestamp
 } from '@angular/fire/firestore';
 
 import { Subscription } from 'rxjs';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule]
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule
+  ]
 })
 export class DashboardPage implements OnInit, OnDestroy {
+
+  // =====================================================
+  // SERVICIOS
+  // =====================================================
 
   private firestore = inject(Firestore);
   private router = inject(Router);
 
-  nombreCocinero = 'Juan Moreno';
-  mensajeNotificacion = '';
-  pedidosRecientes: any[] = [];
+  // =====================================================
+  // DATOS DEL COCINERO
+  // =====================================================
 
-  horaActual: string = new Date().toLocaleTimeString('es-PE', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit'
-  });
+  nombreCocinero: string =
+    localStorage.getItem('nombreUsuario') ||
+    localStorage.getItem('nombreCocinero') ||
+    'Juan Moreno';
 
-  private relojInterval: any;
-  private pedidosSubscription?: Subscription;
-  private notificacionTimeout: any;
+  // =====================================================
+  // VARIABLES GENERALES
+  // =====================================================
+
+  mensajeNotificacion: string = '';
 
   pedidos: any[] = [];
   pedidosFiltrados: any[] = [];
+  pedidosRecientes: any[] = [];
 
   categoriaSeleccionada: string = 'todos';
 
-  ngOnInit() {
+  horaActual: string = this.obtenerHoraActual();
+
+  // Evita hacer doble clic mientras se actualiza un pedido
+  pedidosProcesando = new Set<string>();
+
+  // =====================================================
+  // SUSCRIPCIONES E INTERVALOS
+  // =====================================================
+
+  private relojInterval: ReturnType<typeof setInterval> | null = null;
+
+  private notificacionTimeout:
+    ReturnType<typeof setTimeout> | null = null;
+
+  private pedidosSubscription?: Subscription;
+
+  // =====================================================
+  // CICLO DE VIDA
+  // =====================================================
+
+  ngOnInit(): void {
     this.cargarDatos();
     this.iniciarReloj();
   }
 
-  ngOnDestroy() {
-    if (this.relojInterval) clearInterval(this.relojInterval);
-    if (this.notificacionTimeout) clearTimeout(this.notificacionTimeout);
-    if (this.pedidosSubscription) this.pedidosSubscription.unsubscribe();
+  ngOnDestroy(): void {
+    if (this.relojInterval) {
+      clearInterval(this.relojInterval);
+      this.relojInterval = null;
+    }
+
+    if (this.notificacionTimeout) {
+      clearTimeout(this.notificacionTimeout);
+      this.notificacionTimeout = null;
+    }
+
+    if (this.pedidosSubscription) {
+      this.pedidosSubscription.unsubscribe();
+    }
   }
 
-  iniciarReloj() {
+  // =====================================================
+  // RELOJ
+  // =====================================================
+
+  obtenerHoraActual(): string {
+    return new Date().toLocaleTimeString('es-PE', {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  }
+
+  iniciarReloj(): void {
     this.relojInterval = setInterval(() => {
-      this.horaActual = new Date().toLocaleTimeString('es-PE', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
+      this.horaActual = this.obtenerHoraActual();
     }, 1000);
   }
 
-  cargarDatos() {
+  // =====================================================
+  // CARGAR PEDIDOS DE FIRESTORE
+  // =====================================================
+
+  cargarDatos(): void {
     const pedidosRef = collection(this.firestore, 'pedidos');
 
     this.pedidosSubscription = collectionData(
       pedidosRef,
       { idField: 'id' }
-    ).subscribe((data: any[]) => {
-      this.pedidos = (data || [])
-        .filter(p =>
-          p.estado !== 'pagado' &&
-          p.estado !== 'anulado' &&
-          p.estado !== 'entregado_mesa' &&
-          p.estado !== 'cuenta' &&
-          p.estado !== 'Liberado Sin Pagar'
-        )
-        .sort((a, b) => this.obtenerTime(b.fecha) - this.obtenerTime(a.fecha));
+    ).subscribe({
+      next: (data: any[]) => {
 
-      this.asignarNumerosPedidos();
-      this.actualizarPedidosRecientes();
-      this.filtrarPedidos();
+        const estadosOcultos = [
+          'pagado',
+          'anulado',
+          'cancelado',
+          'entregado_mesa',
+          'cuenta',
+          'liberado_sin_pagar',
+          'liberado sin pagar'
+        ];
+
+        this.pedidos = (data || [])
+          .filter(pedido => {
+            const estado = this.normalizarTexto(pedido.estado);
+            return !estadosOcultos.includes(estado);
+          })
+          .map(pedido => ({
+            ...pedido,
+
+            // Usa el número guardado. Si no existe, crea uno estable
+            // utilizando parte del ID del documento.
+            numeroVisual: this.obtenerNumeroPedido(pedido)
+          }))
+          .sort(
+            (a, b) =>
+              this.obtenerTime(b.fecha) -
+              this.obtenerTime(a.fecha)
+          );
+
+        this.actualizarPedidosRecientes();
+        this.filtrarPedidos();
+      },
+
+      error: error => {
+        console.error('Error cargando pedidos:', error);
+
+        this.mostrarNotificacion(
+          '❌ No se pudieron cargar los pedidos.'
+        );
+      }
     });
   }
 
-  asignarNumerosPedidos() {
-    const pedidosOrdenados = [...this.pedidos]
-      .sort((a, b) => this.obtenerTime(a.fecha) - this.obtenerTime(b.fecha));
+  // =====================================================
+  // NUMERACIÓN DEL PEDIDO
+  // =====================================================
 
-    pedidosOrdenados.forEach((pedido, index) => {
-      pedido.numeroVisual = String(index + 1).padStart(2, '0');
-    });
-  }
-
+  /**
+   * Obtiene un número estable.
+   *
+   * Prioridad:
+   * 1. numeroPedido almacenado en Firestore.
+   * 2. numeroVisual ya existente.
+   * 3. Últimos caracteres del ID del documento.
+   *
+   * Lo recomendable es generar numeroPedido desde el
+   * momento en que el mesero crea el pedido.
+   */
   obtenerNumeroPedido(pedido: any): string {
-    if (pedido.numeroVisual) {
-      return pedido.numeroVisual;
+    if (pedido?.numeroPedido !== undefined &&
+        pedido?.numeroPedido !== null &&
+        pedido?.numeroPedido !== '') {
+
+      return String(pedido.numeroPedido).padStart(2, '0');
     }
 
-    const pedidosOrdenados = [...this.pedidos]
-      .sort((a, b) => this.obtenerTime(a.fecha) - this.obtenerTime(b.fecha));
+    if (pedido?.numeroVisual !== undefined &&
+        pedido?.numeroVisual !== null &&
+        pedido?.numeroVisual !== '') {
 
-    const index = pedidosOrdenados.findIndex(p => p.id === pedido.id);
+      return String(pedido.numeroVisual).padStart(2, '0');
+    }
 
-    return String(index >= 0 ? index + 1 : 1).padStart(2, '0');
+    if (pedido?.id) {
+      return String(pedido.id)
+        .slice(-6)
+        .toUpperCase();
+    }
+
+    return 'SIN-ID';
   }
 
-  aplicarFiltro(tipo: string) {
+  /**
+   * Se conserva para no generar errores si tu HTML
+   * o algún otro método todavía lo utiliza.
+   *
+   * Ya no cambia la numeración según la posición.
+   */
+  asignarNumerosPedidos(): void {
+    this.pedidos = this.pedidos.map(pedido => ({
+      ...pedido,
+      numeroVisual: this.obtenerNumeroPedido(pedido)
+    }));
+  }
+
+  // =====================================================
+  // FILTROS
+  // =====================================================
+
+  aplicarFiltro(tipo: string): void {
     this.categoriaSeleccionada = tipo;
     this.filtrarPedidos();
   }
 
-  filtrarPedidos() {
+  filtrarPedidos(): void {
     if (this.categoriaSeleccionada === 'todos') {
-      this.pedidosFiltrados = this.pedidos;
-    } else {
-      this.pedidosFiltrados = this.pedidos.filter(
-        p => p.estado === this.categoriaSeleccionada
-      );
+      this.pedidosFiltrados = [...this.pedidos];
+      return;
     }
+
+    const estadoSeleccionado = this.normalizarTexto(
+      this.categoriaSeleccionada
+    );
+
+    this.pedidosFiltrados = this.pedidos.filter(
+      pedido =>
+        this.normalizarTexto(pedido.estado) === estadoSeleccionado
+    );
   }
 
-  actualizarPedidosRecientes() {
+  // =====================================================
+  // PEDIDOS RECIENTES
+  // =====================================================
+
+  actualizarPedidosRecientes(): void {
     this.pedidosRecientes = this.pedidos
-      .filter(p => p.estado === 'listo')
+      .filter(
+        pedido =>
+          this.normalizarTexto(pedido.estado) === 'listo'
+      )
+      .sort(
+        (a, b) =>
+          this.obtenerTime(
+            b.fechaListo ||
+            b.fechaActualizacion ||
+            b.fecha
+          ) -
+          this.obtenerTime(
+            a.fechaListo ||
+            a.fechaActualizacion ||
+            a.fecha
+          )
+      )
       .slice(0, 5);
   }
 
-  mostrarNotificacion(mensaje: string) {
+  /**
+   * Se conserva por compatibilidad, aunque Firestore
+   * actualizará pedidosRecientes automáticamente.
+   */
+  agregarPedidoReciente(pedido: any): void {
+    this.pedidosRecientes = [
+      pedido,
+      ...this.pedidosRecientes.filter(
+        item => item.id !== pedido.id
+      )
+    ].slice(0, 5);
+  }
+
+  // =====================================================
+  // NOTIFICACIONES
+  // =====================================================
+
+  mostrarNotificacion(mensaje: string): void {
     this.mensajeNotificacion = mensaje;
 
     if (this.notificacionTimeout) {
@@ -141,157 +305,446 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     this.notificacionTimeout = setTimeout(() => {
       this.mensajeNotificacion = '';
+      this.notificacionTimeout = null;
     }, 5000);
   }
 
+  // =====================================================
+  // CONTADORES
+  // =====================================================
+
   get totalNuevos(): number {
-    return this.pedidos.filter(p => p.estado === 'pendiente_cocina').length;
+    return this.pedidos.filter(
+      pedido =>
+        this.normalizarTexto(pedido.estado) ===
+        'pendiente_cocina'
+    ).length;
   }
 
   get totalEnCocina(): number {
-    return this.pedidos.filter(p => p.estado === 'preparando').length;
+    return this.pedidos.filter(
+      pedido =>
+        this.normalizarTexto(pedido.estado) ===
+        'preparando'
+    ).length;
   }
 
   get totalListos(): number {
-    return this.pedidos.filter(p => p.estado === 'listo').length;
+    return this.pedidos.filter(
+      pedido =>
+        this.normalizarTexto(pedido.estado) ===
+        'listo'
+    ).length;
   }
 
-  async cambiarEstado(pedido: any) {
-    let nuevoEstado = '';
+  // =====================================================
+  // CAMBIAR ESTADO
+  // =====================================================
 
-    if (pedido.estado === 'pendiente_cocina') {
-      nuevoEstado = 'preparando';
-    } else if (pedido.estado === 'preparando') {
-      nuevoEstado = 'listo';
-    } else if (pedido.estado === 'listo') {
-      nuevoEstado = 'entregado_mesa';
+  async cambiarEstado(pedido: any): Promise<void> {
+
+    if (!pedido?.id) {
+      this.mostrarNotificacion(
+        '❌ El pedido no tiene un ID válido.'
+      );
+      return;
     }
 
-    if (!nuevoEstado) return;
+    if (this.pedidosProcesando.has(pedido.id)) {
+      return;
+    }
+
+    const estadoActual = this.normalizarTexto(pedido.estado);
+
+    const estadosPermitidos = [
+      'pendiente_cocina',
+      'preparando',
+      'listo'
+    ];
+
+    if (!estadosPermitidos.includes(estadoActual)) {
+      this.mostrarNotificacion(
+        '⚠️ Este pedido ya no puede procesarse desde cocina.'
+      );
+      return;
+    }
+
+    this.pedidosProcesando.add(pedido.id);
+
+    const numeroPedido = this.obtenerNumeroPedido(pedido);
+    const esParaLlevar = this.esPedidoParaLlevar(pedido);
+    const destinoPedido = this.obtenerDestinoPedido(pedido);
+
+    const pedidoRef = doc(
+      this.firestore,
+      'pedidos',
+      pedido.id
+    );
 
     try {
-      const docRef = doc(this.firestore, 'pedidos', pedido.id);
-      const numeroPedido = this.obtenerNumeroPedido(pedido);
 
-      await updateDoc(docRef, {
-        estado: nuevoEstado,
-        numeroPedido: numeroPedido,
-        cocinero: this.nombreCocinero,
-        fechaActualizacion: new Date()
-      });
+      // =================================================
+      // PENDIENTE → PREPARANDO
+      // =================================================
 
-      if (nuevoEstado === 'listo') {
-        this.mostrarNotificacion(
-          `✅ Pedido #${numeroPedido} listo para recoger - Mesa ${pedido.mesa}`
-        );
+      if (estadoActual === 'pendiente_cocina') {
 
-        this.agregarPedidoReciente({
-          ...pedido,
-          estado: 'listo',
-          numeroPedido: numeroPedido,
-          cocinero: this.nombreCocinero
+        await updateDoc(pedidoRef, {
+          estado: 'preparando',
+          numeroPedido,
+          cocinero: this.nombreCocinero,
+          fechaInicioPreparacion: serverTimestamp(),
+          fechaActualizacion: serverTimestamp()
         });
 
-        if (pedido.idMesa) {
-          const mesaRef = doc(this.firestore, 'mesas', pedido.idMesa);
+        this.mostrarNotificacion(
+          `🔥 Pedido #${numeroPedido} en preparación - ${destinoPedido}`
+        );
+
+        return;
+      }
+
+      // =================================================
+      // PREPARANDO → LISTO
+      // =================================================
+
+      if (estadoActual === 'preparando') {
+
+        await updateDoc(pedidoRef, {
+          estado: 'listo',
+          numeroPedido,
+          cocinero: this.nombreCocinero,
+          pedidoListo: true,
+          notificacionMesero: !esParaLlevar,
+          notificacionCajero: esParaLlevar,
+          fechaListo: serverTimestamp(),
+          fechaActualizacion: serverTimestamp()
+        });
+
+        // Actualizar mesa solamente cuando sea consumo en mesa
+        if (!esParaLlevar && pedido.idMesa) {
+
+          const mesaRef = doc(
+            this.firestore,
+            'mesas',
+            pedido.idMesa
+          );
 
           await updateDoc(mesaRef, {
             estado: 'listo',
             mesero: pedido.mesero || 'Mesero',
             cocinero: this.nombreCocinero,
-            numeroPedido: numeroPedido,
+            numeroPedido,
             pedidoListo: true,
             notificacionMesero: true,
-            mensajeCocina: `Pedido #${numeroPedido} listo para recoger en Mesa ${pedido.mesa}`,
-            fechaPedidoListo: new Date()
+            mensajeCocina:
+              `Pedido #${numeroPedido} listo para recoger en Mesa ${pedido.mesa || 'sin número'}`,
+            fechaPedidoListo: serverTimestamp()
           });
         }
+
+        this.mostrarNotificacion(
+          `✅ Pedido #${numeroPedido} listo - ${destinoPedido}`
+        );
+
+        return;
       }
 
-      if (nuevoEstado === 'entregado_mesa') {
-        if (pedido.idMesa) {
-          const mesaRef = doc(this.firestore, 'mesas', pedido.idMesa);
+      // =================================================
+      // LISTO → CUENTA / CAJA
+      // =================================================
+
+      if (estadoActual === 'listo') {
+
+        const datosPedido: any = {
+          estado: 'cuenta',
+          numeroPedido,
+          cocinero: this.nombreCocinero,
+          pedidoListo: false,
+          listoParaCobrar: true,
+          enviadoCaja: true,
+          notificacionCajero: true,
+          notificacionMesero: false,
+          fechaEnviadoCaja: serverTimestamp(),
+          fechaActualizacion: serverTimestamp()
+        };
+
+        if (esParaLlevar) {
+          datosPedido.fechaEntregadoCliente = serverTimestamp();
+          datosPedido.tipoDestino = 'para_llevar';
+        } else {
+          datosPedido.fechaEntregadoMesa = serverTimestamp();
+          datosPedido.tipoDestino = 'mesa';
+        }
+
+        // Una sola actualización definitiva del pedido
+        await updateDoc(pedidoRef, datosPedido);
+
+        // Actualizar mesa solamente si existe
+        if (!esParaLlevar && pedido.idMesa) {
+
+          const mesaRef = doc(
+            this.firestore,
+            'mesas',
+            pedido.idMesa
+          );
 
           await updateDoc(mesaRef, {
             estado: 'cuenta',
             mesero: pedido.mesero || 'Mesero',
             cocinero: this.nombreCocinero,
-            numeroPedido: numeroPedido,
+            numeroPedido,
             pedidoListo: false,
             notificacionMesero: false,
-            fechaEntregadoMesa: new Date()
+            listoParaCobrar: true,
+            fechaEntregadoMesa: serverTimestamp(),
+            fechaActualizacion: serverTimestamp()
           });
         }
 
-        await updateDoc(docRef, {
-          estado: 'cuenta',
-          numeroPedido: numeroPedido,
-          fechaEntregadoMesa: new Date()
-        });
+        this.mostrarNotificacion(
+          `💵 Pedido #${numeroPedido} enviado a caja - ${destinoPedido}`
+        );
       }
 
     } catch (error) {
-      console.error('Error cambiando estado del pedido:', error);
-      alert('No se pudo actualizar el pedido.');
+      console.error(
+        'Error cambiando estado del pedido:',
+        error
+      );
+
+      this.mostrarNotificacion(
+        '❌ No se pudo actualizar el pedido. Intenta nuevamente.'
+      );
+
+    } finally {
+      this.pedidosProcesando.delete(pedido.id);
     }
   }
 
-  agregarPedidoReciente(pedido: any) {
-    this.pedidosRecientes = [
-      pedido,
-      ...this.pedidosRecientes.filter(p => p.id !== pedido.id)
-    ].slice(0, 5);
+  // =====================================================
+  // IDENTIFICAR TIPO DE PEDIDO
+  // =====================================================
+
+  esPedidoParaLlevar(pedido: any): boolean {
+    const valores = [
+      pedido?.tipoPedido,
+      pedido?.tipo,
+      pedido?.origen,
+      pedido?.modalidad,
+      pedido?.mesa
+    ]
+      .filter(valor => valor !== undefined && valor !== null)
+      .map(valor => this.normalizarTexto(valor));
+
+    const esParaLlevarPorCampo = valores.some(valor =>
+      valor === 'para_llevar' ||
+      valor === 'para llevar' ||
+      valor.includes('llevar')
+    );
+
+    /*
+     * No se considera automáticamente "para llevar"
+     * solo porque idMesa esté vacío, porque algunos pedidos
+     * antiguos podrían no tener dicho campo.
+     */
+    return esParaLlevarPorCampo;
   }
 
+  obtenerDestinoPedido(pedido: any): string {
+    if (this.esPedidoParaLlevar(pedido)) {
+
+      const nombreCliente =
+        pedido?.cliente ||
+        pedido?.nombreCliente ||
+        pedido?.clienteNombre ||
+        pedido?.datosCliente?.nombre ||
+        'Cliente';
+
+      return `Para llevar - ${nombreCliente}`;
+    }
+
+    const numeroMesa =
+      pedido?.mesa ||
+      pedido?.numeroMesa ||
+      pedido?.nombreMesa ||
+      'sin número';
+
+    return `Mesa ${numeroMesa}`;
+  }
+
+  // =====================================================
+  // CLASES Y ETIQUETAS
+  // =====================================================
+
   getCardClass(estado: string): string {
-    if (estado === 'pendiente_cocina') return 'borde-nuevo';
-    if (estado === 'preparando') return 'borde-preparando';
-    return 'borde-listo';
+    const estadoNormalizado = this.normalizarTexto(estado);
+
+    if (estadoNormalizado === 'pendiente_cocina') {
+      return 'borde-nuevo';
+    }
+
+    if (estadoNormalizado === 'preparando') {
+      return 'borde-preparando';
+    }
+
+    if (estadoNormalizado === 'listo') {
+      return 'borde-listo';
+    }
+
+    return '';
   }
 
   getBadgeLabel(estado: string): string {
-    if (estado === 'pendiente_cocina') return '🔥 Nuevo';
-    if (estado === 'preparando') return '⏳ Preparando';
-    if (estado === 'listo') return '✅ Listo';
-    if (estado === 'entregado_mesa') return '🍽️ Entregado';
-    if (estado === 'cuenta') return '💵 En cuenta';
+    const estadoNormalizado = this.normalizarTexto(estado);
+
+    if (estadoNormalizado === 'pendiente_cocina') {
+      return '🔥 Nuevo';
+    }
+
+    if (estadoNormalizado === 'preparando') {
+      return '⏳ Preparando';
+    }
+
+    if (estadoNormalizado === 'listo') {
+      return '✅ Listo';
+    }
+
+    if (estadoNormalizado === 'entregado_mesa') {
+      return '🍽️ Entregado';
+    }
+
+    if (estadoNormalizado === 'cuenta') {
+      return '💵 En cuenta';
+    }
+
     return '📌 Pedido';
   }
 
   getLabelBtn(estado: string): string {
-    if (estado === 'pendiente_cocina') return '🔥 Iniciar';
-    if (estado === 'preparando') return '✔ Marcar Listo';
-    if (estado === 'listo') return '🚀 Entregado';
+    const estadoNormalizado = this.normalizarTexto(estado);
+
+    if (estadoNormalizado === 'pendiente_cocina') {
+      return '🔥 Iniciar';
+    }
+
+    if (estadoNormalizado === 'preparando') {
+      return '✔ Marcar listo';
+    }
+
+    if (estadoNormalizado === 'listo') {
+      return '💵 Enviar a caja';
+    }
+
     return 'Procesar';
   }
 
   getColorBtn(estado: string): string {
-    if (estado === 'pendiente_cocina') return 'iniciar';
-    if (estado === 'preparando') return 'listo';
+    const estadoNormalizado = this.normalizarTexto(estado);
+
+    if (estadoNormalizado === 'pendiente_cocina') {
+      return 'iniciar';
+    }
+
+    if (estadoNormalizado === 'preparando') {
+      return 'listo';
+    }
+
     return 'entregado';
   }
 
-  obtenerTime(fecha: any): number {
-    if (!fecha) return 0;
+  estaProcesando(pedido: any): boolean {
+    return pedido?.id
+      ? this.pedidosProcesando.has(pedido.id)
+      : false;
+  }
 
-    if (fecha.seconds) {
+  // =====================================================
+  // FECHAS
+  // =====================================================
+
+  obtenerTime(fecha: any): number {
+    if (!fecha) {
+      return 0;
+    }
+
+    if (typeof fecha.toMillis === 'function') {
+      return fecha.toMillis();
+    }
+
+    if (typeof fecha.toDate === 'function') {
+      return fecha.toDate().getTime();
+    }
+
+    if (typeof fecha.seconds === 'number') {
       return fecha.seconds * 1000;
     }
 
-    return new Date(fecha).getTime();
+    if (typeof fecha._seconds === 'number') {
+      return fecha._seconds * 1000;
+    }
+
+    const tiempo = new Date(fecha).getTime();
+
+    return Number.isNaN(tiempo)
+      ? 0
+      : tiempo;
   }
 
   obtenerMinutosTranscurridos(fecha: any): string {
-    if (!fecha) return '0 min';
-
     const creacion = this.obtenerTime(fecha);
-    const ahora = new Date().getTime();
-    const diferenciaMinutos = Math.floor((ahora - creacion) / 60000);
 
-    return `${diferenciaMinutos > 0 ? diferenciaMinutos : 0} min`;
+    if (!creacion) {
+      return '0 min';
+    }
+
+    const ahora = Date.now();
+
+    const diferenciaMinutos = Math.floor(
+      (ahora - creacion) / 60000
+    );
+
+    if (diferenciaMinutos < 1) {
+      return 'Ahora';
+    }
+
+    if (diferenciaMinutos === 1) {
+      return '1 min';
+    }
+
+    if (diferenciaMinutos < 60) {
+      return `${diferenciaMinutos} min`;
+    }
+
+    const horas = Math.floor(diferenciaMinutos / 60);
+    const minutos = diferenciaMinutos % 60;
+
+    if (minutos === 0) {
+      return `${horas} h`;
+    }
+
+    return `${horas} h ${minutos} min`;
   }
 
-  salir() {
+  // =====================================================
+  // UTILIDADES
+  // =====================================================
+
+  normalizarTexto(valor: any): string {
+    return String(valor || '')
+      .trim()
+      .toLowerCase();
+  }
+
+  trackByPedidoId(index: number, pedido: any): string | number {
+    return pedido?.id || index;
+  }
+
+  // =====================================================
+  // SALIR
+  // =====================================================
+
+  salir(): void {
     console.log('Saliendo del Panel de Cocina...');
     this.router.navigate(['/select-role']);
   }

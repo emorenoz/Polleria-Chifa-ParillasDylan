@@ -666,3 +666,426 @@
     }
   }
 }
+/* =====================================================
+   MENSAJES
+===================================================== */
+
+.mensaje-caja {
+  position: fixed;
+  top: 78px;
+  left: 50%;
+  z-index: 9999;
+
+  width: max-content;
+  max-width: calc(100% - 30px);
+
+  padding: 13px 20px;
+
+  transform: translateX(-50%);
+
+  border: 1px solid transparent;
+  border-radius: 12px;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.2);
+
+  &.exito {
+    border-color: #22c55e;
+    background: #15803d;
+  }
+
+  &.error {
+    border-color: #ef4444;
+    background: #b91c1c;
+  }
+
+  &.advertencia {
+    border-color: #f59e0b;
+    background: #b45309;
+  }
+}
+
+/* =====================================================
+   BANNER
+===================================================== */
+
+.banner-icon {
+  display: grid;
+  place-items: center;
+
+  width: 45px;
+  height: 45px;
+
+  flex-shrink: 0;
+
+  border-radius: 13px;
+
+  background: rgba(255, 255, 255, 0.14);
+
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+.banner-title-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 9px;
+
+  h3 {
+    margin: 0;
+  }
+}
+
+.estado-caja {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 24px;
+  padding: 4px 9px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+
+  &.abierta {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  &.cerrada {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+}
+
+.banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.btn-print {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  min-height: 42px;
+  padding: 0 14px;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+
+  font-weight: 750;
+
+  cursor: pointer;
+}
+
+.shift-banner.caja-cerrada {
+  opacity: 0.82;
+}
+
+/* =====================================================
+   TARJETAS ADICIONALES
+===================================================== */
+
+.status-card.destacado {
+  border-color: rgba(34, 197, 94, 0.35);
+  background: #f0fdf4;
+}
+
+.card-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 15px;
+
+  margin-bottom: 18px;
+
+  h4 {
+    margin: 0;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: #718078;
+    font-size: 12px;
+  }
+
+  > ion-icon {
+    color: #16a34a;
+    font-size: 24px;
+  }
+}
+
+.resumen-caja-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.resumen-caja-item {
+  display: flex;
+  flex-direction: column;
+
+  padding: 13px;
+
+  border: 1px solid #e2e9e4;
+  border-radius: 11px;
+
+  background: #f8faf9;
+
+  span {
+    color: #718078;
+    font-size: 11px;
+  }
+
+  strong {
+    margin-top: 5px;
+    color: #17211b;
+    font-size: 16px;
+  }
+
+  &.total {
+    background: #ecfdf5;
+
+    strong {
+      color: #15803d;
+      font-size: 18px;
+    }
+  }
+
+  &.efectivo {
+    border-color: rgba(34, 197, 94, 0.35);
+  }
+}
+
+.method-value {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+
+  gap: 2px;
+
+  small {
+    color: #718078;
+    font-size: 10px;
+  }
+}
+
+.badge.cyan {
+  background: #cffafe;
+  color: #0e7490;
+}
+
+.progress-fill.cyan {
+  background: #06b6d4;
+}
+
+/* =====================================================
+   TABLAS
+===================================================== */
+
+.table-subtitle {
+  margin-top: 3px;
+
+  color: #718078;
+
+  font-size: 11px;
+}
+
+.table-detail {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #718078;
+
+  font-size: 10px;
+}
+
+.description-cell {
+  max-width: 350px;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =====================================================
+   FORMULARIO
+===================================================== */
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  gap: 15px;
+
+  margin-bottom: 16px;
+
+  h4 {
+    margin: 0;
+  }
+
+  p {
+    margin: 4px 0 0;
+
+    color: #718078;
+
+    font-size: 12px;
+  }
+}
+
+.input-group {
+  label {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #536158;
+
+    font-size: 11px;
+    font-weight: 800;
+  }
+}
+
+.input-help {
+  display: block;
+
+  margin-top: 4px;
+
+  color: #718078;
+
+  font-size: 10px;
+}
+
+.input-money {
+  display: flex;
+  align-items: center;
+
+  overflow: hidden;
+
+  border: 1px solid #d9e2dc;
+  border-radius: 9px;
+
+  span {
+    align-self: stretch;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 10px;
+
+    background: #f1f5f2;
+    color: #536158;
+
+    font-weight: 800;
+  }
+
+  .custom-input {
+    border: none;
+    border-radius: 0;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  margin-top: 16px;
+}
+
+.btn-cancel {
+  min-height: 42px;
+  padding: 0 16px;
+
+  border: 1px solid #d9e2dc;
+  border-radius: 9px;
+
+  background: #ffffff;
+  color: #536158;
+
+  font-weight: 750;
+
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* =====================================================
+   RESPONSIVE
+===================================================== */
+
+@media (max-width: 700px) {
+  .banner-actions {
+    width: 100%;
+
+    button {
+      flex: 1;
+    }
+  }
+
+  .resumen-caja-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-header {
+    flex-direction: column;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+      min-height: 48px;
+    }
+  }
+
+  .description-cell {
+    max-width: 220px;
+  }
+}
+
+@media print {
+  .top-header,
+  .banner-actions,
+  .form-card,
+  .actions,
+  .mensaje-caja {
+    display: none !important;
+  }
+
+  .page-bg {
+    --background: #ffffff;
+  }
+
+  .main-container {
+    max-width: none;
+    padding: 0;
+  }
+}

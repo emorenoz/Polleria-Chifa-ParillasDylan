@@ -1,0 +1,104 @@
+<ion-content [fullscreen]="true" class="role-content">
+
+  <!-- BOTÓN VOLVER -->
+  <div class="header-action">
+    <ion-button
+      fill="clear"
+      (click)="volver()">
+
+      <ion-icon
+        name="arrow-back-outline"
+        slot="start">
+      </ion-icon>
+
+      Volver
+    </ion-button>
+  </div>
+
+  <div class="overlay"></div>
+
+  <div class="role-container">
+
+    <!-- ENCABEZADO -->
+    <div class="title-section">
+
+      <img
+        src="https://i.ibb.co/6Mpnz0d/logo-dylan.png"
+        alt="Logo Pollería Dylan">
+
+      <h1>Seleccionar Mesero</h1>
+
+      <p>
+        Selecciona tu nombre para comenzar la atención de pedidos.
+      </p>
+
+    </div>
+
+    <!-- LISTA DE MESEROS -->
+    <div
+      class="roles-grid"
+      *ngIf="listaMeseros.length > 0">
+
+      <ion-card
+        class="role-card mesero-card"
+        button
+        *ngFor="let mesero of listaMeseros"
+        [class.seleccionado]="meseroSeleccionado?.id === mesero.id"
+        (click)="seleccionarMesero(mesero)">
+
+        <div class="icon-container">
+
+          <div class="avatar">
+            {{ obtenerInicial(mesero.nombre) }}
+          </div>
+
+        </div>
+
+        <h2>{{ mesero.nombre }}</h2>
+
+        <p>Mesero</p>
+
+        <span class="access-type">
+          Disponible
+        </span>
+
+      </ion-card>
+
+    </div>
+
+    <!-- ESTADO VACÍO -->
+    <div
+      class="empty-state"
+      *ngIf="!cargando && listaMeseros.length === 0">
+
+      <h2>No hay meseros disponibles</h2>
+
+      <p>
+        El administrador debe registrar y activar un usuario con rol Mesero.
+      </p>
+
+    </div>
+
+    <!-- MENSAJE DE ERROR -->
+    <p
+      class="error-message"
+      *ngIf="mensajeError">
+
+      {{ mensajeError }}
+
+    </p>
+
+    <!-- BOTÓN INGRESAR -->
+    <ion-button
+      expand="block"
+      class="btn-ingresar"
+      [disabled]="!meseroSeleccionado || ingresando"
+      (click)="ingresarComoMesero()">
+
+      {{ ingresando ? 'Ingresando...' : 'Ingresar' }}
+
+    </ion-button>
+
+  </div>
+
+</ion-content>

@@ -1,174 +1,613 @@
 <ion-header class="ion-no-border top-header">
+
   <ion-toolbar>
+
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
 
     <div class="header-content">
+
       <div class="breadcrumb">
-        <span class="muted">Pollería Dylan</span> / <strong>Gestión de Caja</strong>
+        <span class="muted">
+          Pollería Dylan
+        </span>
+
+        <span>/</span>
+
+        <strong>
+          Gestión de Caja
+        </strong>
       </div>
+
       <div class="date-display">
-        {{ fechaActual || 'sábado, 27 de junio de 2026' }}
+        {{ fechaActual }}
       </div>
+
     </div>
+
   </ion-toolbar>
+
 </ion-header>
 
 <ion-content class="page-bg">
+
   <div class="main-container">
 
-    <div class="shift-banner">
-      <div class="banner-info">
-        <ion-icon name="wallet-outline"></ion-icon>
-        <div>
-          <h3>Gestión de caja</h3>
-          <p>Vista administrativa – {{ usuarioCaja || 'Admin' }} · {{ horaApertura || '08:00' }}</p>
-        </div>
-      </div>
+    <!-- ================================================= -->
+    <!-- MENSAJES -->
+    <!-- ================================================= -->
 
-      <button class="btn-shift-close" (click)="cerrarTurno()">
-        <ion-icon name="print-outline"></ion-icon>
-        Imprimir reporte
-      </button>
+    <div
+      *ngIf="mensaje"
+      class="mensaje-caja"
+      [class.exito]="tipoMensaje === 'exito'"
+      [class.error]="tipoMensaje === 'error'"
+      [class.advertencia]="tipoMensaje === 'advertencia'">
+
+      {{ mensaje }}
+
     </div>
 
-    <div class="kpi-status-row">
-      <div class="status-card">
-        <div class="kpi-header">
-          <span class="trend up">
-            <ion-icon name="trending-up-outline"></ion-icon>
-            Total Ingresos
-          </span>
+    <!-- ================================================= -->
+    <!-- ENCABEZADO DE CAJA -->
+    <!-- ================================================= -->
+
+    <div
+      class="shift-banner"
+      [class.caja-cerrada]="cajaCerrada">
+
+      <div class="banner-info">
+
+        <div class="banner-icon">
+          <ion-icon name="wallet-outline"></ion-icon>
         </div>
+
+        <div>
+
+          <div class="banner-title-row">
+
+            <h3>
+              Gestión de caja
+            </h3>
+
+            <span
+              class="estado-caja"
+              [class.abierta]="!cajaCerrada"
+              [class.cerrada]="cajaCerrada">
+
+              {{
+                cajaCerrada
+                  ? 'Caja cerrada'
+                  : 'Caja abierta'
+              }}
+
+            </span>
+
+          </div>
+
+          <p>
+            Vista administrativa ·
+            {{ usuarioCaja }}
+            · Apertura {{ horaApertura }}
+          </p>
+
+        </div>
+
+      </div>
+
+      <div class="banner-actions">
+
+        <button
+          type="button"
+          class="btn-print"
+          (click)="imprimirResumen()">
+
+          <ion-icon name="print-outline"></ion-icon>
+
+          <span>
+            Imprimir
+          </span>
+
+        </button>
+
+        <button
+          type="button"
+          class="btn-shift-close"
+          [disabled]="cajaCerrada || procesandoCierre"
+          (click)="cerrarTurno()">
+
+          <ion-icon name="cash-outline"></ion-icon>
+
+          <span>
+            {{
+              procesandoCierre
+                ? 'Cerrando...'
+                : cajaCerrada
+                  ? 'Caja cerrada'
+                  : 'Cerrar caja'
+            }}
+          </span>
+
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- ================================================= -->
+    <!-- KPIS PRINCIPALES -->
+    <!-- ================================================= -->
+
+    <div class="kpi-status-row">
+
+      <!-- TOTAL VENTAS -->
+
+      <div class="status-card">
+
+        <div class="kpi-header">
+
+          <span class="trend up">
+
+            <ion-icon name="trending-up-outline"></ion-icon>
+
+            Ventas del día
+
+          </span>
+
+        </div>
+
+        <div class="kpi-amount text-green">
+          S/ {{ totalVentas | number:'1.2-2' }}
+        </div>
+
+        <div class="kpi-subtext">
+          {{ cantidadVentas }} ventas realizadas
+        </div>
+
+      </div>
+
+      <!-- INGRESOS -->
+
+      <div class="status-card">
+
+        <div class="kpi-header">
+
+          <span class="trend up">
+
+            <ion-icon name="add-outline"></ion-icon>
+
+            Total ingresos
+
+          </span>
+
+        </div>
+
         <div class="kpi-amount text-green">
           S/ {{ totalIngresos | number:'1.2-2' }}
         </div>
-        <div class="kpi-subtext">{{ cantidadIngresos || 0 }} transacciones</div>
+
+        <div class="kpi-subtext">
+          Ventas + {{ cantidadIngresos }} ingresos manuales
+        </div>
+
       </div>
 
+      <!-- EGRESOS -->
+
       <div class="status-card">
+
         <div class="kpi-header">
+
           <span class="trend down">
+
             <ion-icon name="trending-down-outline"></ion-icon>
-            Total Egresos
+
+            Total egresos
+
           </span>
+
         </div>
+
         <div class="kpi-amount text-red">
           S/ {{ totalEgresos | number:'1.2-2' }}
         </div>
-        <div class="kpi-subtext">{{ cantidadEgresos || 0 }} transacciones</div>
+
+        <div class="kpi-subtext">
+          {{ cantidadEgresos }} egresos registrados
+        </div>
+
       </div>
 
+      <!-- TOTAL GENERAL -->
+
       <div class="status-card">
+
         <div class="kpi-header">
+
           <span class="trend neutral">
-            <ion-icon name="cash-outline"></ion-icon>
-            Saldo estimado
+
+            <ion-icon name="wallet-outline"></ion-icon>
+
+            Total general
+
           </span>
+
         </div>
+
         <div class="kpi-amount text-purple">
           S/ {{ totalCaja | number:'1.2-2' }}
         </div>
+
         <div class="kpi-subtext">
-          Fondo inicial S/ {{ fondoInicial || 0 | number:'1.2-2' }}
+          Incluye pagos digitales
         </div>
+
       </div>
 
-      <div class="status-card">
+      <!-- EFECTIVO ESPERADO -->
+
+      <div class="status-card destacado">
+
         <div class="kpi-header">
+
           <span class="trend neutral">
-            <ion-icon name="wallet-outline"></ion-icon>
-            Pendiente de cobro
+
+            <ion-icon name="cash-outline"></ion-icon>
+
+            Efectivo esperado
+
           </span>
+
         </div>
+
+        <div class="kpi-amount text-green">
+          S/ {{ totalCajaEfectivo | number:'1.2-2' }}
+        </div>
+
+        <div class="kpi-subtext">
+          Fondo inicial S/
+          {{ fondoInicial | number:'1.2-2' }}
+        </div>
+
+      </div>
+
+      <!-- PENDIENTE -->
+
+      <div class="status-card">
+
+        <div class="kpi-header">
+
+          <span class="trend neutral">
+
+            <ion-icon name="wallet-outline"></ion-icon>
+
+            Pendiente de cobro
+
+          </span>
+
+        </div>
+
         <div class="kpi-amount text-purple">
           S/ {{ totalPendienteCobro | number:'1.2-2' }}
         </div>
-        <div class="kpi-subtext">{{ pedidosPorCobrar.length || 0 }} pedidos en cuenta</div>
+
+        <div class="kpi-subtext">
+          {{ pedidosPorCobrar.length }}
+          pedidos en cuenta
+        </div>
+
       </div>
+
     </div>
 
-    <div class="charts-grid">
-      <div class="chart-card">
-        <h4>Resumen visual de ingresos</h4>
+    <!-- ================================================= -->
+    <!-- MÉTODOS DE PAGO -->
+    <!-- ================================================= -->
 
-        <div class="mock-chart">
-          <div class="bar-col">
-            <div class="bar" style="height: 30%;"></div>
-            <span>10am</span>
+    <div class="charts-grid">
+
+      <div class="chart-card">
+
+        <div class="card-section-header">
+
+          <div>
+
+            <h4>
+              Resumen de caja
+            </h4>
+
+            <p>
+              Distribución general del turno actual
+            </p>
+
           </div>
-          <div class="bar-col">
-            <div class="bar" style="height: 60%;"></div>
-            <span>11am</span>
-          </div>
-          <div class="bar-col">
-            <div class="bar" style="height: 100%;"></div>
-            <span>12pm</span>
-          </div>
-          <div class="bar-col">
-            <div class="bar" style="height: 75%;"></div>
-            <span>1pm</span>
-          </div>
-          <div class="bar-col">
-            <div class="bar" style="height: 50%;"></div>
-            <span>2pm</span>
-          </div>
-          <div class="bar-col">
-            <div class="bar" style="height: 35%;"></div>
-            <span>3pm</span>
-          </div>
-          <div class="bar-col">
-            <div class="bar" style="height: 40%;"></div>
-            <span>4pm</span>
-          </div>
+
+          <ion-icon name="trending-up-outline"></ion-icon>
+
         </div>
+
+        <div class="resumen-caja-grid">
+
+          <div class="resumen-caja-item">
+
+            <span>
+              Fondo inicial
+            </span>
+
+            <strong>
+              S/ {{ fondoInicial | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+          <div class="resumen-caja-item">
+
+            <span>
+              Ventas
+            </span>
+
+            <strong class="text-green">
+              S/ {{ totalVentas | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+          <div class="resumen-caja-item">
+
+            <span>
+              Ingresos manuales
+            </span>
+
+            <strong class="text-green">
+              S/
+              {{
+                (totalIngresos - totalVentas)
+                  | number:'1.2-2'
+              }}
+            </strong>
+
+          </div>
+
+          <div class="resumen-caja-item">
+
+            <span>
+              Egresos
+            </span>
+
+            <strong class="text-red">
+              S/ {{ totalEgresos | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+          <div class="resumen-caja-item total">
+
+            <span>
+              Total general
+            </span>
+
+            <strong>
+              S/ {{ totalCaja | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+          <div class="resumen-caja-item total efectivo">
+
+            <span>
+              Dinero físico esperado
+            </span>
+
+            <strong>
+              S/ {{ totalCajaEfectivo | number:'1.2-2' }}
+            </strong>
+
+          </div>
+
+        </div>
+
       </div>
 
       <div class="payment-methods-card">
-        <h4>Por método de pago</h4>
 
-        <div class="method-item">
-          <div class="method-header">
-            <span class="badge green">Efectivo</span>
-            <span>S/ {{ totalEfectivo | number:'1.2-2' }}</span>
+        <div class="card-section-header">
+
+          <div>
+
+            <h4>
+              Por método de pago
+            </h4>
+
+            <p>
+              Ventas e ingresos del día
+            </p>
+
           </div>
-          <div class="progress-track">
-            <div class="progress-fill green" [style.width.%]="porcentajeEfectivo || 0"></div>
-          </div>
+
+          <ion-icon name="wallet-outline"></ion-icon>
+
         </div>
 
-        <div class="method-item">
-          <div class="method-header">
-            <span class="badge blue">Tarjeta</span>
-            <span>S/ {{ totalTarjeta | number:'1.2-2' }}</span>
-          </div>
-          <div class="progress-track">
-            <div class="progress-fill blue" [style.width.%]="porcentajeTarjeta || 0"></div>
-          </div>
-        </div>
+        <!-- EFECTIVO -->
 
         <div class="method-item">
+
           <div class="method-header">
-            <span class="badge purple">Yape</span>
-            <span>S/ {{ totalYape | number:'1.2-2' }}</span>
+
+            <span class="badge green">
+              Efectivo
+            </span>
+
+            <div class="method-value">
+
+              <strong>
+                S/ {{ totalEfectivo | number:'1.2-2' }}
+              </strong>
+
+              <small>
+                {{ porcentajeEfectivo | number:'1.0-1' }}%
+              </small>
+
+            </div>
+
           </div>
+
           <div class="progress-track">
-            <div class="progress-fill purple" [style.width.%]="porcentajeYape || 0"></div>
+
+            <div
+              class="progress-fill green"
+              [style.width.%]="porcentajeEfectivo">
+            </div>
+
           </div>
+
         </div>
+
+        <!-- TARJETA -->
+
+        <div class="method-item">
+
+          <div class="method-header">
+
+            <span class="badge blue">
+              Tarjeta
+            </span>
+
+            <div class="method-value">
+
+              <strong>
+                S/ {{ totalTarjeta | number:'1.2-2' }}
+              </strong>
+
+              <small>
+                {{ porcentajeTarjeta | number:'1.0-1' }}%
+              </small>
+
+            </div>
+
+          </div>
+
+          <div class="progress-track">
+
+            <div
+              class="progress-fill blue"
+              [style.width.%]="porcentajeTarjeta">
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- YAPE -->
+
+        <div class="method-item">
+
+          <div class="method-header">
+
+            <span class="badge purple">
+              Yape
+            </span>
+
+            <div class="method-value">
+
+              <strong>
+                S/ {{ totalYape | number:'1.2-2' }}
+              </strong>
+
+              <small>
+                {{ porcentajeYape | number:'1.0-1' }}%
+              </small>
+
+            </div>
+
+          </div>
+
+          <div class="progress-track">
+
+            <div
+              class="progress-fill purple"
+              [style.width.%]="porcentajeYape">
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- PLIN -->
+
+        <div class="method-item">
+
+          <div class="method-header">
+
+            <span class="badge cyan">
+              Plin
+            </span>
+
+            <div class="method-value">
+
+              <strong>
+                S/ {{ totalPlin | number:'1.2-2' }}
+              </strong>
+
+              <small>
+                {{ porcentajePlin | number:'1.0-1' }}%
+              </small>
+
+            </div>
+
+          </div>
+
+          <div class="progress-track">
+
+            <div
+              class="progress-fill cyan"
+              [style.width.%]="porcentajePlin">
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
+
     </div>
 
+    <!-- ================================================= -->
+    <!-- PEDIDOS PENDIENTES -->
+    <!-- ================================================= -->
+
     <div class="table-card">
+
       <div class="table-card-header">
-        <div class="table-title">Pedidos pendientes de cobro</div>
-        <span class="badge purple">{{ pedidosPorCobrar.length }} pendientes</span>
+
+        <div>
+
+          <div class="table-title">
+            Pedidos pendientes de cobro
+          </div>
+
+          <div class="table-subtitle">
+            Pedidos que fueron enviados a cuenta
+          </div>
+
+        </div>
+
+        <span class="badge purple">
+
+          {{ pedidosPorCobrar.length }}
+          pendientes
+
+        </span>
+
       </div>
 
       <div class="table-responsive">
+
         <table class="custom-table">
+
           <thead>
+
             <tr>
               <th>Hora</th>
               <th>Mesa / Tipo</th>
@@ -177,155 +616,478 @@
               <th>Descripción</th>
               <th class="text-right">Total</th>
             </tr>
+
           </thead>
 
           <tbody>
+
             <tr *ngFor="let pedido of pedidosPorCobrar">
-              <td class="time-cell">{{ pedido.horaTexto }}</td>
-              <td>{{ pedido.mesaTexto }}</td>
-              <td>{{ pedido.clienteTexto }}</td>
-              <td>{{ pedido.meseroTexto }}</td>
-              <td>{{ pedido.descripcion }}</td>
-              <td class="text-right font-weight-bold text-purple">
-                S/ {{ pedido.total | number:'1.2-2' }}
+
+              <td class="time-cell">
+
+                {{ pedido.horaTexto }}
+
               </td>
+
+              <td>
+
+                <strong>
+                  {{ pedido.mesaTexto }}
+                </strong>
+
+                <small class="table-detail">
+                  {{ pedido.tipoPedido }}
+                </small>
+
+              </td>
+
+              <td>
+
+                {{ pedido.clienteTexto }}
+
+              </td>
+
+              <td>
+
+                {{ pedido.meseroTexto }}
+
+              </td>
+
+              <td class="description-cell">
+
+                {{ pedido.descripcion }}
+
+              </td>
+
+              <td class="text-right font-weight-bold text-purple">
+
+                S/ {{ pedido.total | number:'1.2-2' }}
+
+              </td>
+
             </tr>
 
             <tr *ngIf="pedidosPorCobrar.length === 0">
-              <td colspan="6" class="text-center text-muted py-4">
+
+              <td
+                colspan="6"
+                class="text-center text-muted py-4">
+
                 No hay pedidos pendientes de cobro.
+
               </td>
+
             </tr>
+
           </tbody>
+
         </table>
+
       </div>
+
     </div>
 
-    <div class="form-card" *ngIf="mostrarFormulario">
-      <h4>Registrar Movimiento Administrativo</h4>
+    <!-- ================================================= -->
+    <!-- FORMULARIO DE MOVIMIENTO -->
+    <!-- ================================================= -->
+
+    <div
+      class="form-card"
+      *ngIf="mostrarFormulario">
+
+      <div class="form-header">
+
+        <div>
+
+          <h4>
+            Registrar movimiento administrativo
+          </h4>
+
+          <p>
+            Ingresa un movimiento adicional de caja.
+          </p>
+
+        </div>
+
+        <span
+          class="badge"
+          [class.green]="nuevoMovimiento.tipo === 'ingreso'"
+          [class.red]="nuevoMovimiento.tipo === 'egreso'">
+
+          {{
+            nuevoMovimiento.tipo === 'ingreso'
+              ? 'Ingreso'
+              : nuevoMovimiento.tipo === 'egreso'
+                ? 'Egreso'
+                : 'Movimiento'
+          }}
+
+        </span>
+
+      </div>
 
       <div class="form-row">
+
         <div class="input-group">
-          <select [(ngModel)]="nuevoMovimiento.tipo" class="custom-input">
-            <option value="" disabled>Tipo de movimiento</option>
-            <option value="ingreso">Ingreso (+)</option>
-            <option value="egreso">Egreso (-)</option>
+
+          <label>
+            Tipo
+          </label>
+
+          <select
+            [(ngModel)]="nuevoMovimiento.tipo"
+            class="custom-input">
+
+            <option
+              value=""
+              disabled>
+
+              Tipo de movimiento
+
+            </option>
+
+            <option value="ingreso">
+              Ingreso (+)
+            </option>
+
+            <option value="egreso">
+              Egreso (-)
+            </option>
+
           </select>
+
         </div>
 
         <div class="input-group">
-          <select [(ngModel)]="nuevoMovimiento.metodo" class="custom-input">
-            <option value="" disabled>Método</option>
-            <option value="Efectivo">Efectivo</option>
-            <option value="Tarjeta">Tarjeta</option>
-            <option value="Yape">Yape</option>
-            <option value="Retiro">Retiro</option>
-          </select>
-        </div>
 
-        <div class="input-group">
-          <input
-            type="number"
+          <label>
+            Método
+          </label>
+
+          <select
+            [(ngModel)]="nuevoMovimiento.metodo"
             class="custom-input"
-            placeholder="Monto S/."
-            [(ngModel)]="nuevoMovimiento.monto"
-          />
+            [disabled]="nuevoMovimiento.tipo === 'egreso'">
+
+            <option
+              value=""
+              disabled>
+
+              Método
+
+            </option>
+
+            <option value="Efectivo">
+              Efectivo
+            </option>
+
+            <option value="Tarjeta">
+              Tarjeta
+            </option>
+
+            <option value="Yape">
+              Yape
+            </option>
+
+            <option value="Plin">
+              Plin
+            </option>
+
+          </select>
+
+          <small
+            *ngIf="nuevoMovimiento.tipo === 'egreso'"
+            class="input-help">
+
+            Los egresos se registran como efectivo.
+
+          </small>
+
+        </div>
+
+        <div class="input-group">
+
+          <label>
+            Monto
+          </label>
+
+          <div class="input-money">
+
+            <span>
+              S/
+            </span>
+
+            <input
+              type="number"
+              class="custom-input"
+              min="0.01"
+              step="0.01"
+              placeholder="0.00"
+              [(ngModel)]="nuevoMovimiento.monto">
+
+          </div>
+
         </div>
 
         <div class="input-group flex-grow">
+
+          <label>
+            Descripción
+          </label>
+
           <input
             type="text"
             class="custom-input"
-            placeholder="Descripción"
-            [(ngModel)]="nuevoMovimiento.descripcion"
-          />
+            maxlength="150"
+            placeholder="Motivo o detalle del movimiento"
+            [(ngModel)]="nuevoMovimiento.descripcion">
+
         </div>
+
+      </div>
+
+      <div class="form-actions">
 
         <button
-          class="btn-save"
-          (click)="registrarMovimiento()"
-          [disabled]="!nuevoMovimiento.tipo || !nuevoMovimiento.monto"
-        >
-          Guardar
+          type="button"
+          class="btn-cancel"
+          [disabled]="procesandoMovimiento"
+          (click)="cancelarMovimiento()">
+
+          Cancelar
+
         </button>
+
+        <button
+          type="button"
+          class="btn-save"
+          [disabled]="
+            procesandoMovimiento ||
+            !nuevoMovimiento.tipo ||
+            !nuevoMovimiento.monto ||
+            nuevoMovimiento.monto <= 0
+          "
+          (click)="registrarMovimiento()">
+
+          <ion-icon
+            [name]="
+              nuevoMovimiento.tipo === 'egreso'
+                ? 'remove-outline'
+                : 'add-outline'
+            ">
+          </ion-icon>
+
+          {{
+            procesandoMovimiento
+              ? 'Guardando...'
+              : 'Guardar movimiento'
+          }}
+
+        </button>
+
       </div>
+
     </div>
 
+    <!-- ================================================= -->
+    <!-- MOVIMIENTOS DE CAJA -->
+    <!-- ================================================= -->
+
     <div class="table-card">
+
       <div class="table-card-header">
-        <div class="table-title">Movimientos de caja</div>
+
+        <div>
+
+          <div class="table-title">
+            Movimientos administrativos
+          </div>
+
+          <div class="table-subtitle">
+            Ingresos y egresos registrados manualmente
+          </div>
+
+        </div>
 
         <div class="actions">
-          <button class="btn-outline green" (click)="prepararIngreso()">
+
+          <button
+            type="button"
+            class="btn-outline green"
+            [disabled]="cajaCerrada"
+            (click)="prepararIngreso()">
+
             <ion-icon name="add-outline"></ion-icon>
+
             Ingreso
+
           </button>
 
-          <button class="btn-outline red" (click)="prepararEgreso()">
+          <button
+            type="button"
+            class="btn-outline red"
+            [disabled]="cajaCerrada"
+            (click)="prepararEgreso()">
+
             <ion-icon name="remove-outline"></ion-icon>
+
             Egreso
+
           </button>
+
         </div>
+
       </div>
 
       <div class="table-responsive">
+
         <table class="custom-table">
+
           <thead>
+
             <tr>
               <th>Hora</th>
               <th>Descripción</th>
               <th>Método</th>
               <th>Origen</th>
+              <th>Usuario</th>
               <th class="text-right">Monto</th>
             </tr>
+
           </thead>
 
           <tbody>
+
             <tr *ngFor="let mov of historial">
+
               <td class="time-cell">
-                {{ mov.fecha?.seconds ? (mov.fecha.seconds * 1000 | date:'HH:mm') : (mov.fecha | date:'HH:mm') }}
+
+                {{
+                  mov.fecha?.seconds
+                    ? (mov.fecha.seconds * 1000 | date:'HH:mm')
+                    : (mov.fecha | date:'HH:mm')
+                }}
+
               </td>
 
-              <td>{{ mov.descripcion }}</td>
+              <td>
+
+                <strong>
+                  {{ mov.descripcion }}
+                </strong>
+
+                <small
+                  *ngIf="mov.categoria"
+                  class="table-detail">
+
+                  {{ mov.categoria }}
+
+                </small>
+
+              </td>
 
               <td>
+
                 <span
                   class="badge"
                   [ngClass]="{
-                    'green': mov.metodo === 'Efectivo',
-                    'blue': mov.metodo === 'Tarjeta',
-                    'purple': mov.metodo === 'Yape',
-                    'red': mov.tipo === 'egreso'
-                  }"
-                >
-                  {{ mov.metodo || (mov.tipo === 'ingreso' ? 'Efectivo' : 'Retiro') }}
+                    green: mov.metodo === 'Efectivo',
+                    blue: mov.metodo === 'Tarjeta',
+                    purple: mov.metodo === 'Yape',
+                    cyan: mov.metodo === 'Plin',
+                    red: mov.tipo === 'egreso'
+                  }">
+
+                  {{
+                    mov.metodo ||
+                    (
+                      mov.tipo === 'ingreso'
+                        ? 'Efectivo'
+                        : 'Retiro'
+                    )
+                  }}
+
                 </span>
+
               </td>
 
               <td>
-                <span class="badge purple" *ngIf="mov.origen === 'cobro_pos'">POS Cajero</span>
-                <span class="badge blue" *ngIf="mov.origen === 'manual' || mov.origen === 'manual_admin'">Manual Admin</span>
-                <span class="badge green" *ngIf="!mov.origen">Caja</span>
+
+                <span
+                  class="badge purple"
+                  *ngIf="mov.origen === 'cobro_pos'">
+
+                  POS Cajero
+
+                </span>
+
+                <span
+                  class="badge blue"
+                  *ngIf="
+                    mov.origen === 'manual' ||
+                    mov.origen === 'manual_admin'
+                  ">
+
+                  Manual Admin
+
+                </span>
+
+                <span
+                  class="badge green"
+                  *ngIf="!mov.origen">
+
+                  Caja
+
+                </span>
+
+              </td>
+
+              <td>
+
+                {{ mov.usuario || 'Admin' }}
+
               </td>
 
               <td
                 class="text-right font-weight-bold"
-                [ngClass]="mov.tipo === 'ingreso' ? 'text-green' : 'text-red'"
-              >
-                {{ mov.tipo === 'ingreso' ? '+' : '-' }}
+                [ngClass]="
+                  mov.tipo === 'ingreso'
+                    ? 'text-green'
+                    : 'text-red'
+                ">
+
+                {{
+                  mov.tipo === 'ingreso'
+                    ? '+'
+                    : '-'
+                }}
+
                 S/ {{ mov.monto | number:'1.2-2' }}
+
               </td>
+
             </tr>
 
             <tr *ngIf="historial.length === 0">
-              <td colspan="5" class="text-center text-muted py-4">
-                No hay movimientos registrados hoy.
+
+              <td
+                colspan="6"
+                class="text-center text-muted py-4">
+
+                No hay movimientos administrativos registrados.
+
               </td>
+
             </tr>
+
           </tbody>
+
         </table>
+
       </div>
+
     </div>
 
   </div>
+
 </ion-content>

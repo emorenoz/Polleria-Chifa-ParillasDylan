@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 import {
   IonContent,
@@ -6,14 +8,10 @@ import {
   IonIcon
 } from '@ionic/angular/standalone';
 
-import { CommonModule } from '@angular/common';
-
-import { Router } from '@angular/router';
-
 import { addIcons } from 'ionicons';
 
 import {
-  settingsOutline,
+  shieldCheckmarkOutline,
   cashOutline,
   restaurantOutline,
   flameOutline
@@ -31,33 +29,41 @@ import {
     IonIcon
   ]
 })
-
 export class SelectRolePage {
 
   constructor(private router: Router) {
-
     addIcons({
-      settingsOutline,
+      shieldCheckmarkOutline,
       cashOutline,
       restaurantOutline,
       flameOutline
     });
-
   }
 
- irAdmin() {
-  this.router.navigate(['/login-admin']);
-}
+  irAdmin(): void {
+    this.limpiarSesionOperativa();
+    this.router.navigate(['/login-admin']);
+  }
 
-irCajero() {
-  this.router.navigate(['/login-cajero']);
-}
+  irCajero(): void {
+    this.limpiarSesionOperativa();
+    this.router.navigate(['/login-cajero']);
+  }
 
-irMesero() {
-  this.router.navigate(['/mesero-dashboard']);
-}
+  irMesero(): void {
+    this.limpiarSesionOperativa();
+    this.router.navigate(['/seleccionar-mesero']);
+  }
 
-irCocina() {
-  this.router.navigate(['/cocina-dashboard']);
-}
+  irCocina(): void {
+    this.limpiarSesionOperativa();
+    this.router.navigate(['/seleccionar-cocina']);
+  }
+
+  private limpiarSesionOperativa(): void {
+    localStorage.removeItem('usuarioId');
+    localStorage.removeItem('usuarioNombre');
+    localStorage.removeItem('usuarioRol');
+    localStorage.removeItem('sesionOperativa');
+  }
 }

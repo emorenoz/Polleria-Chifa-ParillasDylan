@@ -1,0 +1,248 @@
+.role-content {
+  --background: none;
+
+  background:
+    linear-gradient(
+      rgba(15, 23, 42, 0.75),
+      rgba(15, 23, 42, 0.75)
+    ),
+    url('https://i.ibb.co/Z67TYz2T/foto-polleria-editado.jpg');
+
+  background-size: cover;
+  background-position: center;
+}
+
+.header-action {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 100;
+}
+
+.header-action ion-button {
+  --color: #ffffff;
+  --background: rgba(255, 255, 255, 0.08);
+  --background-hover: rgba(255, 255, 255, 0.14);
+  --background-activated: rgba(255, 255, 255, 0.18);
+  --border-radius: 12px;
+
+  min-height: 42px;
+
+  font-weight: 600;
+  text-transform: none;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.header-action ion-icon {
+  font-size: 20px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.role-container {
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  padding: 25px;
+}
+
+.title-section {
+  text-align: center;
+  color: white;
+
+  margin-bottom: 45px;
+}
+
+.title-section img {
+  width: 90px;
+  margin-bottom: 15px;
+}
+
+.title-section h1 {
+  margin: 0;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.title-section p {
+  margin-top: 10px;
+  color: #cbd5e1;
+}
+
+.roles-grid {
+  width: 100%;
+  max-width: 1200px;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px;
+
+  margin: auto;
+}
+
+.role-card {
+  margin: 0;
+
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+
+  border-radius: 22px;
+  padding: 25px;
+
+  text-align: center;
+  color: white;
+
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.role-card:hover {
+  transform: translateY(-6px);
+}
+
+.role-card.seleccionado {
+  border: 2px solid #ff6b35;
+  box-shadow: 0 0 25px rgba(255, 107, 53, 0.45);
+}
+
+.icon-container {
+  display: flex;
+  justify-content: center;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+
+  margin: auto;
+
+  border-radius: 50%;
+
+  background: #ff6b35;
+  color: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 34px;
+  font-weight: bold;
+}
+
+.role-card h2 {
+  margin-top: 18px;
+  margin-bottom: 6px;
+}
+
+.role-card p {
+  margin: 0;
+  color: #cbd5e1;
+}
+
+.access-type {
+  display: inline-block;
+
+  margin-top: 18px;
+  padding: 8px 18px;
+
+  background: rgba(255, 107, 53, 0.18);
+  color: #ffd0bf;
+
+  border-radius: 25px;
+
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.btn-ingresar {
+  width: 100%;
+  max-width: 420px;
+
+  margin: 35px auto 0;
+
+  --background: #ff6b35;
+  --background-hover: #e65322;
+  --background-activated: #e65322;
+  --border-radius: 12px;
+
+  height: 54px;
+
+  font-weight: bold;
+  text-transform: none;
+}
+
+.btn-ingresar[disabled] {
+  opacity: 0.45;
+}
+
+.empty-state {
+  max-width: 520px;
+
+  margin: 0 auto;
+  padding: 28px;
+
+  text-align: center;
+  color: white;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+
+  border-radius: 22px;
+}
+
+.empty-state h2 {
+  margin-top: 0;
+}
+
+.empty-state p {
+  margin-bottom: 0;
+  color: #cbd5e1;
+}
+
+.error-message {
+  max-width: 520px;
+
+  margin: 22px auto 0;
+
+  color: #fecaca;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .header-action {
+    top: 10px;
+    left: 8px;
+  }
+
+  .role-container {
+    justify-content: flex-start;
+    padding: 80px 18px 28px;
+  }
+
+  .roles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .title-section {
+    margin-bottom: 30px;
+  }
+
+  .btn-ingresar {
+    margin-top: 25px;
+  }
+}

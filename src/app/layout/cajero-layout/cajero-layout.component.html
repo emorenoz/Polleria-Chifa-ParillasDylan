@@ -1,0 +1,99 @@
+<ion-split-pane contentId="contenido-cajero">
+
+  <!-- MENÚ LATERAL -->
+  <ion-menu
+    contentId="contenido-cajero"
+    type="overlay"
+    class="cajero-menu">
+
+    <ion-content>
+
+      <div class="menu-header">
+
+        <div class="avatar">
+          {{ nombreCajero.charAt(0).toUpperCase() }}
+        </div>
+
+        <div>
+          <h2>{{ nombreCajero }}</h2>
+          <p>Cajero</p>
+        </div>
+
+      </div>
+
+      <nav class="menu-options">
+
+        <ion-menu-toggle
+          [autoHide]="false"
+          *ngFor="let opcion of opciones">
+
+          <a
+            class="menu-item"
+            [routerLink]="opcion.ruta"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{
+              exact: opcion.ruta === '/cajero/dashboard'
+            }">
+
+            <ion-icon
+              [name]="opcion.icono">
+            </ion-icon>
+
+            <span>
+              {{ opcion.titulo }}
+            </span>
+
+          </a>
+
+        </ion-menu-toggle>
+
+      </nav>
+
+      <button
+        type="button"
+        class="logout-button"
+        (click)="cerrarSesion()">
+
+        <ion-icon name="log-out-outline"></ion-icon>
+
+        Cerrar sesión
+
+      </button>
+
+    </ion-content>
+
+  </ion-menu>
+
+  <!-- CONTENIDO DE LAS RUTAS HIJAS -->
+  <div
+    id="contenido-cajero"
+    class="cajero-content">
+
+    <ion-router-outlet></ion-router-outlet>
+
+    <!-- NAVEGACIÓN PARA CELULAR -->
+    <ion-tab-bar class="mobile-tabs">
+
+      <ion-tab-button
+        *ngFor="let opcion of opciones"
+        [routerLink]="opcion.ruta"
+        routerLinkActive="tab-selected"
+        [routerLinkActiveOptions]="{
+          exact: opcion.ruta === '/cajero/dashboard'
+        }">
+
+        <ion-icon
+          [name]="opcion.icono">
+        </ion-icon>
+
+        <ion-label>
+          {{ opcion.titulo }}
+        </ion-label>
+
+      </ion-tab-button>
+
+    </ion-tab-bar>
+
+  </div>
+
+</ion-split-pane>

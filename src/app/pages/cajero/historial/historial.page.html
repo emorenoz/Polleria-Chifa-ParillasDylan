@@ -1,13 +1,588 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>historial</ion-title>
+<ion-header class="ion-no-border">
+  <ion-toolbar class="toolbar-page">
+
+    <ion-buttons slot="start">
+      <ion-button (click)="volverInicio()">
+
+        <ion-icon
+          slot="icon-only"
+          name="arrow-back-outline">
+        </ion-icon>
+
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title>
+      Historial de ventas
+    </ion-title>
+
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">historial</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content class="contenido-page">
+
+  <main class="contenedor">
+
+    <!-- ================================================= -->
+    <!-- ENCABEZADO -->
+    <!-- ================================================= -->
+
+    <section class="encabezado">
+
+      <div class="titulo-principal">
+
+        <span class="subtitulo">
+          Módulo de caja
+        </span>
+
+        <h1>
+          Todas las ventas realizadas
+        </h1>
+
+        <p>
+          Consulta las ventas agrupadas por día y separadas por método de pago.
+        </p>
+
+      </div>
+
+      <div class="total-principal">
+
+        <div class="icono-total">
+
+          <ion-icon name="wallet-outline"></ion-icon>
+
+        </div>
+
+        <div>
+
+          <span>Total vendido</span>
+
+          <strong>
+            S/ {{ totalGeneral | number:'1.2-2' }}
+          </strong>
+
+          <small>
+            {{ totalVentas }} ventas registradas
+          </small>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================================================= -->
+    <!-- INDICADORES -->
+    <!-- ================================================= -->
+
+    <section class="kpis">
+
+      <article class="kpi">
+
+        <div class="kpi-icono ventas">
+
+          <ion-icon name="receipt-outline"></ion-icon>
+
+        </div>
+
+        <div>
+
+          <span>Total de ventas</span>
+
+          <strong>
+            {{ totalVentas }}
+          </strong>
+
+        </div>
+
+      </article>
+
+      <article class="kpi">
+
+        <div class="kpi-icono efectivo">
+
+          <ion-icon name="cash-outline"></ion-icon>
+
+        </div>
+
+        <div>
+
+          <span>Efectivo</span>
+
+          <strong>
+            S/ {{ totalEfectivo | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+      </article>
+
+      <article class="kpi">
+
+        <div class="kpi-icono yape">
+
+          <ion-icon name="phone-portrait-outline"></ion-icon>
+
+        </div>
+
+        <div>
+
+          <span>Yape</span>
+
+          <strong>
+            S/ {{ totalYape | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+      </article>
+
+      <article class="kpi">
+
+        <div class="kpi-icono plin">
+
+          <ion-icon name="phone-portrait-outline"></ion-icon>
+
+        </div>
+
+        <div>
+
+          <span>Plin</span>
+
+          <strong>
+            S/ {{ totalPlin | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+      </article>
+
+      <article class="kpi">
+
+        <div class="kpi-icono tarjeta">
+
+          <ion-icon name="card-outline"></ion-icon>
+
+        </div>
+
+        <div>
+
+          <span>Tarjeta</span>
+
+          <strong>
+            S/ {{ totalTarjeta | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+      </article>
+
+      <article class="kpi">
+
+        <div class="kpi-icono promedio">
+
+          <ion-icon name="wallet-outline"></ion-icon>
+
+        </div>
+
+        <div>
+
+          <span>Ticket promedio</span>
+
+          <strong>
+            S/ {{ ticketPromedio | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+      </article>
+
+    </section>
+
+    <!-- ================================================= -->
+    <!-- FILTROS -->
+    <!-- ================================================= -->
+
+    <section class="filtros">
+
+      <div class="campo buscador">
+
+        <ion-icon name="search-outline"></ion-icon>
+
+        <input
+          type="text"
+          [(ngModel)]="textoBusqueda"
+          (input)="aplicarFiltros()"
+          placeholder="Buscar cliente, mesa, cajero o código">
+
+      </div>
+
+      <div class="campo">
+
+        <label>
+          Desde
+        </label>
+
+        <input
+          type="date"
+          [(ngModel)]="fechaDesde"
+          (change)="aplicarFiltros()">
+
+      </div>
+
+      <div class="campo">
+
+        <label>
+          Hasta
+        </label>
+
+        <input
+          type="date"
+          [(ngModel)]="fechaHasta"
+          (change)="aplicarFiltros()">
+
+      </div>
+
+      <div class="campo">
+
+        <label>
+          Método de pago
+        </label>
+
+        <select
+          [(ngModel)]="metodoSeleccionado"
+          (change)="aplicarFiltros()">
+
+          <option value="todos">
+            Todos
+          </option>
+
+          <option value="Efectivo">
+            Efectivo
+          </option>
+
+          <option value="Yape">
+            Yape
+          </option>
+
+          <option value="Plin">
+            Plin
+          </option>
+
+          <option value="Tarjeta">
+            Tarjeta
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="campo">
+
+        <label>
+          Tipo de pedido
+        </label>
+
+        <select
+          [(ngModel)]="tipoSeleccionado"
+          (change)="aplicarFiltros()">
+
+          <option value="todos">
+            Todos
+          </option>
+
+          <option value="mesa">
+            Mesa
+          </option>
+
+          <option value="para_llevar">
+            Para llevar
+          </option>
+
+        </select>
+
+      </div>
+
+      <button
+        type="button"
+        class="btn-limpiar"
+        (click)="limpiarFiltros()">
+
+        <ion-icon name="refresh-outline"></ion-icon>
+
+        <span>
+          Limpiar
+        </span>
+
+      </button>
+
+    </section>
+
+    <!-- ================================================= -->
+    <!-- GRUPOS DE VENTAS POR DÍA -->
+    <!-- ================================================= -->
+
+    <section
+      class="grupo-dia"
+      *ngFor="
+        let grupo of ventasAgrupadas;
+        trackBy: trackByGrupo
+      ">
+
+      <!-- ENCABEZADO DEL DÍA -->
+
+      <header class="grupo-header">
+
+        <div class="grupo-fecha">
+
+          <div class="fecha-icono">
+
+            <ion-icon name="calendar-outline"></ion-icon>
+
+          </div>
+
+          <div>
+
+            <h2>
+              {{ formatearFechaGrupo(grupo.fecha) }}
+            </h2>
+
+            <span>
+              {{ grupo.cantidadVentas }}
+              ventas realizadas
+            </span>
+
+          </div>
+
+        </div>
+
+        <div class="grupo-total">
+
+          <span>
+            Total del día
+          </span>
+
+          <strong>
+            S/ {{ grupo.totalDia | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+      </header>
+
+      <!-- RESUMEN POR MÉTODO DEL DÍA -->
+
+      <div class="resumen-dia">
+
+        <div class="resumen-item">
+
+          <span>Efectivo</span>
+
+          <strong>
+            S/ {{ grupo.totalEfectivo | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+        <div class="resumen-item">
+
+          <span>Yape</span>
+
+          <strong>
+            S/ {{ grupo.totalYape | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+        <div class="resumen-item">
+
+          <span>Plin</span>
+
+          <strong>
+            S/ {{ grupo.totalPlin | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+        <div class="resumen-item">
+
+          <span>Tarjeta</span>
+
+          <strong>
+            S/ {{ grupo.totalTarjeta | number:'1.2-2' }}
+          </strong>
+
+        </div>
+
+      </div>
+
+      <!-- TABLA -->
+
+      <div class="tabla-scroll">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Hora</th>
+
+              <th>Código</th>
+
+              <th>Pedido</th>
+
+              <th>Cliente</th>
+
+              <th>Productos</th>
+
+              <th>Método</th>
+
+              <th>Cajero</th>
+
+              <th>Total</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            <tr
+              *ngFor="
+                let venta of grupo.ventas;
+                trackBy: trackByVenta
+              ">
+
+              <td class="hora-venta">
+
+                {{ formatearHora(venta.fecha) }}
+
+              </td>
+
+              <td>
+
+                <span class="codigo-venta">
+
+                  #{{ obtenerCodigoVenta(venta) }}
+
+                </span>
+
+              </td>
+
+              <td>
+
+                <div class="pedido-info">
+
+                  <strong>
+
+                    {{ obtenerTituloVenta(venta) }}
+
+                  </strong>
+
+                  <small>
+
+                    Atendido por:
+                    {{ venta.mesero || 'Mesero' }}
+
+                  </small>
+
+                </div>
+
+              </td>
+
+              <td>
+
+                <div class="cliente-info">
+
+                  <strong>
+
+                    {{
+                      venta.clienteNombre ||
+                      'Cliente general'
+                    }}
+
+                  </strong>
+
+                  <small
+                    *ngIf="venta.clienteTelefono">
+
+                    {{ venta.clienteTelefono }}
+
+                  </small>
+
+                </div>
+
+              </td>
+
+              <td>
+
+                <span class="cantidad-productos">
+
+                  {{ obtenerCantidadProductos(venta) }}
+
+                </span>
+
+              </td>
+
+              <td>
+
+                <span
+                  class="metodo-pago"
+                  [attr.data-metodo]="venta.metodoPago">
+
+                  {{ venta.metodoPago || 'Sin método' }}
+
+                </span>
+
+              </td>
+
+              <td>
+
+                {{ venta.cajero || 'Cajero' }}
+
+              </td>
+
+              <td class="importe">
+
+                S/ {{ venta.total | number:'1.2-2' }}
+
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+    <!-- ================================================= -->
+    <!-- SIN RESULTADOS -->
+    <!-- ================================================= -->
+
+    <div
+      *ngIf="ventasAgrupadas.length === 0"
+      class="estado-vacio">
+
+      <div class="estado-icono">
+
+        <ion-icon name="receipt-outline"></ion-icon>
+
+      </div>
+
+      <h3>
+        No se encontraron ventas
+      </h3>
+
+      <p>
+        Modifica las fechas o limpia los filtros para mostrar más resultados.
+      </p>
+
+    </div>
+
+  </main>
+
 </ion-content>
