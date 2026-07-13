@@ -6,9 +6,14 @@
 
     <div class="header-content">
       <div class="breadcrumb">
-        <span class="muted">Pollería Dylan</span> / <strong>Reportes</strong>
+        <span class="muted">Pollería Dylan</span>
+        <span>/</span>
+        <strong>Reportes</strong>
       </div>
-      <div class="date-display">{{ fechaActual }}</div>
+
+      <div class="date-display">
+        {{ fechaActual }}
+      </div>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -16,23 +21,70 @@
 <ion-content class="page-bg">
   <div class="main-container">
 
+    <!-- =====================================================
+         FILTROS Y ACCIONES
+    ====================================================== -->
+
     <div class="action-toolbar">
       <div class="filter-chips">
         <button
+          type="button"
           *ngFor="let rango of rangosTiempo"
           class="chip"
-          [ngClass]="{ 'active': rangoSeleccionado === rango }"
-          (click)="seleccionarRango(rango)"
-        >
+          [class.active]="rangoSeleccionado === rango"
+          [disabled]="cargando"
+          (click)="seleccionarRango(rango)">
           {{ rango }}
         </button>
       </div>
 
-      <button class="btn-outline outline-dark export-btn" (click)="exportarPDF()">
+      <button
+        type="button"
+        class="btn-outline outline-dark export-btn"
+        [disabled]="cargando || !reporteGenerado"
+        (click)="exportarPDF()">
         <ion-icon name="download-outline"></ion-icon>
         Exportar PDF
       </button>
     </div>
+
+    <!-- =====================================================
+         RANGO PERSONALIZADO
+    ====================================================== -->
+
+    <div class="custom-range-card">
+      <div class="range-field">
+        <label for="fechaInicio">Desde</label>
+        <input
+          id="fechaInicio"
+          name="fechaInicio"
+          type="date"
+          [(ngModel)]="filtros.fechaInicio"
+          [disabled]="cargando">
+      </div>
+
+      <div class="range-field">
+        <label for="fechaFin">Hasta</label>
+        <input
+          id="fechaFin"
+          name="fechaFin"
+          type="date"
+          [(ngModel)]="filtros.fechaFin"
+          [disabled]="cargando">
+      </div>
+
+      <button
+        type="button"
+        class="btn-generate"
+        [disabled]="cargando"
+        (click)="generarReporte()">
+        {{ cargando ? 'Generando...' : 'Generar reporte' }}
+      </button>
+    </div>
+
+    <!-- =====================================================
+         KPIs
+    ====================================================== -->
 
     <div class="kpi-status-row">
       <div class="status-card">
@@ -40,7 +92,9 @@
         <div class="kpi-amount text-purple">
           S/ {{ kpis.totalIngresos | number:'1.2-2' }}
         </div>
-        <div class="kpi-subtext text-muted">Según rango seleccionado</div>
+        <div class="kpi-subtext text-muted">
+          Según rango seleccionado
+        </div>
       </div>
 
       <div class="status-card">
@@ -48,7 +102,9 @@
         <div class="kpi-amount text-purple">
           {{ kpis.totalPedidos }}
         </div>
-        <div class="kpi-subtext text-muted">Ventas registradas</div>
+        <div class="kpi-subtext text-muted">
+          Ventas registradas
+        </div>
       </div>
 
       <div class="status-card">
@@ -56,7 +112,9 @@
         <div class="kpi-amount text-purple">
           S/ {{ kpis.ticketPromedio | number:'1.2-2' }}
         </div>
-        <div class="kpi-subtext text-muted">Por pedido</div>
+        <div class="kpi-subtext text-muted">
+          Por pedido
+        </div>
       </div>
 
       <div class="status-card">
@@ -64,21 +122,43 @@
         <div class="kpi-amount text-purple">
           {{ metodosPagoDisplay.length }}
         </div>
-        <div class="kpi-subtext text-muted">Formas de pago</div>
+        <div class="kpi-subtext text-muted">
+          Formas de pago
+        </div>
       </div>
     </div>
+
+    <!-- =====================================================
+         ESTADO DE CARGA / SIN DATOS
+    ====================================================== -->
 
     <div *ngIf="cargando" class="loading-box">
       Generando reporte...
     </div>
 
+    <div
+      *ngIf="!cargando && reporteGenerado && kpis.totalPedidos === 0"
+      class="empty-report">
+      No existen ventas para el rango seleccionado.
+    </div>
+
+    <!-- =====================================================
+         GRÁFICOS
+    ====================================================== -->
+
     <div class="charts-grid" *ngIf="!cargando">
 
-      <!-- VENTAS MENSUALES -->
+      <!-- ===================================================
+           VENTAS MENSUALES
+      ==================================================== -->
+
       <div class="chart-card">
         <h4>Ventas mensuales</h4>
 
-        <div class="bar-chart-container" *ngIf="ventasMensuales.length > 0; else sinVentasMensuales">
+        <div
+          class="bar-chart-container"
+          *ngIf="ventasMensuales.length > 0; else sinVentasMensuales">
+
           <div class="y-axis">
             <span>100%</span>
             <span>75%</span>
@@ -88,146 +168,247 @@
           </div>
 
           <div class="bar-area">
-            <div class="bar-group" *ngFor="let venta of ventasMensuales">
-              <div
-                class="bar purple"
-                [style.height.%]="
-                  kpis.totalIngresos > 0
-                    ? ((venta.total / kpis.totalIngresos) * 100)
-                    : 0
-                "
-              ></div>
-              <span class="x-label">{{ venta.mes }}</span>
+            <div
+              class="bar-group monthly-group"
+              *ngFor="let venta of ventasMensuales">
+
+              <div class="monthly-bars">
+                <div
+                  class="bar purple"
+                  [style.height.%]="venta.porcentajeTotal"
+                  [attr.title]="
+                    venta.mes +
+                    ' · Ventas: S/ ' +
+                    (venta.total | number:'1.2-2')
+                  ">
+                </div>
+
+                <div
+                  class="bar purple-light"
+                  [style.height.%]="venta.porcentajePedidos"
+                  [attr.title]="
+                    venta.mes +
+                    ' · Pedidos: ' +
+                    venta.pedidos
+                  ">
+                </div>
+              </div>
+
+              <span class="x-label">
+                {{ venta.mes }}
+              </span>
             </div>
           </div>
         </div>
 
         <ng-template #sinVentasMensuales>
-          <div class="empty-chart">No hay ventas mensuales registradas.</div>
+          <div class="empty-chart">
+            No hay ventas mensuales registradas.
+          </div>
         </ng-template>
 
         <div class="chart-legend justify-center">
           <span class="legend-item">
-            <div class="dot purple"></div>
+            <span class="dot purple"></span>
             Ventas
           </span>
+
           <span class="legend-item">
-            <div class="dot purple-light"></div>
+            <span class="dot purple-light"></span>
             Pedidos
           </span>
         </div>
       </div>
 
-      <!-- MÉTODO DE PAGO -->
+      <!-- ===================================================
+           MÉTODOS DE PAGO
+      ==================================================== -->
+
       <div class="chart-card">
-        <h4>Método de pago</h4>
+        <h4>Métodos de pago</h4>
 
-        <div class="donut-chart-container">
-          <div class="donut"></div>
-        </div>
+        <div
+          class="payment-summary"
+          *ngIf="metodosPagoDisplay.length > 0; else sinMetodosPago">
 
-        <div class="chart-legend vertical">
-          <div class="legend-row" *ngFor="let metodo of metodosPagoDisplay; let i = index">
-            <span class="legend-item">
-              <div class="dot" [ngClass]="coloresMetodo[i % coloresMetodo.length]"></div>
-              {{ metodo.nombre }}
-            </span>
+          <div
+            class="payment-item"
+            *ngFor="let metodo of metodosPagoDisplay">
 
-            <span class="legend-value">
-              {{ calcularPorcentajePago(metodo.monto) }}%
-            </span>
-          </div>
+            <div class="payment-header">
+              <span class="legend-item">
+                <span
+                  class="dot"
+                  [ngClass]="metodo.color">
+                </span>
 
-          <div class="legend-row" *ngIf="metodosPagoDisplay.length === 0">
-            <span class="text-muted">No hay datos de pago aún.</span>
-          </div>
-        </div>
-      </div>
+                {{ metodo.nombre }}
+              </span>
 
-      <!-- VENTAS AM VS PM -->
-      <div class="chart-card">
-        <h4>Ventas AM vs PM</h4>
+              <strong>{{ metodo.porcentaje }}%</strong>
+            </div>
 
-        <div class="line-chart-container" *ngIf="ventasAmPm.length > 0; else sinVentasAmPm">
-          <div class="y-axis">
-            <span>AM</span>
-            <span>PM</span>
-            <span>0</span>
-          </div>
+            <div class="payment-meta">
+              <span>
+                {{ metodo.transacciones }}
+                {{ metodo.transacciones === 1 ? 'transacción' : 'transacciones' }}
+              </span>
 
-          <div class="line-area real-line-area">
-            <div class="ampm-bars" *ngFor="let dia of ventasAmPm">
-              <div class="ampm-day">
-                <div class="ampm-values">
-                  <div
-                    class="ampm-bar orange"
-                    [style.height.%]="
-                      kpis.totalIngresos > 0
-                        ? ((dia.am / kpis.totalIngresos) * 100)
-                        : 0
-                    "
-                    title="AM"
-                  ></div>
+              <span>
+                S/ {{ metodo.monto | number:'1.2-2' }}
+              </span>
+            </div>
 
-                  <div
-                    class="ampm-bar purple"
-                    [style.height.%]="
-                      kpis.totalIngresos > 0
-                        ? ((dia.pm / kpis.totalIngresos) * 100)
-                        : 0
-                    "
-                    title="PM"
-                  ></div>
-                </div>
-
-                <span>{{ dia.dia }}</span>
+            <div class="payment-track">
+              <div
+                class="payment-fill"
+                [ngClass]="metodo.color"
+                [style.width.%]="metodo.porcentaje">
               </div>
             </div>
           </div>
         </div>
 
+        <ng-template #sinMetodosPago>
+          <div class="empty-chart">
+            No hay métodos de pago registrados.
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- ===================================================
+           VENTAS AM VS PM
+      ==================================================== -->
+
+      <div class="chart-card">
+        <div class="chart-title-row">
+          <h4>Ventas AM vs PM</h4>
+
+          <div class="ampm-totals">
+            <span>
+              AM:
+              <strong>
+                S/ {{ totalVentasAm | number:'1.2-2' }}
+              </strong>
+            </span>
+
+            <span>
+              PM:
+              <strong>
+                S/ {{ totalVentasPm | number:'1.2-2' }}
+              </strong>
+            </span>
+          </div>
+        </div>
+
+        <div
+          class="ampm-chart-container"
+          *ngIf="ventasAmPm.length > 0; else sinVentasAmPm">
+
+          <div class="y-axis">
+            <span>100%</span>
+            <span>75%</span>
+            <span>50%</span>
+            <span>25%</span>
+            <span>0</span>
+          </div>
+
+          <div class="ampm-chart-area">
+            <div
+              class="ampm-day"
+              *ngFor="let dia of ventasAmPm">
+
+              <div class="ampm-values">
+                <div
+                  class="ampm-bar orange"
+                  [style.height.%]="dia.am"
+                  [attr.title]="
+                    dia.dia +
+                    ' AM: S/ ' +
+                    (dia.montoAm | number:'1.2-2')
+                  ">
+                </div>
+
+                <div
+                  class="ampm-bar purple"
+                  [style.height.%]="dia.pm"
+                  [attr.title]="
+                    dia.dia +
+                    ' PM: S/ ' +
+                    (dia.montoPm | number:'1.2-2')
+                  ">
+                </div>
+              </div>
+
+              <span class="ampm-label">
+                {{ dia.dia }}
+              </span>
+            </div>
+          </div>
+        </div>
+
         <ng-template #sinVentasAmPm>
-          <div class="empty-chart">No hay ventas AM/PM registradas.</div>
+          <div class="empty-chart">
+            No hay ventas AM/PM registradas.
+          </div>
         </ng-template>
 
         <div class="chart-legend justify-center mt-10">
           <span class="legend-item">
-            <div class="circle border-orange"></div>
+            <span class="circle border-orange"></span>
             AM
           </span>
+
           <span class="legend-item">
-            <div class="circle border-purple"></div>
+            <span class="circle border-purple"></span>
             PM
           </span>
         </div>
       </div>
 
-      <!-- PRODUCTOS MÁS VENDIDOS -->
+      <!-- ===================================================
+           PRODUCTOS MÁS VENDIDOS
+      ==================================================== -->
+
       <div class="chart-card">
         <h4>Productos más vendidos</h4>
 
-        <div class="progress-list" *ngIf="topProductos.length > 0; else sinProductos">
-          <div class="progress-item" *ngFor="let prod of topProductos">
+        <div
+          class="progress-list"
+          *ngIf="topProductos.length > 0; else sinProductos">
+
+          <div
+            class="progress-item"
+            *ngFor="let producto of topProductos">
+
             <div class="progress-header">
-              <span class="prod-name">{{ prod.nombre }}</span>
-              <span class="prod-value">{{ prod.cantidad }} uds</span>
+              <span
+                class="prod-name"
+                [attr.title]="producto.nombreOriginal">
+                {{ producto.nombre }}
+              </span>
+
+              <span class="prod-value">
+                {{ producto.cantidad }} uds
+              </span>
             </div>
 
             <div class="progress-track">
               <div
                 class="progress-fill purple"
-                [style.width.%]="prod.porcentaje"
-              ></div>
+                [style.width.%]="producto.porcentaje">
+              </div>
             </div>
           </div>
         </div>
 
         <ng-template #sinProductos>
-          <div class="empty-chart">No hay productos vendidos aún.</div>
+          <div class="empty-chart">
+            No hay productos vendidos aún.
+          </div>
         </ng-template>
       </div>
 
     </div>
-
   </div>
 </ion-content>

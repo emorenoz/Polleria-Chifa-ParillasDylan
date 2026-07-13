@@ -489,9 +489,9 @@
           <button
             type="button"
             *ngFor="let dia of diasSemana"
-            [class.active]="config.diasDescanso?.includes(dia)"
+            [class.active]="config.diasDescanso.includes(dia)"
             [disabled]="guardando || cargando"
-            [attr.aria-pressed]="config.diasDescanso?.includes(dia)"
+            [attr.aria-pressed]="config.diasDescanso.includes(dia)"
             (click)="toggleDiaDescanso(dia)">
 
             {{ dia }}
