@@ -3,6 +3,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
+import { ViewWillEnter } from '@ionic/angular'; // <-- IMPORTACIÓN AGREGADA
 
 import {
   Firestore,
@@ -92,12 +93,13 @@ export interface Mesa {
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss']
 })
-export class DashboardPage implements OnInit, OnDestroy {
+export class DashboardPage implements OnInit, OnDestroy, ViewWillEnter { // <-- INTERFAZ AGREGADA
 
   private firestore: Firestore = inject(Firestore);
   private router: Router = inject(Router);
 
-  nombreMesero: string = 'Carlos Ramos';
+  // 👇 VARIABLE LIMPIADA PARA QUE NO ESTÉ "QUEMADA"
+  nombreMesero: string = ''; 
   horaActual: string = new Date().toLocaleTimeString();
 
   enviandoCocina: boolean = false;
@@ -145,6 +147,17 @@ export class DashboardPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initFirebaseRealtime();
     this.iniciarReloj();
+  }
+
+  // 👇 MÉTODO AGREGADO PARA CARGAR EL NOMBRE CADA VEZ QUE SE ENTRA A LA VISTA
+  ionViewWillEnter(): void {
+    const nombreGuardado = localStorage.getItem('usuarioNombre');
+    
+    if (nombreGuardado) {
+      this.nombreMesero = nombreGuardado;
+    } else {
+      this.nombreMesero = 'Mesero no identificado';
+    }
   }
 
   ngOnDestroy(): void {

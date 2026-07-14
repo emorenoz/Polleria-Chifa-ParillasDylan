@@ -7,7 +7,7 @@ import {
 
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular'; // <-- AÑADIDO ViewWillEnter
 import { Router } from '@angular/router';
 
 import {
@@ -32,7 +32,7 @@ import { Subscription } from 'rxjs';
     IonicModule
   ]
 })
-export class DashboardPage implements OnInit, OnDestroy {
+export class DashboardPage implements OnInit, OnDestroy, ViewWillEnter { // <-- AÑADIDO ViewWillEnter
 
   // =====================================================
   // SERVICIOS
@@ -45,10 +45,8 @@ export class DashboardPage implements OnInit, OnDestroy {
   // DATOS DEL COCINERO
   // =====================================================
 
-  nombreCocinero: string =
-    localStorage.getItem('nombreUsuario') ||
-    localStorage.getItem('nombreCocinero') ||
-    'Juan Moreno';
+  // 👇 VARIABLE INICIALIZADA VACÍA PARA QUE SE LLENE AL ENTRAR A LA VISTA
+  nombreCocinero: string = '';
 
   // =====================================================
   // VARIABLES GENERALES
@@ -85,6 +83,19 @@ export class DashboardPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.cargarDatos();
     this.iniciarReloj();
+  }
+
+  // 👇 NUEVO MÉTODO: SE EJECUTA CADA VEZ QUE SE ENTRA A ESTA PANTALLA
+  ionViewWillEnter(): void {
+    const nombreGuardado =
+      localStorage.getItem('usuarioNombre') ||
+      localStorage.getItem('nombreCocinero');
+
+    if (nombreGuardado) {
+      this.nombreCocinero = nombreGuardado;
+    } else {
+      this.nombreCocinero = 'Personal de Cocina';
+    }
   }
 
   ngOnDestroy(): void {
